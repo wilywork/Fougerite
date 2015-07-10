@@ -49,7 +49,7 @@ namespace Fougerite.Events
         {
             get
             {
-                if (Fougerite.Server.Cache[_cc.UserID] != null)
+                if (Fougerite.Server.Cache.ContainsKey(_cc.UserID))
                 {
                     return Fougerite.Server.Cache[_cc.UserID].IsOnline;
                 }

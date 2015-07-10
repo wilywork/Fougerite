@@ -111,8 +111,18 @@ namespace Fougerite
                 Array.Copy(args, 1, cargs, 0, cargs.Length);
                 if (OnCommand != null)
                 {
+                    var player = Fougerite.Server.Cache[arg.argUser.playerClient.userID];
+                    if (Fougerite.Server.CommandCancelList.ContainsKey(player))
+                    {
+                        var list = Fougerite.Server.CommandCancelList[player];
+                        if (list.Contains(command))
+                        {
+                            player.Message("You cannot execute " + command + " at the moment!");
+                            return;
+                        }
+                    }
                     //OnCommand(Fougerite.Player.FindByPlayerClient(arg.argUser.playerClient), command, cargs);
-                    OnCommand(Fougerite.Server.Cache[arg.argUser.playerClient.userID], command, cargs);
+                    OnCommand(player, command, cargs);
                 }
 
             }
@@ -457,6 +467,10 @@ namespace Fougerite
             try
             {
                 HurtEvent he = new HurtEvent(ref e);
+                if (OnPlayerHurt != null)
+                {
+                    OnPlayerHurt(he);
+                }
                 if (!(he.Attacker is NPC) && !(he.Victim is NPC))
                 {
                     Fougerite.Player attacker = he.Attacker as Fougerite.Player;
@@ -478,11 +492,9 @@ namespace Fougerite
                         return;
                     }
                 }
-                if (OnPlayerHurt != null)
-                    OnPlayerHurt(he);
                 e = he.DamageEvent;
             }
-            catch { }
+            catch(Exception ex) { Logger.LogDebug("Player HURT EXCEPTION: " + ex);}
         }
 
         public static bool PlayerKilled(ref DamageEvent de)
@@ -698,22 +710,10 @@ namespace Fougerite
 
         public static void Airdrop(Vector3 pos)
         {
-            /*
-            Vector3 vector3_1 = targetPos;
-            float num = 20f * NetCull.LoadPrefab("C130").GetComponent<SupplyDropPlane>().maxSpeed;
-            Vector3 vector3_2 = vector3_1 + SupplyDropZone.RandomDirectionXZ() * num;
-            Vector3 pos = vector3_1 + new Vector3(0.0f, 300f, 0.0f);
-            Vector3 position = vector3_2 + new Vector3(0.0f, 400f, 0.0f);
-            Quaternion rotation = Quaternion.LookRotation((pos - position).normalized);
-            int group = 0;
-            NetCull.InstantiateClassic("C130", position, rotation, group).GetComponent<SupplyDropPlane>().SetDropTarget(pos);
-             * */
-            Logger.Log("Worked! " + pos);
             if (OnAirdropCalled != null)
             {
                 OnAirdropCalled(pos);
             }
-            Logger.Log("Worked2! " + pos);
         }
 
         public static void SteamDeny(ClientConnection cc, NetworkPlayerApproval approval, string strReason, NetError errornum)
@@ -768,13 +768,13 @@ namespace Fougerite
                 {
                     if (!srv.IsBannedIP(ip))
                     {
-                        srv.BanPlayerIP(ip, name + "-Console");
+                        srv.BanPlayerIP(ip, name + "-Console", "IP is not banned");
                         Logger.LogDebug("[FougeriteBan] Detected banned ID, but IP is not banned: "
                             + name + " - " + ip + " - " + uid);
                     }
                     if (!srv.IsBannedID(uid.ToString()))
                     {
-                        srv.BanPlayerID(uid.ToString(), name + "-Console");
+                        srv.BanPlayerID(uid.ToString(), name + "-Console", "ID is not banned");
                         Logger.LogDebug("[FougeriteBan] Detected banned IP, but ID is not banned: "
                             + name + " - " + ip + " - " + uid);
                     }
@@ -788,8 +788,12 @@ namespace Fougerite
                 {
                     PlayerApprovalEvent ape = new PlayerApprovalEvent(ca, approval, clientConnection, true);
                     if (OnPlayerApproval != null) { OnPlayerApproval(ape); }
-                    if (ape.ForceAccept && !ape.ServerHasPlayer)
+                    if (ape.ForceAccept)
                     {
+                        if (Fougerite.Server.Cache.ContainsKey(clientConnection.UserID) && !ape.ServerHasPlayer)
+                        {
+                            Fougerite.Server.Cache[clientConnection.UserID].Disconnect();
+                        }
                         Accept(ca, approval, clientConnection);
                         return;
                     }

@@ -352,9 +352,9 @@ namespace JintPlugin
             }
             File.AppendAllText(path, "[" + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToString("HH:mm:ss") + "] " + text + "\r\n");
             FileInfo fi = new FileInfo(path);
-            float mega = (fi.Length / 1024f) / 1024f;
             if (fi.Exists)
             {
+                float mega = (fi.Length / 1024f) / 1024f;
                 if (mega > 1.0)
                 {
                     try
@@ -506,6 +506,16 @@ namespace JintPlugin
             return POSIX.Time.ElapsedStampSince(when);
         }
 
+        public List<string> CreateList()
+        {
+            return new List<string>();
+        }
+
+        public Dictionary<string, object> CreateDict()
+        {
+            return new Dictionary<string, object>();
+        }
+
         #endregion
 
         #region Web
@@ -558,15 +568,6 @@ namespace JintPlugin
 
         public void OnCommand(Player player, string command, string[] args)
         {
-            if (Fougerite.Server.CommandCancelList.ContainsKey(player))
-            {
-                var list = Fougerite.Server.CommandCancelList[player];
-                if (list.Contains(command))
-                {
-                    player.Message("You cannot execute " + command + " at the moment!");
-                    return;
-                }
-            }
             if (CommandList.Count != 0 && !CommandList.Contains(command) && !Fougerite.Server.ForceCallForCommands.Contains(command)) { return; }
             Invoke("On_Command", player, command, args);
         }

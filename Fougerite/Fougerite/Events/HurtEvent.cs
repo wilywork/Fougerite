@@ -55,7 +55,8 @@
                 }
                 else if (d.victim.client != null)
                 {
-                    this.Victim = Fougerite.Server.Cache[d.victim.client.userID];
+                    if (!Fougerite.Server.Cache.ContainsKey(d.victim.client.userID)) { this.Victim = Fougerite.Player.FindByPlayerClient(d.attacker.client); }
+                    else { this.Victim = Fougerite.Server.Cache[d.victim.client.userID]; }
                     this._playervictim = true;
                 }
                 else if (d.victim.character != null)
@@ -86,8 +87,8 @@
                 }
                 else if (d.attacker.id is Metabolism && d.victim.id is Metabolism)
                 {
-                    //this.Attacker = Fougerite.Server.Cache[d.attacker.client.userID];
-                    this.Attacker = Fougerite.Player.FindByPlayerClient(d.attacker.client);
+                    if (!Fougerite.Server.Cache.ContainsKey(d.attacker.client.userID)) { this.Attacker = Fougerite.Player.FindByPlayerClient(d.attacker.client); }
+                    else { this.Attacker = Fougerite.Server.Cache[d.attacker.client.userID]; }
                     this._playerattacker = false;
                     this.Victim = this.Attacker;
                     ICollection<string> list = new List<string>();
@@ -99,13 +100,6 @@
                     if (vic.IsRadPoisoned)
                     {
                         list.Add("Radiation");
-                        /*if (vic.RadLevel > 5000)
-                        {
-                            vic.AddRads(-vic.RadLevel);
-                            d.amount = 0;
-                            _de.amount = 0;
-                            Logger.LogDebug("[RadiationHack] Someone tried to kill " + vic.Name + " with radiation hacks.");
-                        }*/
                     }
                     if (vic.IsPoisoned)
                     {
@@ -132,7 +126,8 @@
                 }
                 else if (d.attacker.client != null)
                 {
-                    this.Attacker = Fougerite.Server.Cache[d.attacker.client.userID];
+                    if (!Fougerite.Server.Cache.ContainsKey(d.attacker.client.userID)) {this.Attacker = Fougerite.Player.FindByPlayerClient(d.attacker.client);}
+                    else {this.Attacker = Fougerite.Server.Cache[d.attacker.client.userID];}
                     this._playerattacker = true;
                     if (d.extraData != null)
                     {

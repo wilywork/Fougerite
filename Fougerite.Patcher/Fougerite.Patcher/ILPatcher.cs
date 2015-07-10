@@ -32,33 +32,63 @@ namespace Fougerite.Patcher
             MethodDefinition think = data.GetMethod("Think");
             MethodDefinition update = type.GetMethod("Update");
 
+            Instruction y = null;
+            foreach (Instruction x in think.Body.Instructions)
+            {
+                if (x.ToString().Contains("LogException"))
+                {
+                    y = x;
+                }
+            }
+            think.Body.Instructions.Remove(y);
+
             TypeDefinition logger = fougeriteAssembly.MainModule.GetType("Fougerite.Logger");
             MethodDefinition logex = logger.GetMethod("LogException");
 
             WrapMethod(update, logex, rustAssembly, false);
-            WrapMethod(think, logex, rustAssembly, false);
+            //WrapMethod(think, logex, rustAssembly, false);
         }
 
         private void uLinkLateUpdateInTryCatch()
         {
             AssemblyDefinition ulink = AssemblyDefinition.ReadAssembly("uLink.dll");
             TypeDefinition type = ulink.MainModule.GetType("uLink.InternalHelper");
+            TypeDefinition Class56 = ulink.MainModule.GetType("Class56");
+            MethodDefinition method_22 = Class56.GetMethod("method_22");
+            MethodDefinition method_25 = Class56.GetMethod("method_25");
+            //MethodDefinition method_44 = Class56.GetMethod("method_44");
             MethodDefinition update = type.GetMethod("LateUpdate");
 
             TypeDefinition logger = fougeriteAssembly.MainModule.GetType("Fougerite.Logger");
             MethodDefinition logex = logger.GetMethod("LogException");
 
             WrapMethod(update, logex, ulink, false);
-
+            WrapMethod(method_22, logex, ulink, false);
+            WrapMethod(method_25, logex, ulink, false);
+            //WrapMethod(method_44, logex, ulink, false);
             ulink.Write("uLink.dll");
         }
 
         private void LatePostInTryCatch()
         {
+            AssemblyDefinition ulink = AssemblyDefinition.ReadAssembly("uLink.dll");
+            TypeDefinition Class56 = ulink.MainModule.GetType("Class56");
+            MethodDefinition method_22 = Class56.GetMethod("method_22");
+            MethodDefinition method_25 = Class56.GetMethod("method_25");
+            //MethodDefinition method_44 = Class56.GetMethod("method_44");
+            method_22.SetPublic(true);
+            method_25.SetPublic(true);
+            //method_44.SetPublic(true);
+
+            ulink.Write("uLink.dll");
+
             TypeDefinition type = rustAssembly.MainModule.GetType("NetCull");
             TypeDefinition type2 = type.GetNestedType("Callbacks");
             MethodDefinition def = type2.GetMethod("FirePreUpdate");
+            MethodDefinition def2 = type2.GetMethod("FirePostUpdate");
             def.SetPublic(true);
+            def2.SetPublic(true);
+            rustAssembly.Write("Assembly-CSharp.dll");
         }
 
         private void LatePostInTryCatch2()
@@ -75,6 +105,35 @@ namespace Fougerite.Patcher
                 }
             }
             def.Body.Instructions.Remove(y);
+
+            MethodDefinition def2 = type2.GetMethod("FirePostUpdate");
+            Instruction y2 = null;
+            foreach (Instruction x in def.Body.Instructions)
+            {
+                if (x.ToString().Contains("LogException"))
+                {
+                    y2 = x;
+                }
+            }
+            def2.Body.Instructions.Remove(y2);
+        }
+        
+        private void UpdateDelegatePatch()
+        {
+            TypeDefinition NetCull = rustAssembly.MainModule.GetType("NetCull");
+            TypeDefinition Callbacks = NetCull.GetNestedType("Callbacks");
+            TypeDefinition UpdateDelegate = Callbacks.GetNestedType("UpdateDelegate");
+            MethodDefinition Invoke = UpdateDelegate.GetMethod("Invoke");
+            Instruction y = null;
+            foreach (Instruction x in Invoke.Body.Instructions)
+            {
+                if (x.ToString().Contains("LogException"))
+                {
+                    y = x;
+                }
+            }
+            Invoke.Body.Instructions.Remove(y);
+            rustAssembly.Write("Assembly-CSharp.dll");
         }
 
         private void ResearchPatch()
@@ -137,13 +196,13 @@ namespace Fougerite.Patcher
 
             TypeDefinition BasicDoor = rustAssembly.MainModule.GetType("BasicDoor");
             BasicDoor.GetField("state").SetPublic(true);
-            /*foreach (MethodDefinition met in BasicDoor.Methods)
+            foreach (MethodDefinition met in BasicDoor.Methods)
             {
                 if (met.Name.Equals("ToggleStateServer"))
                 {
                     met.SetPublic(true);
                 }
-            }*/
+            }
 
             /*TypeDefinition Inventory = rustAssembly.MainModule.GetType("Inventory");
             TypeDefinition SlotOperationsInfo = Inventory.GetNestedType("SlotOperationsInfo").;
@@ -303,12 +362,14 @@ namespace Fougerite.Patcher
             TypeDefinition SupplyDropZone = rustAssembly.MainModule.GetType("SupplyDropZone");
             MethodDefinition CallAirDropAt = SupplyDropZone.GetMethod("CallAirDropAt");
             this.CloneMethod(CallAirDropAt);
+
+            int Position = CallAirDropAt.Body.Instructions.Count - 1;
+
             MethodDefinition method = hooksClass.GetMethod("Airdrop");
             ILProcessor iLProcessor = CallAirDropAt.Body.GetILProcessor();
-            iLProcessor.InsertBefore(CallAirDropAt.Body.Instructions[0],
+            iLProcessor.InsertBefore(CallAirDropAt.Body.Instructions[Position],
                 Instruction.Create(OpCodes.Callvirt, this.rustAssembly.MainModule.Import(method)));
-            Logger.Log(CallAirDropAt.Body.Method.Parameters[0].ToString());
-            iLProcessor.InsertBefore(CallAirDropAt.Body.Instructions[0], Instruction.Create(OpCodes.Ldarg_0));
+            iLProcessor.InsertBefore(CallAirDropAt.Body.Instructions[Position], Instruction.Create(OpCodes.Ldloc_S, CallAirDropAt.Body.Variables[0]));
             //iLProcessor.InsertBefore(CallAirDropAt.Body.Instructions[0], Instruction.Create(OpCodes.Ldarg, CallAirDropAt.Body.Method.Parameters[0]));
             //iLProcessor.InsertBefore(CallAirDropAt.Body.Instructions[0], Instruction.Create(method.Parameters[0]));
 
@@ -354,15 +415,14 @@ namespace Fougerite.Patcher
 
             TypeDefinition Object = Unity.MainModule.GetType("UnityEngine.Object");
             MethodDefinition d = Object.GetMethod("FindObjectOfType");
-            Logger.Log(d.Parameters.ToString());
+            //Logger.Log(d.Parameters.ToString());
             foreach (MethodDefinition f in allmethods)
             {
                 if (f.Name.Equals("RaycastAll"))
                 {
-                    //WrapMethodNull(f, logex, Unity, false);
+                    WrapMethod(f, logex, Unity, false);
                 }
             }
-            //WrapMethodReturnNull(d, logex, Unity, false);
             Unity.Write("UnityEngine.dll");
         }
 
@@ -772,7 +832,8 @@ namespace Fougerite.Patcher
         {
             Logger.Log("Prepraching LatePost method...");
             this.LatePostInTryCatch();
-            rustAssembly.Write("Assembly-CSharp.dll");
+            Logger.Log("Prepatching UpdateDelegate");
+            this.UpdateDelegatePatch();
             Logger.Log("Success! Patching other methods...");
             try
             {
@@ -826,8 +887,8 @@ namespace Fougerite.Patcher
                     this.HumanControllerPatch();
                     this.SupplyCratePatch();
                     this.LatePostInTryCatch2();
-                    //this.RayCastPatch();
                     this.ResearchPatch();
+                    //this.RayCastPatch();
                 }
                 catch (Exception ex)
                 {

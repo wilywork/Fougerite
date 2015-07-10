@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace Fougerite
 {
@@ -20,6 +21,7 @@ namespace Fougerite
 
         public void LookForRustPP()
         {
+            if (HRustPP) { return; }
             foreach (ModuleContainer m in ModuleManager.Modules)
             {
                 if (m.Plugin.Name.Equals("RustPP"))
@@ -49,24 +51,28 @@ namespace Fougerite
             ini.AddSetting("Ids", player.SteamID, player.Name);
             ini.AddSetting("NameIps", player.Name, player.IP);
             ini.AddSetting("NameIds", player.Name, player.SteamID);
-            ini.AddSetting("AdminWhoBanned", player.Name, Banner);
+            ini.AddSetting("AdminWhoBanned", player.Name, Banner + "-" + reason);
             ini.Save();
             player.Message(red + " " + reason);
             player.Message(red + " Banned by: " + Banner);
             player.Disconnect();
         }
 
-        public void BanPlayerIP(string ip, string name = "1")
+        public void BanPlayerIP(string ip, string name = "1", string reason = "You were banned.")
         {
             IniParser ini = GlobalBanList;
             ini.AddSetting("Ips", ip, name);
+            if (!name.Equals("1")) {ini.AddSetting("NameIps", name.Split(Convert.ToChar("-"))[0], ip);}
+            ini.AddSetting("AdminWhoBanned", name + "-" + reason);
             ini.Save();
         }
 
-        public void BanPlayerID(string id, string name = "1")
+        public void BanPlayerID(string id, string name = "1", string reason = "You were banned.")
         {
             IniParser ini = GlobalBanList;
             ini.AddSetting("Ids", id, name);
+            if (!name.Equals("1")) {ini.AddSetting("NameIds", name.Split(Convert.ToChar("-"))[0], id);}
+            ini.AddSetting("AdminWhoBanned", name + "-" + reason);
             ini.Save();
         }
 
@@ -301,14 +307,7 @@ namespace Fougerite
 
         public bool HasRustPP 
         {
-            get
-            {
-                if (HRustPP)
-                {
-                    return true;
-                }
-                return false;
-            }
+            get { return HRustPP; }
         }
 
         public RustPPExtension GetRustPPAPI()

@@ -80,43 +80,32 @@ namespace RustPP
 
         public static bool IsFriend(HurtEvent e) // ref
         {
-            //Server.GetServer().Broadcast("1");
             GodModeCommand command = (GodModeCommand)ChatCommand.GetCommand("god");
-            //Server.GetServer().Broadcast("2");
-            //Server.GetServer().Broadcast("2 " + command.IsOn(e.victim.userID));
-            Fougerite.Player victim = Fougerite.Server.Cache[e.DamageEvent.victim.userID];
+            Fougerite.Player victim = e.Victim as Fougerite.Player;
             if (victim != null)
             {
                 if (command.IsOn(victim.UID))
                 {
-                    //Server.GetServer().Broadcast("3");
                     return true;
                 }
-                //Server.GetServer().Broadcast("4");
-                Fougerite.Player attacker = Fougerite.Server.Cache[e.DamageEvent.attacker.userID];
+                Fougerite.Player attacker = e.Attacker as Fougerite.Player;
                 if (attacker != null)
                 {
                     FriendsCommand command2 = (FriendsCommand) ChatCommand.GetCommand("friends");
                     bool b = Core.config.GetBoolSetting("Settings", "friendly_fire");
-                    //Server.GetServer().Broadcast("5 " + b);
                     try
                     {
-                        //Server.GetServer().Broadcast("6");
                         FriendList list = (FriendList) command2.GetFriendsLists()[attacker.UID];
-                        //Server.GetServer().Broadcast("7 " + list);
                         if (list == null || b ||
                             (DataStore.GetInstance().ContainsKey("HGIG", attacker.SteamID)
                              && DataStore.GetInstance().ContainsKey("HGIG", victim.SteamID)))
                         {
-                            //Server.GetServer().Broadcast("8");
                             return false;
                         }
-                        //Server.GetServer().Broadcast("9");
                         return list.isFriendWith(victim.UID);
                     }
                     catch
                     {
-                        //Server.GetServer().Broadcast("end");
                         return command.IsOn(victim.UID);
                     }
                 }

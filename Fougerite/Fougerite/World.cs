@@ -1,4 +1,6 @@
-﻿namespace Fougerite
+﻿
+
+namespace Fougerite
 {
     using Facepunch;
     using System;

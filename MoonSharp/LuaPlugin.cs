@@ -66,6 +66,7 @@ namespace MoonSharpModule
             }
             catch (Exception ex)
             {
+                Fougerite.Logger.LogError("Error in plugin " + Name + ":");
                 Fougerite.Logger.LogError("Invoke failed: " + ex.ToString());
             }
         }
@@ -303,9 +304,9 @@ namespace MoonSharpModule
 
             File.AppendAllText(path, "[" + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToString("HH:mm:ss") + "] " + text + "\r\n");
             FileInfo fi = new FileInfo(path);
-            float mega = (fi.Length / 1024f) / 1024f;
             if (fi.Exists)
             {
+                float mega = (fi.Length / 1024f) / 1024f;
                 if (mega > 1.0)
                 {
                     try
@@ -509,6 +510,11 @@ namespace MoonSharpModule
         public Dictionary<string, object> CreateDict()
         {
             return new Dictionary<string, object>();
+        }
+
+        public List<string> CreateList()
+        {
+            return new List<string>();
         }
 
         private string getBetween(string strSource, string strStart, string strEnd)

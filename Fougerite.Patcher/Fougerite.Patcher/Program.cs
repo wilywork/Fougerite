@@ -6,7 +6,7 @@ namespace Fougerite.Patcher
 {
     internal class Program
     {
-        public static string Version = "1.5.2";
+        public static string Version = "1.5.3";
 
         private static void Main(string[] args)
         {
