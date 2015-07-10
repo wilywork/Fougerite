@@ -1,10 +1,7 @@
 ﻿namespace Fougerite
 {
-    using Facepunch.Utility;
     using System;
     using System.Collections;
-    using System.Collections.Generic;
-    using System.IO;
 
     public class Data
     {
@@ -73,6 +70,16 @@
         public int ToInt(string num)
         {
             return int.Parse(num);
+        }
+
+        public ulong ToUlong(string num)
+        {
+            return Convert.ToUInt64(num);
+        }
+
+        public long Tolong(string num)
+        {
+            return Convert.ToUInt32(num);
         }
 
         public string ToLower(string str)

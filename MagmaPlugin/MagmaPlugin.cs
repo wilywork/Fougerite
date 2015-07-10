@@ -1,11 +1,11 @@
-﻿namespace MagmaPlugin
+﻿using UnityEngine;
+
+namespace MagmaPlugin
 {
     using System;
-    using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
     using System.IO;
-    using System.Timers;
     using Fougerite;
     using Fougerite.Events;
     using Jint;
@@ -17,16 +17,20 @@
         public string Name;
         public string Code;
         public DirectoryInfo RootDirectory;
+        public AdvancedTimer AdvancedTimers;
+        //public readonly Dictionary<String, TimedEvent> Timers;
         public readonly Dictionary<String, TimedEvent> Timers;
         private readonly string brktname = "[Magma]";
+        public List<string> CommandList;
 
         public Plugin(DirectoryInfo directory, string name, string code)
         {
             Name = name;
             Code = code;
             RootDirectory = directory;
+            CommandList = new List<string>();
             Timers = new Dictionary<String, TimedEvent>();
-
+            AdvancedTimers = new AdvancedTimer(this);
             Engine = new JintEngine();
             Engine.AllowClr(true);
 
@@ -49,6 +53,7 @@
             Engine.SetParameter("Time", this);
             Engine.SetParameter("World", Fougerite.World.GetWorld());
             Engine.SetParameter("Plugin", this);
+            //Engine.SetParameter("SQLite", new Fougerite.SQLite());
         }
 
         private void Invoke(string func, params object[] obj)
@@ -108,6 +113,15 @@
                     case "On_NPCKilled": Hooks.OnNPCKilled += OnNPCKilled; break;
                     case "On_BlueprintUse": Hooks.OnBlueprintUse += OnBlueprintUse; break;
                     case "On_DoorUse": Hooks.OnDoorUse += OnDoorUse; break;
+                    case "On_PlayerTeleport": Hooks.OnPlayerTeleport += OnPlayerTeleport; break;
+                    case "On_Crafting": Hooks.OnCrafting += OnCrafting; break;
+                    case "On_ResourceSpawn": Hooks.OnResourceSpawned += OnResourceSpawned; break;
+                    case "On_ItemAdded": Hooks.OnItemAdded += OnItemAdded; break;
+                    case "On_ItemRemoved": Hooks.OnItemRemoved += OnItemRemoved; break;
+                    case "On_Airdrop": Hooks.OnAirdropCalled += OnAirdrop; break;
+                    case "On_SteamDeny": Hooks.OnSteamDeny += OnSteamDeny; break;
+                    case "On_PlayerApproval": Hooks.OnPlayerApproval += OnPlayerApproval; break;
+                    case "On_Research": Hooks.OnResearch += OnResearch; break;
                 }
             }
         }
@@ -141,6 +155,15 @@
                     case "On_NPCKilled": Hooks.OnNPCKilled -= OnNPCKilled; break;
                     case "On_BlueprintUse": Hooks.OnBlueprintUse -= OnBlueprintUse; break;
                     case "On_DoorUse": Hooks.OnDoorUse -= OnDoorUse; break;
+                    case "On_PlayerTeleport": Hooks.OnPlayerTeleport -= OnPlayerTeleport; break;
+                    case "On_Crafting": Hooks.OnCrafting -= OnCrafting; break;
+                    case "On_ResourceSpawn": Hooks.OnResourceSpawned -= OnResourceSpawned; break;
+                    case "On_ItemAdded": Hooks.OnItemAdded -= OnItemAdded; break;
+                    case "On_ItemRemoved": Hooks.OnItemRemoved -= OnItemRemoved; break;
+                    case "On_Airdrop": Hooks.OnAirdropCalled -= OnAirdrop; break;
+                    case "On_SteamDeny": Hooks.OnSteamDeny -= OnSteamDeny; break;
+                    case "On_PlayerApproval": Hooks.OnPlayerApproval -= OnPlayerApproval; break;
+                    case "On_Research": Hooks.OnResearch -= OnResearch; break;
                 }
             }
         }
@@ -234,7 +257,7 @@
 
         public void DeleteLog(string path)
         {
-            path = ValidateRelativePath(path + ".ini");
+            path = ValidateRelativePath(path + ".log");
 
             if (path == null)
                 return;
@@ -243,14 +266,30 @@
                 File.Delete(path);
         }
 
-        public void Log(string path, string text)
+        public void Log(string p, string text)
         {
-            path = ValidateRelativePath(path + ".ini");
+            string path = ValidateRelativePath(p + ".log");
 
             if (path == null)
                 return;
 
-            File.AppendAllText(path, "[" + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString() + "] " + text + "\r\n");
+            File.AppendAllText(path, "[" + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToString("HH:mm:ss") + "] " + text + "\r\n");
+            FileInfo fi = new FileInfo(path);
+            if (fi.Exists)
+            {
+                float mega = (fi.Length / 1024f) / 1024f;
+                if (mega > 1.0)
+                {
+                    try
+                    {
+                        string d = DateTime.Now.ToShortDateString().Replace('/', '-');
+                        File.Move(path, ValidateRelativePath(p + "-OLD-" + d + ".log"));
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
         }
 
         #endregion
@@ -269,7 +308,7 @@
             TimedEvent timer = this.GetTimer(name);
             if (timer == null)
             {
-                timer = new TimedEvent(name, (double) timeoutDelay);
+                timer = new TimedEvent(name, (double)timeoutDelay);
                 timer.OnFire += OnTimerCB;
                 Timers[name] = timer;
                 return timer;
@@ -305,6 +344,16 @@
 
         #endregion Timer functions.
 
+        public Dictionary<string, object> CreateDict()
+        {
+            return new Dictionary<string, object>();
+        }
+
+        public List<string> CreateList()
+        {
+            return new List<string>();
+        }
+
         #region Other functions.
 
         public string GetDate()
@@ -332,6 +381,18 @@
 
         #region Hooks
 
+        public void OnTimerCB2(MagmaTE evt)
+        {
+            try
+            {
+                Invoke(evt.Name + "Callback", evt);
+            }
+            catch (Exception ex)
+            {
+                Fougerite.Logger.LogError("Failed to invoke callback " + evt.Name + " Ex: " + ex);
+            }
+        }
+
         public void OnBlueprintUse(Player player, BPUseEvent evt)
         {
             Invoke("On_BlueprintUse", player, evt);
@@ -342,10 +403,16 @@
             Invoke("On_Chat", player, text);
         }
 
+        public void OnCrafting(CraftingEvent e)
+        {
+            Invoke("On_Crafting", e);
+        }
+
         public void OnCommand(Player player, string command, string[] args)
         {
             if (args == null)
                 throw new ArgumentNullException("args");
+            if (CommandList.Count != 0 && !CommandList.Contains(command) && !Fougerite.Server.ForceCallForCommands.Contains(command)) { return; }
             Invoke("On_Command", player, command, args);
         }
 
@@ -419,6 +486,11 @@
             Invoke("On_PlayerKilled", evt);
         }
 
+        public void OnPlayerTeleport(Fougerite.Player player, Vector3 from, Vector3 to)
+        {
+            Invoke("On_PlayerTeleport", player, from, to);
+        }
+
         public void OnPlayerSpawn(Player player, SpawnEvent evt)
         {
             Invoke("On_PlayerSpawning", player, evt);
@@ -427,6 +499,41 @@
         public void OnPlayerSpawned(Player player, SpawnEvent evt)
         {
             Invoke("On_PlayerSpawned", player, evt);
+        }
+
+        public void OnResearch(ResearchEvent evt)
+        {
+            Invoke("On_Research", evt);
+        }
+
+        public void OnResourceSpawned(ResourceTarget t)
+        {
+            Invoke("On_ResourceSpawn", t);
+        }
+
+        public void OnItemAdded(InventoryModEvent e)
+        {
+            Invoke("On_ItemAdded", e);
+        }
+
+        public void OnItemRemoved(InventoryModEvent e)
+        {
+            Invoke("On_ItemRemoved", e);
+        }
+
+        public void OnAirdrop(Vector3 v)
+        {
+            Invoke("On_Airdrop", v);
+        }
+
+        public void OnSteamDeny(SteamDenyEvent e)
+        {
+            Invoke("On_SteamDeny", e );
+        }
+
+        public void OnPlayerApproval(PlayerApprovalEvent e)
+        {
+            Invoke("On_PlayerApproval", e );
         }
 
         public void OnPluginInit()
