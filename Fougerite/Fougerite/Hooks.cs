@@ -661,9 +661,9 @@ namespace Fougerite
 
         public static void CraftingEvent(CraftingInventory inv, BlueprintDataBlock blueprint, int amount, ulong startTime)
         {
-            CraftingEvent e = new CraftingEvent(inv, blueprint, amount, startTime);
             if (OnCrafting != null)
             {
+                CraftingEvent e = new CraftingEvent(inv, blueprint, amount, startTime);
                 OnCrafting(e);
             }
         }
@@ -673,12 +673,14 @@ namespace Fougerite
             var movement = m as NavMeshMovement;
             if (!movement) { return; }
 
-            bool IsAlive = ai.GetComponent<TakeDamage>().alive;
-
-            if (movement._agent.pathStatus == NavMeshPathStatus.PathInvalid && IsAlive)
+            if (movement._agent.pathStatus == NavMeshPathStatus.PathInvalid)
             {
-                TakeDamage.KillSelf(ai.GetComponent<IDBase>());
-                Logger.LogDebug("[NavMesh] AI destroyed for having invalid path.");
+                bool IsAlive = ai.GetComponent<TakeDamage>().alive;
+                if (IsAlive)
+                {
+                    TakeDamage.KillSelf(ai.GetComponent<IDBase>());
+                    Logger.LogDebug("[NavMesh] AI destroyed for having invalid path.");
+                }
             }
         }
 
@@ -708,7 +710,7 @@ namespace Fougerite
             }
         }
 
-        public static void Airdrop(Vector3 pos)
+        public static void Airdrop(UnityEngine.Vector3 pos)
         {
             if (OnAirdropCalled != null)
             {
@@ -778,7 +780,7 @@ namespace Fougerite
                         Logger.LogDebug("[FougeriteBan] Detected banned IP, but ID is not banned: "
                             + name + " - " + ip + " - " + uid);
                     }
-                    Debug.Log("[FougeriteBan]  Disconnected: " + name
+                    Debug.Log("[FougeriteBan] Disconnected: " + name
                         + " - " + ip + " - " + uid, null);
                     Logger.LogDebug("[FougeriteBan] Disconnected: " + name
                         + " - " + ip + " - " + uid);
@@ -831,7 +833,7 @@ namespace Fougerite
                     Fougerite.Server.GetServer().BanPlayer(Fougerite.Server.Cache[hc.netUser.userID]);
                     return;
                 }
-                hc.netUser.Kick(NetError.Facepunch_Kick_Violation, true);
+                Fougerite.Server.Cache[hc.netUser.userID].Disconnect();
                 return;
             }
             if (OnPlayerMove != null)

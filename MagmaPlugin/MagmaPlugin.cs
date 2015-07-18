@@ -18,7 +18,6 @@ namespace MagmaPlugin
         public string Code;
         public DirectoryInfo RootDirectory;
         public AdvancedTimer AdvancedTimers;
-        //public readonly Dictionary<String, TimedEvent> Timers;
         public readonly Dictionary<String, TimedEvent> Timers;
         private readonly string brktname = "[Magma]";
         public List<string> CommandList;

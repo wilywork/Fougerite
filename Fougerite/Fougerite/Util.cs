@@ -285,8 +285,7 @@ namespace Fougerite
         public ItemDataBlock ConvertNameToData(string name)
         {
             ItemDataBlock byName = DatablockDictionary.GetByName(name);
-            if (byName != null)
-                return byName;
+            if (byName != null) {return byName;}
             return null;
         }
 

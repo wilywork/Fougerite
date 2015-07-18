@@ -80,14 +80,14 @@ namespace RustPP
 
         public static bool IsFriend(HurtEvent e) // ref
         {
-            GodModeCommand command = (GodModeCommand)ChatCommand.GetCommand("god");
+            //GodModeCommand command = (GodModeCommand)ChatCommand.GetCommand("god");
             Fougerite.Player victim = e.Victim as Fougerite.Player;
             if (victim != null)
             {
-                if (command.IsOn(victim.UID))
+                /*if (command.IsOn(victim.UID))
                 {
                     return true;
-                }
+                }*/
                 Fougerite.Player attacker = e.Attacker as Fougerite.Player;
                 if (attacker != null)
                 {
@@ -106,7 +106,7 @@ namespace RustPP
                     }
                     catch
                     {
-                        return command.IsOn(victim.UID);
+                        return false;
                     }
                 }
             }

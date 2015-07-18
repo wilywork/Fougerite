@@ -13,11 +13,13 @@
             if (!this.userIDs.Contains(Arguments.argUser.userID))
             {
                 this.userIDs.Add(Arguments.argUser.userID);
+                Arguments.argUser.playerClient.controllable.character.takeDamage.SetGodMode(true);
                 Util.sayUser(Arguments.argUser.networkPlayer, Core.Name, "God mode has been activated!");
             }
             else
             {
                 this.userIDs.Remove(Arguments.argUser.userID);
+                Arguments.argUser.playerClient.controllable.character.takeDamage.SetGodMode(false);
                 Util.sayUser(Arguments.argUser.networkPlayer, Core.Name, "God mode has been deactivated!");
             }
         }

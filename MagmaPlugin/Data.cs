@@ -1,11 +1,8 @@
 ﻿namespace MagmaPlugin
 {
-    using System;
     using System.Collections;
-    using System.Collections.Generic;
-    using System.IO;
     using Fougerite;
-    using Facepunch.Utility;
+
 
     public class Data
     {

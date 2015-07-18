@@ -14,10 +14,9 @@ namespace Fougerite
             this._sleeper = obj;
             this._instanceid = this._sleeper.GetInstanceID();
             this._uid = this._sleeper.ownerID;
-            string name = Fougerite.Server.Cache[UID].Name;
-            if (name != null)
+            if (Fougerite.Server.Cache.ContainsKey(UID))
             {
-                this._name = name;
+                this._name = Fougerite.Server.Cache[UID].Name;
             }
             else
             {

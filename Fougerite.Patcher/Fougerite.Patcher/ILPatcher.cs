@@ -38,6 +38,7 @@ namespace Fougerite.Patcher
                 if (x.ToString().Contains("LogException"))
                 {
                     y = x;
+                    break;
                 }
             }
             think.Body.Instructions.Remove(y);
@@ -369,7 +370,7 @@ namespace Fougerite.Patcher
             ILProcessor iLProcessor = CallAirDropAt.Body.GetILProcessor();
             iLProcessor.InsertBefore(CallAirDropAt.Body.Instructions[Position],
                 Instruction.Create(OpCodes.Callvirt, this.rustAssembly.MainModule.Import(method)));
-            iLProcessor.InsertBefore(CallAirDropAt.Body.Instructions[Position], Instruction.Create(OpCodes.Ldloc_S, CallAirDropAt.Body.Variables[0]));
+            iLProcessor.InsertBefore(CallAirDropAt.Body.Instructions[Position], Instruction.Create(OpCodes.Ldloc_S, Instruction.Create(OpCodes.Ldarg_0)));
             //iLProcessor.InsertBefore(CallAirDropAt.Body.Instructions[0], Instruction.Create(OpCodes.Ldarg, CallAirDropAt.Body.Method.Parameters[0]));
             //iLProcessor.InsertBefore(CallAirDropAt.Body.Instructions[0], Instruction.Create(method.Parameters[0]));
 
