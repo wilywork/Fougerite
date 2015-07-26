@@ -132,10 +132,13 @@ namespace Fougerite
             try
             {
                 if (this.IsDeployableObject())
-                    NetCull.Destroy(this.GetObject<DeployableObject>().networkViewID);
-
-                if (this.IsStructureMaster())
-                    NetCull.Destroy(this.GetObject<StructureMaster>().networkViewID);
+                {
+                    if (this.GetObject<DeployableObject>() != null) NetCull.Destroy(this.GetObject<DeployableObject>().networkViewID);
+                }
+                else if (this.IsStructureMaster())
+                {
+                    if (this.GetObject<StructureMaster>() != null) NetCull.Destroy(this.GetObject<StructureMaster>().networkViewID);
+                }
             }
             catch { }
         }

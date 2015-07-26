@@ -781,6 +781,12 @@ namespace Fougerite.Patcher
             iLProcessor.InsertAfter(definition3.Body.Instructions[90], Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(method)));
         }
 
+        private void ConditionDebug()
+        {
+            TypeDefinition Controllable = rustAssembly.MainModule.GetType("Controllable");
+            Controllable.GetField("localPlayerControllableCount").SetPublic(true);
+        }
+
         public bool FirstPass()
         {
             try
@@ -889,6 +895,7 @@ namespace Fougerite.Patcher
                     this.SupplyCratePatch();
                     this.LatePostInTryCatch2();
                     this.ResearchPatch();
+                    this.ConditionDebug();
                     //this.RayCastPatch();
                 }
                 catch (Exception ex)

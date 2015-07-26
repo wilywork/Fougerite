@@ -3,11 +3,10 @@ namespace Fougerite
     using System;
     using System.IO;
     using UnityEngine;
-    using UnityEngine.Cloud.Analytics;
 
     public class Bootstrap : Facepunch.MonoBehaviour
     {
-        public static string Version = "1.1.5B";
+        public static string Version = "1.1.6";
         public static bool CR = false;
         public static bool BI = false;
 

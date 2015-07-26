@@ -62,9 +62,22 @@ namespace Fougerite
             {
                 if (this.IsOnline)
                 {
-                    return this.PlayerClient.controllable.alive;
+                    return this.Health > 0;
                 }
                 return false;
+            }
+        }
+
+        public Character Character
+        {
+            get
+            {
+                if (this.IsOnline)
+                {
+                    Character c = this.PlayerClient.netUser.playerClient.GetComponent(typeof(Character)) as Character;
+                    return c;
+                }
+                return null;
             }
         }
 
@@ -231,17 +244,7 @@ namespace Fougerite
             }
         }
 
-        public bool TeleportTo(Fougerite.Player p)
-        {
-            if (this.IsOnline)
-            {
-                return this.TeleportTo(p, 1.5f);
-            }
-
-            return false;
-        }
-
-        public bool TeleportTo(Fougerite.Player p, float distance = 1.5f)
+        public bool TeleportTo(Fougerite.Player p, float distance = 1.5f, bool callhook = true)
         {
             if (this.IsOnline)
             {
@@ -250,32 +253,32 @@ namespace Fougerite
 
                 Transform transform = p.PlayerClient.controllable.transform;                                            // get the target player's transform
                 Vector3 target = transform.TransformPoint(new Vector3(0f, 0f, (this.Admin ? -distance : distance)));    // rcon admin teleports behind target player
-                return this.SafeTeleportTo(target);
+                return this.SafeTeleportTo(target, callhook);
             }
             return false;
         }
 
-        public bool SafeTeleportTo(float x, float y, float z)
+        public bool SafeTeleportTo(float x, float y, float z, bool callhook = true)
         {
             if (this.IsOnline)
             {
-                return this.SafeTeleportTo(new Vector3(x, y, z));
+                return this.SafeTeleportTo(new Vector3(x, y, z), callhook);
             }
 
             return false;
         }
 
-        public bool SafeTeleportTo(float x, float z)
+        public bool SafeTeleportTo(float x, float z, bool callhook = true)
         {
             if (this.IsOnline)
             {
-                return this.SafeTeleportTo(new Vector3(x, 0f, z));
+                return this.SafeTeleportTo(new Vector3(x, 0f, z), callhook);
             }
 
             return false;
         }
 
-        public bool SafeTeleportTo(Vector3 target)
+        public bool SafeTeleportTo(Vector3 target, bool callhook = true)
         {
             if (this.IsOnline)
             {
@@ -312,18 +315,18 @@ namespace Fougerite
 
                     if (distance < maxSafeDistance)
                     {
-                        return this.TeleportTo(target);
+                        return this.TeleportTo(target, callhook);
                     }
                     else
                     {
-                        if (this.TeleportTo(terrain + bump * 2))
+                        if (this.TeleportTo(terrain + bump * 2, callhook))
                         {
                             System.Timers.Timer timer = new System.Timers.Timer();
                             timer.Interval = ms;
                             timer.AutoReset = false;
                             timer.Elapsed += delegate(object x, ElapsedEventArgs y)
                             {
-                                this.TeleportTo(target);
+                                this.TeleportTo(target, callhook);
                             };
                             timer.Start();
                             return true;
@@ -360,7 +363,7 @@ namespace Fougerite
                     Logger.LogDebug(string.Format("[{0}] player={1}({2}) from={3} to={4} distance={5} terrain={6}", me, this.Name, this.GameID,
                         this.Location.ToString(), target.ToString(), distance.ToString("F2"), terrain.ToString()));
 
-                    return this.TeleportTo(target);
+                    return this.TeleportTo(target, callhook);
                 }
                 else
                 {
@@ -373,20 +376,24 @@ namespace Fougerite
             return false;
         }
 
-        public bool TeleportTo(float x, float y, float z)
+        public bool TeleportTo(float x, float y, float z, bool callhook = true)
         {
             if (this.IsOnline)
             {
-                return this.TeleportTo(new Vector3(x, y, z));
+                return this.TeleportTo(new Vector3(x, y, z), callhook);
             }
             return false;
         }
 
-        public bool TeleportTo(Vector3 target)
+        public bool TeleportTo(Vector3 target, bool callhook = true)
         {
             if (this.IsOnline)
             {
-                Fougerite.Hooks.PlayerTeleport(this, this.Location, target);
+                try
+                {
+                    if (callhook) {Fougerite.Hooks.PlayerTeleport(this, this.Location, target);}
+                }catch { }
+
                 return RustServerManagement.Get().TeleportPlayerToWorld(this.ourPlayer.netPlayer, target);
             }
             return false;
@@ -779,13 +786,8 @@ namespace Fougerite
                 if (this.IsOnline)
                 {
                     this.name = value;
-                    if (this.IsOnline)
-                    {
-                        RustProto.User u = this.ourPlayer.netUser.user;
-                        //Util.GetUtil().SetInstanceField(typeof(RustProto.User), u, "displayname_", value); // displayName
-                        this.ourPlayer.netUser.user.displayname_ = value;
-                        this.ourPlayer.userName = value; // displayName
-                    }
+                    this.ourPlayer.netUser.user.displayname_ = value;
+                    this.ourPlayer.userName = value; // displayName
                 }
             }
         }
@@ -816,7 +818,7 @@ namespace Fougerite
                 {
                     return this.Structures.Any(e => (e.Object as StructureMaster).containedBounds.Contains(this.Location));
                 }
-                else if (this.Sleeper != null)
+                if (this.Sleeper != null)
                 {
                     return this.Structures.Any(e => (e.Object as StructureMaster).containedBounds.Contains(this.Sleeper.Location));
                 }
@@ -843,6 +845,19 @@ namespace Fougerite
                 if (this.IsOnline)
                 {
                     return this.ourPlayer;
+                }
+                return null;
+            }
+        }
+
+        public FallDamage FallDamage
+        {
+            get
+            {
+                if (this.IsOnline)
+                {
+                    FallDamage dmg = this.PlayerClient.controllable.takeDamage.GetComponent(typeof(FallDamage)) as FallDamage;
+                    if (dmg != null) return dmg;
                 }
                 return null;
             }

@@ -37,7 +37,7 @@ namespace Fougerite
             string red = "[color #FF0000]";
             string green = "[color #009900]";
             string white = "[color #FFFFFF]";
-            foreach (Fougerite.Player pl in Server.GetServer().Players)
+            foreach (Fougerite.Player pl in GetServer().Players)
             {
                 if (pl.Admin || pl.Moderator)
                 {
@@ -60,19 +60,21 @@ namespace Fougerite
 
         public void BanPlayerIP(string ip, string name = "1", string reason = "You were banned.")
         {
+            var d = " [" + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToString("HH:mm:ss") + "] ";
             IniParser ini = GlobalBanList;
             ini.AddSetting("Ips", ip, name);
-            if (!name.Equals("1")) {ini.AddSetting("NameIps", name.Split(Convert.ToChar("-"))[0], ip);}
-            ini.AddSetting("AdminWhoBanned", name + "-" + reason);
+            if (!name.Equals("1")) {ini.AddSetting("NameIps", name.Split(Convert.ToChar("-"))[0] + d, ip);}
+            ini.AddSetting("AdminWhoBanned", name, reason);
             ini.Save();
         }
 
         public void BanPlayerID(string id, string name = "1", string reason = "You were banned.")
         {
+            var d = " [" + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToString("HH:mm:ss") + "] ";
             IniParser ini = GlobalBanList;
             ini.AddSetting("Ids", id, name);
-            if (!name.Equals("1")) {ini.AddSetting("NameIds", name.Split(Convert.ToChar("-"))[0], id);}
-            ini.AddSetting("AdminWhoBanned", name + "-" + reason);
+            if (!name.Equals("1")) {ini.AddSetting("NameIds", name.Split(Convert.ToChar("-"))[0] + d, id);}
+            ini.AddSetting("AdminWhoBanned", name, reason);
             ini.Save();
         }
 

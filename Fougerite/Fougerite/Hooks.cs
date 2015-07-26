@@ -111,7 +111,7 @@ namespace Fougerite
                 Array.Copy(args, 1, cargs, 0, cargs.Length);
                 if (OnCommand != null)
                 {
-                    var player = Fougerite.Server.Cache[arg.argUser.playerClient.userID];
+                    Fougerite.Player player = Fougerite.Server.Cache[arg.argUser.playerClient.userID];
                     if (Fougerite.Server.CommandCancelList.ContainsKey(player))
                     {
                         var list = Fougerite.Server.CommandCancelList[player];
@@ -291,7 +291,7 @@ namespace Fougerite
                     }
                 }
             }
-            catch { }
+            catch (Exception ex) { Logger.LogDebug("ENTITY HURT EXCEPTION: " + ex); }
         }
 
         public static void hijack(string name)
@@ -344,7 +344,7 @@ namespace Fougerite
                 if (OnNPCKilled != null)
                     OnNPCKilled(de);
             }
-            catch { }
+            catch (Exception ex) { Logger.LogDebug("NPC KILLED EXCEPTION: " + ex); }
         }
 
         public static bool PlayerConnect(NetUser user)
@@ -391,6 +391,26 @@ namespace Fougerite
             }
 
             connected = user.connected;
+            //TODO: Remove later
+            Controllable c = player.PlayerClient.controllable;
+            var x = Util.GetUtil().GetInstanceField(typeof(Controllable), c, "localPlayerControllableCount");
+            int n = (int) x;
+            if (n > 0)
+            {
+                Logger.LogWarning("DreTaX I detected bigger value at player " + player.Name + " trying to set. Val: " + n);
+                int c2 = 0;
+                foreach (Fougerite.Player p in Server.GetServer().Players)
+                {
+                    if (p.UID == player.UID)
+                    {
+                        c2 += 1;
+                    }
+                }
+                Logger.LogWarning("Count: " + c2);
+                Util.GetUtil().SetInstanceField(typeof(Controllable), c, "localPlayerControllableCount", 0);
+                Logger.LogWarning("Setting was successful. Check if the player could connect.");
+            }
+            //TODO: Remove later
 
             if (Fougerite.Config.GetBoolValue("Fougerite", "tellversion"))
             {
@@ -563,7 +583,10 @@ namespace Fougerite
                     OnPlayerTeleport(player, from, dest);
                 }
             }
-            catch {}
+            catch (Exception ex)
+            {
+                Logger.LogDebug("Teleport Error: " + ex.ToString());
+            }
         }
 
         public static void RecieveNetwork(Metabolism m, float cal, float water, float rad, float anti, float temp, float poison)
@@ -589,7 +612,7 @@ namespace Fougerite
             {
                 m.caloricLevel = cal;
             }  
-            if (rad > 5000)
+            if (rad > 3000)
             {
                 m.radiationLevel = 0;
                 h = true;
@@ -631,7 +654,7 @@ namespace Fougerite
             {
                 m.waterLevelLitre = water;
             }
-            if (float.IsNaN(anti) || anti > 5000)
+            if (float.IsNaN(anti) || anti > 3000)
             {
                 m.antiRads = 0;
                 h = true;

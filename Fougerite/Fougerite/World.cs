@@ -328,7 +328,7 @@ namespace Fougerite
             }
             catch (Exception e)
             {
-                Logger.LogDebug(e.ToString());
+                Logger.LogDebug("Spawn Method error: " + e.ToString());
             }
             return obj2;
         }

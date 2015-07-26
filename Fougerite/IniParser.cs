@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -19,38 +20,52 @@ public class IniParser
 
         if (!File.Exists(iniPath)) throw new FileNotFoundException("Unable to locate " + iniPath);
 
-        using (TextReader reader = new StreamReader(iniPath))
+        try
         {
-            for (string str = reader.ReadLine(); str != null; str = reader.ReadLine())
+            using (TextReader reader = new StreamReader(iniPath))
             {
-                str = str.Trim();
-                if (str == "") continue;
-
-                if (str.StartsWith("[") && str.EndsWith("]"))
-                    str2 = str.Substring(1, str.Length - 2);
-                else
+                for (string str = reader.ReadLine(); str != null; str = reader.ReadLine())
                 {
-                    SectionPair pair;
+                    str = str.Trim();
+                    if (str == "") continue;
 
-                    if (str.StartsWith(";"))
-                        str = str.Replace("=", "%eq%") + @"=%comment%";
+                    if (str.StartsWith("[") && str.EndsWith("]"))
+                        str2 = str.Substring(1, str.Length - 2);
+                    else
+                    {
+                        SectionPair pair;
 
-                    string[] strArray = str.Split(new char[] {'='}, 2);
-                    string str3 = null;
-                    if (str2 == null)
-                    {
-                        str2 = "ROOT";
+                        if (str.StartsWith(";"))
+                            str = str.Replace("=", "%eq%") + @"=%comment%";
+
+                        string[] strArray = str.Split(new char[] {'='}, 2);
+                        string str3 = null;
+                        if (str2 == null)
+                        {
+                            str2 = "ROOT";
+                        }
+                        pair.Section = str2;
+                        pair.Key = strArray[0];
+                        if (strArray.Length > 1)
+                        {
+                            str3 = strArray[1];
+                        }
+                        try
+                        {
+                            this.keyPairs.Add(pair, str3);
+                            this.tmpList.Add(pair);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.LogError("Failed adding" + pair + "|" + str3 + " at " + iniFilePath + " Exception: " + ex);
+                        }
                     }
-                    pair.Section = str2;
-                    pair.Key = strArray[0];
-                    if (strArray.Length > 1)
-                    {
-                        str3 = strArray[1];
-                    }
-                    this.keyPairs.Add(pair, str3);
-                    this.tmpList.Add(pair);
                 }
             }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError("Error at " + iniFilePath + " Exception: " + ex);
         }
         FileInfo fi = new FileInfo(iniPath);
         float mega = (fi.Length / 1024f) / 1024f;
@@ -58,9 +73,9 @@ public class IniParser
         {
             if (mega > 0.65)
             {
-                Logger.LogWarning("[WARNING] Ini File at: " + iniFilePath + " passed the safe size.");
-                Logger.LogWarning("[WARNING] Inifiles after a time with huge datas can cause bad performance.");
-                Logger.LogWarning("[WARNING] We recommend you to delete the inifile, and recreate It.");
+                Logger.LogWarning("Ini File at: " + iniFilePath + " passed the safe size.");
+                Logger.LogWarning("Inifiles after a time with huge datas can cause bad performance.");
+                Logger.LogWarning("We recommend you to delete the inifile, and recreate It.");
             }
         }
     }
