@@ -709,10 +709,14 @@ namespace Fougerite
 
         public static void ResourceSpawned(ResourceTarget target)
         {
-            if (OnResourceSpawned != null)
+            try 
             {
-                OnResourceSpawned(target);
+                if (OnResourceSpawned != null)
+                {
+                    OnResourceSpawned(target);
+                }
             }
+            catch(Exception ex) { Logger.LogError("ResourceSpawned EXCEPTION: " + ex);}
         }
 
         public static void ItemRemoved(Inventory inventory, int slot, IInventoryItem item)
