@@ -373,6 +373,36 @@ namespace Fougerite
                 return structures.ToList<Entity>();
             }
         }
+        
+        public IEnumerable<Entity> DeployableObjects
+        {
+            get
+            {
+                IEnumerable<Entity> depl = from c in UnityEngine.Object.FindObjectsOfType<DeployableObject>()
+                                                select new Entity(c);
+                return depl;
+            }
+        }
+
+        public IEnumerable<Entity> StructureComponents
+        {
+            get
+            {
+                IEnumerable<Entity> component = from c in UnityEngine.Object.FindObjectsOfType<StructureComponent>()
+                                                select new Entity(c);
+                return component;
+            }
+        }
+
+        public IEnumerable<Entity> BasicDoors
+        {
+            get
+            {
+                IEnumerable<Entity> doors = from c in UnityEngine.Object.FindObjectsOfType<BasicDoor>()
+                                                select new Entity(c);
+                return doors;
+            }
+        }
 
         public List<Entity> Entities
         {
