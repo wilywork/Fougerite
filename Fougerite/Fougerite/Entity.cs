@@ -395,6 +395,20 @@ namespace Fougerite
                 return Vector3.zero;
             }
         }
+        
+        public Quaternion Rotation
+        {
+            get
+            {
+                if (this.IsDeployableObject())
+                    return this.GetObject<DeployableObject>().transform.rotation;
+
+                if (this.IsStructure())
+                    return this.GetObject<StructureComponent>().transform.rotation;
+
+                return new Quaternion(0, 0, 0, 0);
+            }
+        }
 
         public float X
         {
