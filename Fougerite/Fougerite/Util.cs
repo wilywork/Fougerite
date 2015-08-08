@@ -294,38 +294,48 @@ namespace Fougerite
             return DatablockDictionary.All.OfType<BlueprintDataBlock>().FirstOrDefault(obj => obj.resultItem == item);
         }
 
+        public Entity FindChestAt(Vector3 givenPosition, float dist = 1f)
+        {
+            return World.GetWorld().DeployableObjects.FirstOrDefault(x => Vector3.Distance(x.Location, givenPosition) < dist);
+        }
+
+        public Entity FindDoorAt(Vector3 givenPosition, float dist = 2f)
+        {
+            return World.GetWorld().BasicDoors.FirstOrDefault(x => Vector3.Distance(x.Location, givenPosition) < dist);
+        }
+
+        public Entity FindStructureAt(Vector3 givenPosition, float dist = 1f)
+        {
+            return World.GetWorld().StructureComponents.FirstOrDefault(x => Vector3.Distance(x.Location, givenPosition) < dist);
+        }
+
+        public Entity FindEntityAt(Vector3 givenPosition, float dist = 1f)
+        {
+            return World.GetWorld().Entities.FirstOrDefault(x => Vector3.Distance(x.Location, givenPosition) < dist);
+        }
+
+        [System.Obsolete("Use FindEntity", true)]
         public Entity GetEntityatCoords(Vector3 givenPosition)
         {
-            World world = World.GetWorld();
-            foreach (Entity ent in world.Entities) {
-                if (!ent.Name.Contains("Door")) {
-                    if (GetVectorsDistance(givenPosition, ent.Location) < 0.1f)
-                        return ent;
-                }
-            }
-            return null;
+            return FindEntityAt(givenPosition);
         }
 
+        [System.Obsolete("Use FindEntity", true)]
         public Entity GetEntityatCoords(float x, float y, float z)
         {
-            return GetEntityatCoords(new Vector3(x, y, z));
+            return FindEntityAt(new Vector3(x, y, z));
         }
 
+        [System.Obsolete("Use FindDoorAt", true)]
         public Entity GetDooratCoords(Vector3 givenPosition)
         {
-            World world = World.GetWorld();
-            foreach (var ent in world.Entities) {
-                if (ent.Name.Contains("Door")) {
-                    if (GetVectorsDistance(ent.Location, givenPosition) < 2f)
-                        return ent;
-                }
-            }
-            return null;
+            return FindDoorAt(givenPosition);
         }
 
+        [System.Obsolete("Use FindDoorAt", true)]
         public Entity GetDooratCoords(float x, float y, float z)
         {
-            return GetDooratCoords(new Vector3(x, y, z));
+            return FindDoorAt(new Vector3(x, y, z));
         }
 
         public object GetInstanceField(Type type, object instance, string fieldName)
