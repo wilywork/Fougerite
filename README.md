@@ -19,7 +19,6 @@ Fougerite a fully compatible with Magma server mod, featuring better performance
 * Edit the configuration in the same directory if you wish.
 * Edit Fougerite.cfg in the Save folder
 * Launch your server.
-* Launch your server.  
 
 **WARNING:** If you using Magma you must extract all your files from "save" to main server folder (with rust_server.exe).  
 Plugins must be placed in "Server_Folder\Fougerite\MagmaPlugin" - for example "Server\Fougerite\MagmaPlugin\SuperPlugin.js"  
