@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 
 namespace Fougerite
 {
@@ -296,17 +296,17 @@ namespace Fougerite
 
         public Entity FindChestAt(Vector3 givenPosition, float dist = 1f)
         {
-            return World.GetWorld().DeployableObjects.FirstOrDefault(x => Vector3.Distance(x.Location, givenPosition) < dist);
+            return World.GetWorld().DeployableObjects().FirstOrDefault(x => Vector3.Distance(x.Location, givenPosition) < dist);
         }
 
         public Entity FindDoorAt(Vector3 givenPosition, float dist = 2f)
         {
-            return World.GetWorld().BasicDoors.FirstOrDefault(x => Vector3.Distance(x.Location, givenPosition) < dist);
+            return World.GetWorld().BasicDoors().FirstOrDefault(x => Vector3.Distance(x.Location, givenPosition) < dist);
         }
 
         public Entity FindStructureAt(Vector3 givenPosition, float dist = 1f)
         {
-            return World.GetWorld().StructureComponents.FirstOrDefault(x => Vector3.Distance(x.Location, givenPosition) < dist);
+            return World.GetWorld().StructureComponents().FirstOrDefault(x => Vector3.Distance(x.Location, givenPosition) < dist);
         }
 
         public Entity FindEntityAt(Vector3 givenPosition, float dist = 1f)
