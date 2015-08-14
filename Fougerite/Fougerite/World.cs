@@ -1,5 +1,3 @@
-﻿
-
 namespace Fougerite
 {
     using Facepunch;
@@ -13,6 +11,13 @@ namespace Fougerite
     {
         private static World world;
         public Dictionary<string, Zone3D> zones;
+        public Dictionary<string, int> cache = new Dictionary<string, int>();
+        private List<Entity> chests = new List<Entity>();
+        private List<Entity> doors = new List<Entity>();
+        private List<Entity> structurems = new List<Entity>();
+        private List<Entity> structures = new List<Entity>();
+        private int UpdateTime = 120000;
+
 
         public World()
         {
@@ -364,44 +369,96 @@ namespace Fougerite
             set { env.daylength = value; }
         }
 
-        public List<Entity> StructureMasters
+        public IEnumerable<Entity> BasicDoors(bool forceupdate = false)
         {
-            get
+            if (!this.cache.ContainsKey("BasicDoor") || forceupdate || this.doors.Count == 0)
             {
-                IEnumerable<Entity> structures = from s in StructureMaster.AllStructures
-                                                             select new Entity(s);
-                return structures.ToList<Entity>();
+                this.cache.Add("BasicDoor", Environment.TickCount);
+                IEnumerable<Entity> source = from s in UnityEngine.Object.FindObjectsOfType<BasicDoor>()
+                                             select new Entity(s);
+                this.doors = source.ToList();
             }
-        }
-        
-        public IEnumerable<Entity> DeployableObjects
-        {
-            get
+            else if (this.cache.ContainsKey("BasicDoor"))
             {
-                IEnumerable<Entity> depl = from c in UnityEngine.Object.FindObjectsOfType<DeployableObject>()
-                                                select new Entity(c);
-                return depl;
+                int num = Environment.TickCount - this.cache["BasicDoor"];
+                if (num >= this.UpdateTime || float.IsNaN(num) || num <= 0)
+                {
+                    this.cache["BasicDoor"] = Environment.TickCount;
+                    IEnumerable<Entity> source = from s in UnityEngine.Object.FindObjectsOfType<BasicDoor>()
+                                                 select new Entity(s);
+                    this.doors = source.ToList();
+                }
             }
-        }
-
-        public IEnumerable<Entity> StructureComponents
-        {
-            get
-            {
-                IEnumerable<Entity> component = from c in UnityEngine.Object.FindObjectsOfType<StructureComponent>()
-                                                select new Entity(c);
-                return component;
-            }
+            return this.doors;
         }
 
-        public IEnumerable<Entity> BasicDoors
+        public IEnumerable<Entity> DeployableObjects(bool forceupdate = false)
         {
-            get
+            if (!this.cache.ContainsKey("DeployableObject") || forceupdate || this.chests.Count == 0)
             {
-                IEnumerable<Entity> doors = from c in UnityEngine.Object.FindObjectsOfType<BasicDoor>()
-                                                select new Entity(c);
-                return doors;
+                this.cache.Add("DeployableObject", Environment.TickCount);
+                IEnumerable<Entity> source = from s in UnityEngine.Object.FindObjectsOfType<DeployableObject>()
+                                             select new Entity(s);
+                this.chests = source.ToList();
             }
+            else if (this.cache.ContainsKey("DeployableObject"))
+            {
+                int num = Environment.TickCount - this.cache["DeployableObject"];
+                if (num >= this.UpdateTime || float.IsNaN(num) || num <= 0)
+                {
+                    this.cache["DeployableObject"] = Environment.TickCount;
+                    IEnumerable<Entity> source = from s in UnityEngine.Object.FindObjectsOfType<DeployableObject>()
+                                                 select new Entity(s);
+                    this.chests = source.ToList();
+                }
+            }
+            return this.chests;
+        }
+
+        public IEnumerable<Entity> StructureComponents(bool forceupdate = false)
+        {
+            if (!this.cache.ContainsKey("StructureComponent") || forceupdate || this.structures.Count == 0)
+            {
+                this.cache.Add("StructureComponent", Environment.TickCount);
+                IEnumerable<Entity> source = from s in UnityEngine.Object.FindObjectsOfType<StructureComponent>()
+                                             select new Entity(s);
+                this.structures = source.ToList();
+            }
+            else if (this.cache.ContainsKey("StructureComponent"))
+            {
+                int num = Environment.TickCount - this.cache["StructureComponent"];
+                if (num >= this.UpdateTime || float.IsNaN(num) || num <= 0)
+                {
+                    this.cache["StructureComponent"] = Environment.TickCount;
+                    IEnumerable<Entity> source = from s in UnityEngine.Object.FindObjectsOfType<StructureComponent>()
+                                                 select new Entity(s);
+                    this.structures = source.ToList();
+                }
+            }
+            return this.structures;
+        }
+
+        public IEnumerable<Entity> StructureMasters(bool forceupdate = false)
+        {
+            if (!this.cache.ContainsKey("StructureMaster") || forceupdate || this.structurems.Count == 0)
+            {
+                this.cache.Add("StructureMaster", Environment.TickCount);
+                IEnumerable<Entity> source = from s in StructureMaster.AllStructures
+                                             select new Entity(s);
+                this.structurems = source.ToList();
+            }
+            else if (this.cache.ContainsKey("StructureMaster"))
+            {
+                int num = Environment.TickCount - this.cache["StructureMaster"];
+                if (num >= this.UpdateTime || float.IsNaN(num) || num <= 0)
+                {
+                    this.cache["StructureMaster"] = Environment.TickCount;
+                    IEnumerable<Entity> source = from s in StructureMaster.AllStructures
+                                                 select new Entity(s);
+                    this.structurems = source.ToList();
+                }
+            }
+            return this.structurems;
         }
 
         public List<Entity> Entities
