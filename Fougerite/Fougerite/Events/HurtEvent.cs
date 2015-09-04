@@ -34,7 +34,7 @@
                     if (d.victim.id.ToString().ToLower().Contains("sleeping"))
                     {
                         this._sleeper = true;
-                        DeployableObject sleeper = d.victim.idMain as DeployableObject;
+                        DeployableObject sleeper = (DeployableObject) d.victim.idMain;
                         this.Victim = new Sleeper(sleeper);
                     }
                     else

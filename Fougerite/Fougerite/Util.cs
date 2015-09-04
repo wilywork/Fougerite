@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 
 namespace Fougerite
 {
@@ -294,24 +294,60 @@ namespace Fougerite
             return DatablockDictionary.All.OfType<BlueprintDataBlock>().FirstOrDefault(obj => obj.resultItem == item);
         }
 
-        public Entity FindChestAt(Vector3 givenPosition, float dist = 1f)
+        [System.Obsolete("Use FindDeployableAt", true)]
+        public Entity FindChestAt(Vector3 givenPosition, float dist = 1f, bool forceupdate = false)
         {
-            return World.GetWorld().DeployableObjects().FirstOrDefault(x => Vector3.Distance(x.Location, givenPosition) < dist);
+            return FindDeployableAt(givenPosition, dist, forceupdate);
         }
 
-        public Entity FindDoorAt(Vector3 givenPosition, float dist = 2f)
+        public Entity FindDeployableAt(Vector3 givenPosition, float dist = 1f, bool forceupdate = false)
         {
-            return World.GetWorld().BasicDoors().FirstOrDefault(x => Vector3.Distance(x.Location, givenPosition) < dist);
+            return World.GetWorld().DeployableObjects(forceupdate).FirstOrDefault(x => Vector3.Distance(x.Location, givenPosition) <= dist);
         }
 
-        public Entity FindStructureAt(Vector3 givenPosition, float dist = 1f)
+        public Entity FindDoorAt(Vector3 givenPosition, float dist = 2f, bool forceupdate = false)
         {
-            return World.GetWorld().StructureComponents().FirstOrDefault(x => Vector3.Distance(x.Location, givenPosition) < dist);
+            return World.GetWorld().BasicDoors(forceupdate).FirstOrDefault(x => Vector3.Distance(x.Location, givenPosition) <= dist);
+        }
+
+        public Entity FindStructureAt(Vector3 givenPosition, float dist = 1f, bool forceupdate = false)
+        {
+            return World.GetWorld().StructureComponents(forceupdate).FirstOrDefault(x => Vector3.Distance(x.Location, givenPosition) <= dist);
+        }
+
+        public Entity FindLootableAt(Vector3 givenPosition, float dist = 1f)
+        {
+            return World.GetWorld().LootableObjects.FirstOrDefault(x => Vector3.Distance(x.Location, givenPosition) <= dist);
         }
 
         public Entity FindEntityAt(Vector3 givenPosition, float dist = 1f)
         {
-            return World.GetWorld().Entities.FirstOrDefault(x => Vector3.Distance(x.Location, givenPosition) < dist);
+            return World.GetWorld().Entities.FirstOrDefault(x => Vector3.Distance(x.Location, givenPosition) <= dist);
+        }
+
+        public List<Entity> FindDeployablesAround(Vector3 givenPosition, float dist = 100f, bool forceupdate = false)
+        {
+            return World.GetWorld().DeployableObjects(forceupdate).Where(e => Vector3.Distance(e.Location, givenPosition) <= dist).ToList();
+        }
+
+        public List<Entity> FindDoorsAround(Vector3 givenPosition, float dist = 100f, bool forceupdate = false)
+        {
+            return World.GetWorld().BasicDoors(forceupdate).Where(e => Vector3.Distance(e.Location, givenPosition) <= dist).ToList();
+        }
+
+        public List<Entity> FindStructuresAround(Vector3 givenPosition, float dist = 100f, bool forceupdate = false)
+        {
+            return World.GetWorld().StructureComponents(forceupdate).Where(e => Vector3.Distance(e.Location, givenPosition) <= dist).ToList();
+        }
+
+        public List<Entity> FindLootablesAround(Vector3 givenPosition, float dist = 100f)
+        {
+            return World.GetWorld().LootableObjects.Where(e => Vector3.Distance(e.Location, givenPosition) <= dist).ToList();
+        }
+
+        public List<Entity> FindEntitiesAround(Vector3 givenPosition, float dist = 100f)
+        {
+            return World.GetWorld().Entities.Where(e => Vector3.Distance(e.Location, givenPosition) <= dist).ToList();
         }
 
         [System.Obsolete("Use FindEntity", true)]

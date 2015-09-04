@@ -1,9 +1,6 @@
-﻿
-using Rust;
-using uLink;
-
-namespace Fougerite
+﻿namespace Fougerite
 {
+    using uLink;
     using Fougerite.Events;
     using System;
     using System.Collections;
@@ -391,26 +388,6 @@ namespace Fougerite
             }
 
             connected = user.connected;
-            //TODO: Remove later
-            Controllable c = player.PlayerClient.controllable;
-            var x = Util.GetUtil().GetInstanceField(typeof(Controllable), c, "localPlayerControllableCount");
-            int n = (int) x;
-            if (n > 0)
-            {
-                Logger.LogWarning("DreTaX I detected bigger value at player " + player.Name + " trying to set. Val: " + n);
-                int c2 = 0;
-                foreach (Fougerite.Player p in Server.GetServer().Players)
-                {
-                    if (p.UID == player.UID)
-                    {
-                        c2 += 1;
-                    }
-                }
-                Logger.LogWarning("Count: " + c2);
-                Util.GetUtil().SetInstanceField(typeof(Controllable), c, "localPlayerControllableCount", 0);
-                Logger.LogWarning("Setting was successful. Check if the player could connect.");
-            }
-            //TODO: Remove later
 
             if (Fougerite.Config.GetBoolValue("Fougerite", "tellversion"))
             {
@@ -440,6 +417,15 @@ namespace Fougerite
             if (Fougerite.Bootstrap.CR)
             {
                 Fougerite.Server.Cache.Remove(uid);
+                return;
+            }
+            if (Fougerite.Server.Cache.Keys.Count >= Fougerite.Bootstrap.PC)
+            {
+                Fougerite.Server.Cache.Clear();
+                foreach (var x in Fougerite.Server.GetServer().Players)
+                {
+                    Fougerite.Server.Cache[x.UID] = x;
+                }
             }
         }
 
@@ -585,7 +571,7 @@ namespace Fougerite
             }
             catch (Exception ex)
             {
-                Logger.LogDebug("Teleport Error: " + ex.ToString());
+                Logger.LogError("Teleport Error: " + ex.ToString());
             }
         }
 
@@ -602,7 +588,7 @@ namespace Fougerite
                 m.caloricLevel = 600;
                 if (p != null)
                 {
-                    Logger.LogDebug("[CalorieHack] " + p.Name + " | " + p.SteamID + " is using calorie hacks! =)");
+                    Logger.LogWarning("[CalorieHack] " + p.Name + " | " + p.SteamID + " is using calorie hacks! =)");
                     Fougerite.Server.GetServer().Broadcast("CalorieHack Detected: " + p.Name);
                     Fougerite.Server.GetServer().BanPlayer(p, "Console", "CalorieHack");
                     h = true;
@@ -627,7 +613,7 @@ namespace Fougerite
                 h = true;
                 if (p != null)
                 {
-                    Logger.LogDebug("[RadiationHack] " + p.Name + " using radiation hacks.");
+                    Logger.LogWarning("[RadiationHack] " + p.Name + " using radiation hacks.");
                     Fougerite.Server.GetServer().Broadcast("RadiationHack Detected: " + p.Name);
                     Fougerite.Server.GetServer().BanPlayer(p, "Console", "RadiationHack");
                 }
@@ -684,10 +670,17 @@ namespace Fougerite
 
         public static void CraftingEvent(CraftingInventory inv, BlueprintDataBlock blueprint, int amount, ulong startTime)
         {
-            if (OnCrafting != null)
+            try
+            { 
+                if (OnCrafting != null)
+                {
+                    CraftingEvent e = new CraftingEvent(inv, blueprint, amount, startTime);
+                    OnCrafting(e);
+                }
+            }
+            catch (Exception ex)
             {
-                CraftingEvent e = new CraftingEvent(inv, blueprint, amount, startTime);
-                OnCrafting(e);
+                Logger.LogError("Crafting Error: " + ex.ToString());
             }
         }
 
@@ -702,46 +695,61 @@ namespace Fougerite
                 if (IsAlive)
                 {
                     TakeDamage.KillSelf(ai.GetComponent<IDBase>());
-                    Logger.LogDebug("[NavMesh] AI destroyed for having invalid path.");
+                    Logger.LogWarning("[NavMesh] AI destroyed for having invalid path.");
                 }
             }
         }
 
         public static void ResourceSpawned(ResourceTarget target)
         {
-            try 
-            {
+            try
+            { 
                 if (OnResourceSpawned != null)
                 {
                     OnResourceSpawned(target);
                 }
             }
-            catch(Exception ex) { Logger.LogError("ResourceSpawned EXCEPTION: " + ex);}
+            catch (Exception ex)
+            {
+                Logger.LogError("ResourceSpawned Error: " + ex.ToString());
+            }
         }
 
         public static void ItemRemoved(Inventory inventory, int slot, IInventoryItem item)
         {
-            if (OnItemRemoved != null)
+            try
+            { 
+                if (OnItemRemoved != null)
+                {
+                    Fougerite.Events.InventoryModEvent e = new Fougerite.Events.InventoryModEvent(inventory, slot, item);
+                    OnItemRemoved(e);
+                }
+            }
+            catch
             {
-                Fougerite.Events.InventoryModEvent e = new Fougerite.Events.InventoryModEvent(inventory, slot, item);
-                OnItemRemoved(e);
             }
         }
 
         public static void ItemAdded(Inventory inventory, int slot, IInventoryItem item)
         {
-            if (OnItemAdded != null)
+            try
+            { 
+                if (OnItemAdded != null)
+                {
+                    Fougerite.Events.InventoryModEvent e = new Fougerite.Events.InventoryModEvent(inventory, slot, item);
+                    OnItemAdded(e);
+                }
+            }
+            catch
             {
-                Fougerite.Events.InventoryModEvent e = new Fougerite.Events.InventoryModEvent(inventory, slot, item);
-                OnItemAdded(e);
             }
         }
 
-        public static void Airdrop(UnityEngine.Vector3 pos)
+        public static void Airdrop(SupplyDropZone srz)
         {
             if (OnAirdropCalled != null)
             {
-                OnAirdropCalled(pos);
+                OnAirdropCalled(srz.GetSupplyTargetPosition());
             }
         }
 
@@ -783,6 +791,7 @@ namespace Fougerite
                 ulong uid = clientConnection.UserID;
                 string ip = approval.ipAddress;
                 string name = clientConnection.UserName;
+                IniParser ini = srv.GlobalBanList;
                 if (clientConnection.Protocol != 1069)
                 {
                     Debug.Log((object) ("Denying entry to client with invalid protocol version (" + ip + ")"));
@@ -797,19 +806,33 @@ namespace Fougerite
                 {
                     if (!srv.IsBannedIP(ip))
                     {
-                        srv.BanPlayerIP(ip, name + "-Console", "IP is not banned");
+                        srv.BanPlayerIP(ip, name, "IP is not banned", "Console");
                         Logger.LogDebug("[FougeriteBan] Detected banned ID, but IP is not banned: "
-                            + name + " - " + ip + " - " + uid);
+                                        + name + " - " + ip + " - " + uid);
+                    }
+                    else
+                    {
+                        if (ini.GetSetting("Ips", ip) == "1")
+                        {
+                            ini.SetSetting("Ips", ip, name);
+                            ini.Save();
+                        }
                     }
                     if (!srv.IsBannedID(uid.ToString()))
                     {
-                        srv.BanPlayerID(uid.ToString(), name + "-Console", "ID is not banned");
+                        srv.BanPlayerID(uid.ToString(), name, "ID is not banned", "Console");
                         Logger.LogDebug("[FougeriteBan] Detected banned IP, but ID is not banned: "
                             + name + " - " + ip + " - " + uid);
                     }
-                    Debug.Log("[FougeriteBan] Disconnected: " + name
-                        + " - " + ip + " - " + uid, null);
-                    Logger.LogDebug("[FougeriteBan] Disconnected: " + name
+                    else
+                    {
+                        if (ini.GetSetting("Ids", uid.ToString()) == "1")
+                        {
+                            ini.SetSetting("Ids", uid.ToString(), name);
+                            ini.Save();
+                        }
+                    }
+                    Logger.LogWarning("[FougeriteBan] Disconnected: " + name
                         + " - " + ip + " - " + uid);
                     approval.Deny(uLink.NetworkConnectionError.ConnectionBanned);
                 }
@@ -853,11 +876,11 @@ namespace Fougerite
                 float.IsNaN(origin.y) || float.IsInfinity(origin.y) ||
                 float.IsNaN(origin.z) || float.IsInfinity(origin.z))
             {
-                Logger.LogDebug("[TeleportHack] " + hc.netUser.displayName + " sent invalid packets. " + hc.netUser.userID);
+                Logger.LogWarning("[TeleportHack] " + hc.netUser.displayName + " sent invalid packets. " + hc.netUser.userID);
                 Server.GetServer().Broadcast(hc.netUser.displayName + " might have tried to teleport with hacks.");
                 if (Fougerite.Bootstrap.BI)
                 {
-                    Fougerite.Server.GetServer().BanPlayer(Fougerite.Server.Cache[hc.netUser.userID]);
+                    Fougerite.Server.GetServer().BanPlayer(Fougerite.Server.Cache[hc.netUser.userID], "Console", "TeleportHack");
                     return;
                 }
                 Fougerite.Server.Cache[hc.netUser.userID].Disconnect();
@@ -871,10 +894,17 @@ namespace Fougerite
 
         public static void ResearchItem(IInventoryItem otherItem)
         {
-            if (OnResearch != null)
+            try
+            { 
+                if (OnResearch != null)
+                {
+                    ResearchEvent researchEvent = new ResearchEvent(otherItem);
+                    OnResearch(researchEvent);
+                }
+            }
+            catch (Exception ex)
             {
-                ResearchEvent researchEvent = new ResearchEvent(otherItem);
-                OnResearch(researchEvent);
+                Logger.LogError("ResearchItem Error: " + ex.ToString());
             }
         }
 

@@ -3,6 +3,8 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Fougerite.Events;
+using UnityEngine;
 
 namespace GlitchFix
 {
@@ -12,8 +14,14 @@ namespace GlitchFix
         private bool GiveBack;
         private bool Ramp;
         private bool Struct;
-
+        private bool RockGlitch;
+        private bool RockGlitchKill;
         private IniParser Config;
+        private Vector3 cachedPosition;
+        private Vector3 Vector3Down = new Vector3(0f, -1f, 0f);
+        private Vector3 Vector3Up = new Vector3(0f, 1f, 0f);
+        private RaycastHit cachedRaycast;
+        private int terrainLayer;
 
         public override string Name
         {
@@ -32,7 +40,7 @@ namespace GlitchFix
 
         public override Version Version
         {
-            get { return Assembly.GetExecutingAssembly().GetName().Version; }
+            get { return new Version("1.4.1");}
         }
 
         public override uint Order
@@ -47,12 +55,48 @@ namespace GlitchFix
             GiveBack = Config.GetBoolSetting("Settings", "giveback");
             Ramp = Config.GetBoolSetting("Settings", "rampstackcheck");
             Struct = Config.GetBoolSetting("Settings", "structurecheck");
-            if (enabled) Fougerite.Hooks.OnEntityDeployed += EntityDeployed;
+            RockGlitch = Config.GetBoolSetting("Settings", "RockGlitch");
+            RockGlitchKill = Config.GetBoolSetting("Settings", "RockGlitchKill");
+            if (enabled)
+            {
+                Fougerite.Hooks.OnEntityDeployed += EntityDeployed;
+                Fougerite.Hooks.OnPlayerSpawned += OnPlayerSpawned;
+            }
         }
 
         public override void DeInitialize()
         {
-            if (enabled) Fougerite.Hooks.OnEntityDeployed -= EntityDeployed;
+            if (enabled)
+            {
+                Fougerite.Hooks.OnEntityDeployed -= EntityDeployed;
+                Fougerite.Hooks.OnPlayerSpawned -= OnPlayerSpawned;
+            }
+        }
+
+        public void OnPlayerSpawned(Fougerite.Player player, SpawnEvent se)
+        {
+            if (RockGlitch)
+            {
+                if (Physics.Raycast(player.Location, Vector3Up, out cachedRaycast, terrainLayer))
+                {
+                    cachedPosition = cachedRaycast.point;
+                }
+                if (!Physics.Raycast(cachedPosition, Vector3Down, out cachedRaycast, terrainLayer)) return;
+                if (cachedRaycast.collider.gameObject.name != "") return;
+                if (cachedRaycast.point.y < player.Y) return;
+                Logger.LogDebug(player.Name + " tried to rock glitch at " + player.Location);
+                Server.GetServer().Broadcast(player.Name + " don't try to rock glitch =)");
+                foreach (Collider collider in Physics.OverlapSphere(player.Location, 3f))
+                {
+                    if (collider.gameObject.name == "SleepingBagA(Clone)")
+                        TakeDamage.KillSelf(collider.GetComponent<IDMain>());
+                }
+                if (RockGlitchKill)
+                {
+                    player.Message("Glitching gets you killed.");
+                    player.Kill();
+                }
+            }
         }
 
         public void EntityDeployed(Fougerite.Player Player, Fougerite.Entity Entity)
@@ -66,7 +110,7 @@ namespace GlitchFix
                     if (Struct)
                     { 
                         DeployableObject[] deploylist = UnityEngine.Object.FindObjectsOfType(typeof(DeployableObject)) as DeployableObject[];
-                        if (deploylist != null && deploylist.Where(ent => ent.name.Contains("WoodBox") || ent.name.Contains("Stash")).Any(ent => !(Util.GetUtil().GetVectorsDistance(location, ent.gameObject.transform.position) > 3.7)))
+                        if (deploylist != null && deploylist.Where(ent => ent.name.Contains("WoodBox") || ent.name.Contains("Stash")).Any(ent => !(Vector3.Distance(location, ent.gameObject.transform.position) > 3.7)))
                         {
                             if (Player.IsOnline && GiveBack)
                             {
@@ -100,7 +144,7 @@ namespace GlitchFix
                     if (Ramp)
                     { 
                         StructureComponent[] structurelist = UnityEngine.Object.FindObjectsOfType(typeof(StructureComponent)) as StructureComponent[];
-                        if (structurelist != null && structurelist.Where(structure => structure.name.Contains("Ramp") && Entity.InstanceID != structure.GetInstanceID()).Any(structure => Util.GetUtil().GetVectorsDistance(location, structure.gameObject.transform.position) == 0))
+                        if (structurelist != null && structurelist.Where(structure => structure.name.Contains("Ramp") && Entity.InstanceID != structure.GetInstanceID()).Any(structure => (int)Math.Round(Vector3.Distance(location, structure.gameObject.transform.position)) == 0))
                         {
                             if (GiveBack && Player.IsOnline)
                             {
@@ -128,7 +172,6 @@ namespace GlitchFix
                                 Player.Inventory.AddItem(name, 1);
                             }
                             Entity.Destroy();
-                            return;
                         }
                     }
                 }

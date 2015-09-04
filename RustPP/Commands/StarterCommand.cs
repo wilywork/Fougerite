@@ -11,6 +11,11 @@
 
         public override void Execute(ref ConsoleSystem.Arg Arguments, ref string[] ChatArguments)
         {
+            var pl = Fougerite.Server.Cache[Arguments.argUser.userID];
+            if (Fougerite.Server.CommandCancelList.ContainsKey(pl))
+            {
+                if (Fougerite.Server.CommandCancelList[pl].Contains("starter")) { return; }
+            }
             bool flag = false;
             if (!this.starterkits.ContainsKey(Arguments.argUser.playerClient.userID))
             {

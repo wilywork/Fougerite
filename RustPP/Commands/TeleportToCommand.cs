@@ -33,7 +33,7 @@
             {
                 Util.sayUser(Arguments.argUser.networkPlayer, Core.Name, "Teleport Usage:  /tpto playerName");
                 return;
-            } 
+            }
             List<string> list = new List<string>();
             list.Add("ToTarget");
             foreach (PlayerClient client in PlayerClient.All)

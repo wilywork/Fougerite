@@ -24,7 +24,7 @@ namespace Fougerite.Events
             {
                 _legit = false;
                 Cancel();
-                Logger.LogDebug("[CraftingHack] Detected: " + _player.Name + " | " + _player.SteamID + " | " + _player.IP);
+                Logger.LogWarning("[CraftingHack] Detected: " + _player.Name + " | " + _player.SteamID + " | " + _player.IP);
                 Fougerite.Server.GetServer().Broadcast("CraftingHack Detected: " + _player.Name);
                 Fougerite.Server.GetServer().BanPlayer(_player, "Console", "CraftingHack");
             }

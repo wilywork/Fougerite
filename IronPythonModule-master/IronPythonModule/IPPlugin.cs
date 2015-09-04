@@ -50,6 +50,7 @@ namespace IronPythonModule {
             Scope.SetVariable("Web", new Fougerite.Web());
 			Scope.SetVariable("Util", Util.GetUtil());
 			Scope.SetVariable("World", World.GetWorld());
+            //Scope.SetVariable("JSON", new Fougerite.JSON());
             //Scope.SetVariable("SQLite", new Fougerite.SQLite());
 			Engine.Execute(code, Scope);
 			Class = Engine.Operations.Invoke(Scope.GetVariable(name));

@@ -55,8 +55,10 @@ namespace Fougerite.Patcher
             AssemblyDefinition ulink = AssemblyDefinition.ReadAssembly("uLink.dll");
             TypeDefinition type = ulink.MainModule.GetType("uLink.InternalHelper");
             TypeDefinition Class56 = ulink.MainModule.GetType("Class56");
+            TypeDefinition Class52 = ulink.MainModule.GetType("Class52");
             MethodDefinition method_22 = Class56.GetMethod("method_22");
             MethodDefinition method_25 = Class56.GetMethod("method_25");
+            MethodDefinition method_435 = Class52.GetMethod("method_435");
             //MethodDefinition method_44 = Class56.GetMethod("method_44");
             MethodDefinition update = type.GetMethod("LateUpdate");
 
@@ -66,6 +68,7 @@ namespace Fougerite.Patcher
             WrapMethod(update, logex, ulink, false);
             WrapMethod(method_22, logex, ulink, false);
             WrapMethod(method_25, logex, ulink, false);
+            WrapMethod(method_435, logex, ulink, false);
             //WrapMethod(method_44, logex, ulink, false);
             ulink.Write("uLink.dll");
         }
@@ -314,9 +317,11 @@ namespace Fougerite.Patcher
             MethodDefinition method = hooksClass.GetMethod("ResourceSpawned");
             ILProcessor iLProcessor = Awake.Body.GetILProcessor();
 
-            iLProcessor.InsertBefore(Awake.Body.Instructions[0],
+            int c = Awake.Body.Instructions.Count - 1;
+
+            iLProcessor.InsertBefore(Awake.Body.Instructions[c],
                 Instruction.Create(OpCodes.Callvirt, this.rustAssembly.MainModule.Import(method)));
-            iLProcessor.InsertBefore(Awake.Body.Instructions[0], Instruction.Create(OpCodes.Ldarg_0));
+            iLProcessor.InsertBefore(Awake.Body.Instructions[c], Instruction.Create(OpCodes.Ldarg_0));
         }
 
         private void InventoryModifications()
@@ -361,18 +366,16 @@ namespace Fougerite.Patcher
         private void AirdropPatch()
         {
             TypeDefinition SupplyDropZone = rustAssembly.MainModule.GetType("SupplyDropZone");
-            MethodDefinition CallAirDropAt = SupplyDropZone.GetMethod("CallAirDropAt");
-            this.CloneMethod(CallAirDropAt);
+            MethodDefinition GetRandomTargetPos = SupplyDropZone.GetMethod("GetRandomTargetPos");
+            this.CloneMethod(GetRandomTargetPos);
 
-            int Position = CallAirDropAt.Body.Instructions.Count - 1;
+            int Position = GetRandomTargetPos.Body.Instructions.Count - 1;
 
             MethodDefinition method = hooksClass.GetMethod("Airdrop");
-            ILProcessor iLProcessor = CallAirDropAt.Body.GetILProcessor();
-            iLProcessor.InsertBefore(CallAirDropAt.Body.Instructions[Position],
+            ILProcessor iLProcessor = GetRandomTargetPos.Body.GetILProcessor();
+            iLProcessor.InsertBefore(GetRandomTargetPos.Body.Instructions[Position],
                 Instruction.Create(OpCodes.Callvirt, this.rustAssembly.MainModule.Import(method)));
-            iLProcessor.InsertBefore(CallAirDropAt.Body.Instructions[Position], Instruction.Create(OpCodes.Ldloc_S, Instruction.Create(OpCodes.Ldarg_0)));
-            //iLProcessor.InsertBefore(CallAirDropAt.Body.Instructions[0], Instruction.Create(OpCodes.Ldarg, CallAirDropAt.Body.Method.Parameters[0]));
-            //iLProcessor.InsertBefore(CallAirDropAt.Body.Instructions[0], Instruction.Create(method.Parameters[0]));
+            iLProcessor.InsertBefore(GetRandomTargetPos.Body.Instructions[Position], Instruction.Create(OpCodes.Ldloc_0));
 
         }
 
@@ -787,6 +790,28 @@ namespace Fougerite.Patcher
             Controllable.GetField("localPlayerControllableCount").SetPublic(true);
         }
 
+        private void NetcullPatch()
+        {
+            TypeDefinition NetCull = rustAssembly.MainModule.GetType("NetCull");
+            MethodDefinition CloseConnection = NetCull.GetMethod("CloseConnection");
+            TypeDefinition logger = fougeriteAssembly.MainModule.GetType("Fougerite.Logger");
+            MethodDefinition logex = logger.GetMethod("LogException");
+
+            WrapMethod(CloseConnection, logex, rustAssembly, false);
+        }
+
+        private void NetworkPatch()
+        {
+            AssemblyDefinition ulink = AssemblyDefinition.ReadAssembly("uLink.dll");
+            TypeDefinition Network = ulink.MainModule.GetType("Network");
+            MethodDefinition CloseConnection = Network.GetMethod("CloseConnection");
+            TypeDefinition logger = fougeriteAssembly.MainModule.GetType("Fougerite.Logger");
+            MethodDefinition logex = logger.GetMethod("LogException");
+
+            WrapMethod(CloseConnection, logex, rustAssembly, false);
+            ulink.Write("uLink.dll");
+        }
+
         public bool FirstPass()
         {
             try
@@ -888,7 +913,7 @@ namespace Fougerite.Patcher
                     this.ResourceSpawned();
                     this.InventoryModifications();
                     this.InventoryModifications2();
-                    //this.AirdropPatch();
+                    this.AirdropPatch();
                     this.ClientConnectionPatch();
                     this.ConnectionAcceptorPatch();
                     this.HumanControllerPatch();
@@ -896,6 +921,7 @@ namespace Fougerite.Patcher
                     this.LatePostInTryCatch2();
                     this.ResearchPatch();
                     this.ConditionDebug();
+                    this.NetcullPatch();
                     //this.RayCastPatch();
                 }
                 catch (Exception ex)

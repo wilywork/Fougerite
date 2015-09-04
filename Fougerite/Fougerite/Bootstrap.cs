@@ -6,9 +6,10 @@ namespace Fougerite
 
     public class Bootstrap : Facepunch.MonoBehaviour
     {
-        public static string Version = "1.1.6";
+        public static string Version = "1.1.8";
         public static bool CR = false;
         public static bool BI = false;
+        public static int PC = 350;
 
         public static void AttachBootstrap()
         {
@@ -44,6 +45,10 @@ namespace Fougerite
             if (Fougerite.Config.GetValue("Fougerite", "BanOnInvalidPacket") != null)
             {
                 BI = Fougerite.Config.GetBoolValue("Fougerite", "BanOnInvalidPacket");
+            }
+            if (Fougerite.Config.GetValue("Fougerite", "ClearCacheAt") != null)
+            {
+                PC = int.Parse(Fougerite.Config.GetValue("Fougerite", "ClearCacheAt"));
             }
             if (!Fougerite.Config.GetBoolValue("Fougerite", "deployabledecay") && !Fougerite.Config.GetBoolValue("Fougerite", "decay"))
             {

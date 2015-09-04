@@ -80,14 +80,19 @@ namespace RustPP
 
         public static bool IsFriend(HurtEvent e) // ref
         {
-            //GodModeCommand command = (GodModeCommand)ChatCommand.GetCommand("god");
+            GodModeCommand command = (GodModeCommand)ChatCommand.GetCommand("god");
             Fougerite.Player victim = e.Victim as Fougerite.Player;
             if (victim != null)
             {
-                /*if (command.IsOn(victim.UID))
+                if (command.IsOn(victim.UID))
                 {
+                    FallDamage dmg = victim.FallDamage;
+                    if (dmg != null)
+                    {
+                        dmg.SetLegInjury(0);
+                    }
                     return true;
-                }*/
+                }
                 Fougerite.Player attacker = e.Attacker as Fougerite.Player;
                 if (attacker != null)
                 {
@@ -122,6 +127,7 @@ namespace RustPP
         {
             try
             {
+                Fougerite.Player pl = Fougerite.Server.Cache[user.userID];
                 if (Core.blackList.Contains(user.userID))
                 {
                     Core.tempConnect.Add(user.userID);
@@ -131,6 +137,7 @@ namespace RustPP
                 if (Core.config.GetBoolSetting("WhiteList", "enabled") && !Core.whiteList.Contains(user.userID))
                 {
                     user.Kick(NetError.Facepunch_Whitelist_Failure, true);
+                    return false;
                 }
                 if (!Core.userCache.ContainsKey(user.userID))
                 {
@@ -144,7 +151,7 @@ namespace RustPP
                 {
                     user.admin = true;
                 }
-                Core.motd(user.networkPlayer);
+                Core.motd(pl);
                 if (Core.config.GetBoolSetting("Settings", "join_notice"))
                 {
                     foreach (PlayerClient client in PlayerClient.All)

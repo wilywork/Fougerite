@@ -18,17 +18,15 @@ namespace Fougerite
         public static IDictionary<ulong, Fougerite.Player> Cache = new Dictionary<ulong, Fougerite.Player>();
         public static IDictionary<Fougerite.Player, List<string>> CommandCancelList = new Dictionary<Player, List<string>>();
         public static IEnumerable<string> ForceCallForCommands = new List<string>();
+        private string path = Path.Combine(Util.GetRootFolder(), Path.Combine("Save", "GlobalBanList.ini"));
 
         public void LookForRustPP()
         {
             if (HRustPP) { return; }
-            foreach (ModuleContainer m in ModuleManager.Modules)
+            foreach (ModuleContainer m in ModuleManager.Modules.Where(m => m.Plugin.Name.Equals("RustPP")))
             {
-                if (m.Plugin.Name.Equals("RustPP"))
-                {
-                    HRustPP = true;
-                    break;
-                }
+                HRustPP = true;
+                break;
             }
         }
 
@@ -37,71 +35,101 @@ namespace Fougerite
             string red = "[color #FF0000]";
             string green = "[color #009900]";
             string white = "[color #FFFFFF]";
-            foreach (Fougerite.Player pl in GetServer().Players)
+            foreach (Fougerite.Player pl in Players.Where(pl => pl.Admin || pl.Moderator))
             {
-                if (pl.Admin || pl.Moderator)
-                {
-                    pl.Message(red + player.Name + white + " was banned by: "
-                               + green + Banner);
-                    pl.Message(red + " Reason: " + reason);
-                }
+                pl.Message(red + player.Name + white + " was banned by: "
+                           + green + Banner);
+                pl.Message(red + " Reason: " + reason);
             }
-            IniParser ini = GlobalBanList;
-            ini.AddSetting("Ips", player.IP, player.Name);
-            ini.AddSetting("Ids", player.SteamID, player.Name);
-            ini.AddSetting("NameIps", player.Name, player.IP);
-            ini.AddSetting("NameIds", player.Name, player.SteamID);
-            ini.AddSetting("AdminWhoBanned", player.Name, Banner + "-" + reason);
-            ini.Save();
+            BanPlayerIP(player.IP, player.Name, reason, Banner);
+            BanPlayerID(player.SteamID, player.Name, reason, Banner);
             player.Message(red + " " + reason);
             player.Message(red + " Banned by: " + Banner);
             player.Disconnect();
         }
 
-        public void BanPlayerIP(string ip, string name = "1", string reason = "You were banned.")
+        public void BanPlayerIP(string ip, string name = "1", string reason = "You were banned.", string adminname = "Unknown")
         {
-            var d = " [" + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToString("HH:mm:ss") + "] ";
             IniParser ini = GlobalBanList;
+            if (ini.ContainsSetting("Ips", ip))
+            {
+                return;
+            }
             ini.AddSetting("Ips", ip, name);
-            if (!name.Equals("1")) {ini.AddSetting("NameIps", name.Split(Convert.ToChar("-"))[0] + d, ip);}
-            ini.AddSetting("AdminWhoBanned", name, reason);
+            /*if (!name.Equals("1"))
+            {
+                if (ini.ContainsSetting("NameIps", name))
+                {
+                    for (int i = 1; i <= 150; i++)
+                    {
+                        if (!ini.ContainsSetting("NameIps", name + i))
+                        {
+                            ini.AddSetting("NameIps", name + i, ip);
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    ini.AddSetting("NameIps", name, ip);
+                }
+            }*/
+            if (!ini.ContainsSetting("AdminWhoBanned", name + "|" + ip))
+            {
+                ini.AddSetting("AdminWhoBanned", name + "|" + ip, adminname + "|" + reason);
+            }
             ini.Save();
         }
 
-        public void BanPlayerID(string id, string name = "1", string reason = "You were banned.")
+        public void BanPlayerID(string id, string name = "1", string reason = "You were banned.", string adminname = "Unknown")
         {
-            var d = " [" + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToString("HH:mm:ss") + "] ";
             IniParser ini = GlobalBanList;
+            if (ini.ContainsSetting("Ids", id))
+            {
+                return;
+            }
             ini.AddSetting("Ids", id, name);
-            if (!name.Equals("1")) {ini.AddSetting("NameIds", name.Split(Convert.ToChar("-"))[0] + d, id);}
-            ini.AddSetting("AdminWhoBanned", name, reason);
+            /*if (!name.Equals("1"))
+            {
+                if (ini.ContainsSetting("NameIds", name))
+                {
+                    for (int i = 1; i <= 150; i++)
+                    {
+                        if (!ini.ContainsSetting("NameIps", name + i))
+                        {
+                            ini.AddSetting("NameIds", name + i, id);
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    ini.AddSetting("NameIds", name, id);
+                }
+            }*/
+            if (!ini.ContainsSetting("AdminWhoBanned", name + "|" + id))
+            {
+                ini.AddSetting("AdminWhoBanned", name + "|" + id, adminname + "|" + reason);
+            }
             ini.Save();
         }
 
         public bool IsBannedID(string id)
         {
             IniParser ini = GlobalBanList;
-            if (ini.ContainsSetting("Ids", id))
-            {
-                return true;
-            }
-            return false;
+            return ini.ContainsSetting("Ids", id);
         }
 
         public bool IsBannedIP(string ip)
         {
             IniParser ini = GlobalBanList;
-            if (ini.ContainsSetting("Ips", ip))
-            {
-                return true;
-            }
-            return false;
+            return ini.ContainsSetting("Ips", ip);
         }
 
         public bool UnbanByName(string name, string UnBanner = "Console")
         {
-            var id = ReturnACNByName2(name);
-            var ip = ReturnACNByName(name);
+            string id = FindIDOfName(name);
+            string ip = FindIPOfName(name);
             if (id == null)
             {
                 return false;
@@ -109,22 +137,18 @@ namespace Fougerite
             string red = "[color #FF0000]";
             string green = "[color #009900]";
             string white = "[color #FFFFFF]";
-            foreach (Fougerite.Player pl in Server.GetServer().Players)
+            foreach (Fougerite.Player pl in Server.GetServer().Players.Where(pl => pl.Admin || pl.Moderator))
             {
-                if (pl.Admin || pl.Moderator)
-                {
-                    pl.Message(red + name + white + " was unbanned by: "
-                        + green + UnBanner);
-                }
+                pl.Message(red + name + white + " was unbanned by: "
+                           + green + UnBanner);
             }
             IniParser ini = GlobalBanList;
-            name = id;
-            var iprq = ini.GetSetting("NameIps", ip);
-            var idrq = ini.GetSetting("NameIds", id);
-            ini.DeleteSetting("Ips", iprq);
-            ini.DeleteSetting("Ids", idrq);
-            ini.DeleteSetting("NameIps", name);
-            ini.DeleteSetting("NameIds", name);
+            //var iprq = ini.GetSetting("NameIps", ip);
+            //var idrq = ini.GetSetting("NameIds", id);
+            ini.DeleteSetting("Ips", ip);
+            ini.DeleteSetting("Ids", id);
+            //ini.DeleteSetting("NameIps", name);
+            //ini.DeleteSetting("NameIds", name);
             ini.Save();
             return true;
         }
@@ -153,32 +177,26 @@ namespace Fougerite
             return false;
         }
 
-        public string ReturnACNByName(string name)
+        public string FindIPOfName(string name)
         {
             IniParser ini = GlobalBanList;
+            var ips = ini.EnumSection("Ips");
             string l = name.ToLower();
-            var ips = ini.EnumSection("NameIps");
-            foreach (string ip in ips)
+            foreach (var ip in ips.Where(ip => ini.GetSetting("Ips", ip).ToLower() == l))
             {
-                if (l.Equals(ip.ToLower()))
-                {
-                    return ip;
-                }
+                return ip;
             }
             return null;
         }
 
-        public string ReturnACNByName2(string name)
+        public string FindIDOfName(string name)
         {
             IniParser ini = GlobalBanList;
+            var ids = ini.EnumSection("Ids");
             string l = name.ToLower();
-            var ids = ini.EnumSection("NameIds");
-            foreach (string id in ids)
+            foreach (var id in ids.Where(ip => ini.GetSetting("Ids", ip).ToLower() == l))
             {
-                if (l.Equals(id.ToLower()))
-                {
-                    return id;
-                }
+                return id;
             }
             return null;
         }
@@ -215,6 +233,10 @@ namespace Fougerite
                 ulong uid;
                 if (ulong.TryParse(search, out uid))
                 {
+                    if (Cache.ContainsKey(uid))
+                    {
+                        return Cache[uid];
+                    }
                     query = from player in this.players
                             where player.UID == uid
                             select player;
@@ -325,21 +347,11 @@ namespace Fougerite
         {
             get
             {
-                string path = Path.Combine(Util.GetRootFolder(), Path.Combine("Save", "GlobalBanList.ini"));
-                IniParser ini;
                 if (!File.Exists(path))
                 {
                     File.Create(path).Dispose();
-                    ini = new IniParser(path);
-                    ini.AddSetting("Ips", "0.0.0.0", "1");
-                    ini.AddSetting("Ids", "76561197998999999", "1");
-                    ini.AddSetting("NameIps", "FougeriteTest12345", "0.0.0.0");
-                    ini.AddSetting("NameIds", "FougeriteTest12345", "76561197998999999");
-                    ini.Save();
-                    return ini;
                 }
-                ini = new IniParser(path);
-                return ini;
+                return new IniParser(path);
             }
         }
     }

@@ -1,4 +1,4 @@
-namespace Fougerite
+﻿namespace Fougerite
 {
     using Facepunch;
     using System;
@@ -12,11 +12,11 @@ namespace Fougerite
         private static World world;
         public Dictionary<string, Zone3D> zones;
         public Dictionary<string, int> cache = new Dictionary<string, int>();
-        private List<Entity> chests = new List<Entity>();
+        private List<Entity> deployables = new List<Entity>();
         private List<Entity> doors = new List<Entity>();
         private List<Entity> structurems = new List<Entity>();
         private List<Entity> structures = new List<Entity>();
-        private int UpdateTime = 120000;
+        public int CacheUpdateTime = 120000;
 
 
         public World()
@@ -381,7 +381,7 @@ namespace Fougerite
             else if (this.cache.ContainsKey("BasicDoor"))
             {
                 int num = Environment.TickCount - this.cache["BasicDoor"];
-                if (num >= this.UpdateTime || float.IsNaN(num) || num <= 0)
+                if (num >= this.CacheUpdateTime || float.IsNaN(num) || num <= 0)
                 {
                     this.cache["BasicDoor"] = Environment.TickCount;
                     IEnumerable<Entity> source = from s in UnityEngine.Object.FindObjectsOfType<BasicDoor>()
@@ -394,25 +394,25 @@ namespace Fougerite
 
         public IEnumerable<Entity> DeployableObjects(bool forceupdate = false)
         {
-            if (!this.cache.ContainsKey("DeployableObject") || forceupdate || this.chests.Count == 0)
+            if (!this.cache.ContainsKey("DeployableObject") || forceupdate || this.deployables.Count == 0)
             {
                 this.cache.Add("DeployableObject", Environment.TickCount);
                 IEnumerable<Entity> source = from s in UnityEngine.Object.FindObjectsOfType<DeployableObject>()
                                              select new Entity(s);
-                this.chests = source.ToList();
+                this.deployables = source.ToList();
             }
             else if (this.cache.ContainsKey("DeployableObject"))
             {
                 int num = Environment.TickCount - this.cache["DeployableObject"];
-                if (num >= this.UpdateTime || float.IsNaN(num) || num <= 0)
+                if (num >= this.CacheUpdateTime || float.IsNaN(num) || num <= 0)
                 {
                     this.cache["DeployableObject"] = Environment.TickCount;
                     IEnumerable<Entity> source = from s in UnityEngine.Object.FindObjectsOfType<DeployableObject>()
                                                  select new Entity(s);
-                    this.chests = source.ToList();
+                    this.deployables = source.ToList();
                 }
             }
-            return this.chests;
+            return this.deployables;
         }
 
         public IEnumerable<Entity> StructureComponents(bool forceupdate = false)
@@ -427,7 +427,7 @@ namespace Fougerite
             else if (this.cache.ContainsKey("StructureComponent"))
             {
                 int num = Environment.TickCount - this.cache["StructureComponent"];
-                if (num >= this.UpdateTime || float.IsNaN(num) || num <= 0)
+                if (num >= this.CacheUpdateTime || float.IsNaN(num) || num <= 0)
                 {
                     this.cache["StructureComponent"] = Environment.TickCount;
                     IEnumerable<Entity> source = from s in UnityEngine.Object.FindObjectsOfType<StructureComponent>()
@@ -450,7 +450,7 @@ namespace Fougerite
             else if (this.cache.ContainsKey("StructureMaster"))
             {
                 int num = Environment.TickCount - this.cache["StructureMaster"];
-                if (num >= this.UpdateTime || float.IsNaN(num) || num <= 0)
+                if (num >= this.CacheUpdateTime || float.IsNaN(num) || num <= 0)
                 {
                     this.cache["StructureMaster"] = Environment.TickCount;
                     IEnumerable<Entity> source = from s in StructureMaster.AllStructures
@@ -459,6 +459,16 @@ namespace Fougerite
                 }
             }
             return this.structurems;
+        }
+
+        public IEnumerable<Entity> LootableObjects
+        {
+            get
+            {
+                IEnumerable<Entity> source = from s in UnityEngine.Object.FindObjectsOfType<LootableObject>()
+                    select new Entity(s);
+                return source.ToList();
+            }
         }
 
         public List<Entity> Entities

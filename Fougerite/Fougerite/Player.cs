@@ -7,7 +7,6 @@ namespace Fougerite
     using System.Timers;
     using System.Collections.Generic;
     using UnityEngine;
-    using RustPP.Permissions;
 
     public class Player
     {
@@ -118,6 +117,10 @@ namespace Fougerite
         {
             if (this.IsOnline)
             {
+                if (this.ourPlayer.netUser == null)
+                {
+                    return;
+                }
                 NetUser netUser = this.ourPlayer.netUser;
                 if (netUser.connected && (netUser != null))
                 {
@@ -416,24 +419,14 @@ namespace Fougerite
         {
             get
             {
-                if (this.IsOnline)
-                {
-                    if (Fougerite.Server.GetServer().HasRustPP)
+               if (Fougerite.Server.GetServer().HasRustPP)
+               {
+                    if (Fougerite.Server.GetServer().GetRustPPAPI().IsAdmin(this.UID))
                     {
-                        if (Fougerite.Server.GetServer().GetRustPPAPI().IsAdmin(this.UID))
-                        {
-                            if (Fougerite.Server.GetServer().GetRustPPAPI().GetAdmin(this.UID).HasPermission("Moderator"))
-                            {
-                                return true;
-                            }
-                        }
+                        return Fougerite.Server.GetServer().GetRustPPAPI().GetAdmin(this.UID).HasPermission("Moderator");
                     }
-                    if (DataStore.GetInstance().ContainsKey("Moderators", SteamID))
-                    {
-                        return true;
-                    }
-                }
-                return false;
+               }
+               return DataStore.GetInstance().ContainsKey("Moderators", SteamID);
             }
         }
 

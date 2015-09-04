@@ -10,16 +10,29 @@
 
         public override void Execute(ref ConsoleSystem.Arg Arguments, ref string[] ChatArguments)
         {
+            var pl = Fougerite.Server.Cache[Arguments.argUser.userID];
+            if (Fougerite.Server.CommandCancelList.ContainsKey(pl))
+            {
+                if (Fougerite.Server.CommandCancelList[pl].Contains("god"))
+                {
+                    if (userIDs.Contains(pl.UID))
+                    {
+                        userIDs.Remove(pl.UID);
+                        pl.PlayerClient.controllable.character.takeDamage.SetGodMode(false);
+                    } 
+                    return;
+                }
+            }
             if (!this.userIDs.Contains(Arguments.argUser.userID))
             {
                 this.userIDs.Add(Arguments.argUser.userID);
-                Arguments.argUser.playerClient.controllable.character.takeDamage.SetGodMode(true);
+                pl.PlayerClient.controllable.character.takeDamage.SetGodMode(true);
                 Util.sayUser(Arguments.argUser.networkPlayer, Core.Name, "God mode has been activated!");
             }
             else
             {
                 this.userIDs.Remove(Arguments.argUser.userID);
-                Arguments.argUser.playerClient.controllable.character.takeDamage.SetGodMode(false);
+                pl.PlayerClient.controllable.character.takeDamage.SetGodMode(false);
                 Util.sayUser(Arguments.argUser.networkPlayer, Core.Name, "God mode has been deactivated!");
             }
         }

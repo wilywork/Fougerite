@@ -25,6 +25,7 @@
             IniParser parser = (IniParser)inifiles[config.ToLower()];
             if (parser == null)
             {
+                parser.Save();
                 return "Config does not exist";
             }
             return parser.GetSetting(section, key);

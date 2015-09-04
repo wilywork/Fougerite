@@ -395,7 +395,7 @@ namespace Fougerite
                 return Vector3.zero;
             }
         }
-        
+
         public Quaternion Rotation
         {
             get
