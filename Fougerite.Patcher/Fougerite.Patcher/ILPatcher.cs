@@ -56,10 +56,17 @@ namespace Fougerite.Patcher
             TypeDefinition type = ulink.MainModule.GetType("uLink.InternalHelper");
             TypeDefinition Class56 = ulink.MainModule.GetType("Class56");
             TypeDefinition Class52 = ulink.MainModule.GetType("Class52");
+            TypeDefinition Class48 = ulink.MainModule.GetType("Class48");
+            TypeDefinition Class45 = ulink.MainModule.GetType("Class45");
             MethodDefinition method_22 = Class56.GetMethod("method_22");
             MethodDefinition method_25 = Class56.GetMethod("method_25");
+            MethodDefinition method_36 = Class56.GetMethod("method_36");
             MethodDefinition method_435 = Class52.GetMethod("method_435");
-            //MethodDefinition method_44 = Class56.GetMethod("method_44");
+            MethodDefinition vmethod_3 = Class52.GetMethod("vmethod_3");
+            MethodDefinition method_250 = Class48.GetMethod("method_250");
+            MethodDefinition method_252 = Class48.GetMethod("method_252");
+            MethodDefinition method_269 = Class48.GetMethod("method_269");
+            MethodDefinition method_4 = Class45.GetMethod("method_4");
             MethodDefinition update = type.GetMethod("LateUpdate");
 
             TypeDefinition logger = fougeriteAssembly.MainModule.GetType("Fougerite.Logger");
@@ -68,8 +75,13 @@ namespace Fougerite.Patcher
             WrapMethod(update, logex, ulink, false);
             WrapMethod(method_22, logex, ulink, false);
             WrapMethod(method_25, logex, ulink, false);
+            WrapMethod(method_36, logex, ulink, false);
             WrapMethod(method_435, logex, ulink, false);
-            //WrapMethod(method_44, logex, ulink, false);
+            WrapMethod(vmethod_3, logex, ulink, false);
+            WrapMethod(method_250, logex, ulink, false);
+            WrapMethod(method_252, logex, ulink, false);
+            WrapMethod(method_269, logex, ulink, false);
+            WrapMethod(method_4, logex, ulink, false);
             ulink.Write("uLink.dll");
         }
 
@@ -798,18 +810,6 @@ namespace Fougerite.Patcher
             MethodDefinition logex = logger.GetMethod("LogException");
 
             WrapMethod(CloseConnection, logex, rustAssembly, false);
-        }
-
-        private void NetworkPatch()
-        {
-            AssemblyDefinition ulink = AssemblyDefinition.ReadAssembly("uLink.dll");
-            TypeDefinition Network = ulink.MainModule.GetType("Network");
-            MethodDefinition CloseConnection = Network.GetMethod("CloseConnection");
-            TypeDefinition logger = fougeriteAssembly.MainModule.GetType("Fougerite.Logger");
-            MethodDefinition logex = logger.GetMethod("LogException");
-
-            WrapMethod(CloseConnection, logex, rustAssembly, false);
-            ulink.Write("uLink.dll");
         }
 
         public bool FirstPass()

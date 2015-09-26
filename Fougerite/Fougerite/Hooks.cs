@@ -109,14 +109,10 @@
                 if (OnCommand != null)
                 {
                     Fougerite.Player player = Fougerite.Server.Cache[arg.argUser.playerClient.userID];
-                    if (Fougerite.Server.CommandCancelList.ContainsKey(player))
+                    if (player.CommandCancelList.Contains(command))
                     {
-                        var list = Fougerite.Server.CommandCancelList[player];
-                        if (list.Contains(command))
-                        {
-                            player.Message("You cannot execute " + command + " at the moment!");
-                            return;
-                        }
+                        player.Message("You cannot execute " + command + " at the moment!");
+                        return;
                     }
                     //OnCommand(Fougerite.Player.FindByPlayerClient(arg.argUser.playerClient), command, cargs);
                     OnCommand(player, command, cargs);
@@ -401,6 +397,7 @@
         {
             ulong uid = user.userID;
             Fougerite.Player player = Fougerite.Server.Cache[uid];
+            player.IsDisconnecting = true;
             try
             {
                 if (OnPlayerDisconnected != null)
@@ -417,15 +414,6 @@
             if (Fougerite.Bootstrap.CR)
             {
                 Fougerite.Server.Cache.Remove(uid);
-                return;
-            }
-            if (Fougerite.Server.Cache.Keys.Count >= Fougerite.Bootstrap.PC)
-            {
-                Fougerite.Server.Cache.Clear();
-                foreach (var x in Fougerite.Server.GetServer().Players)
-                {
-                    Fougerite.Server.Cache[x.UID] = x;
-                }
             }
         }
 
@@ -721,12 +709,13 @@
             { 
                 if (OnItemRemoved != null)
                 {
-                    Fougerite.Events.InventoryModEvent e = new Fougerite.Events.InventoryModEvent(inventory, slot, item);
+                    Fougerite.Events.InventoryModEvent e = new Fougerite.Events.InventoryModEvent(inventory, slot, item, "Remove");
                     OnItemRemoved(e);
                 }
             }
-            catch
+            catch(Exception ex)
             {
+                Logger.LogDebug("Inventory Remove error: " + ex);
             }
         }
 
@@ -736,12 +725,13 @@
             { 
                 if (OnItemAdded != null)
                 {
-                    Fougerite.Events.InventoryModEvent e = new Fougerite.Events.InventoryModEvent(inventory, slot, item);
+                    Fougerite.Events.InventoryModEvent e = new Fougerite.Events.InventoryModEvent(inventory, slot, item, "Add");
                     OnItemAdded(e);
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                Logger.LogDebug("Inventory Add error: " + ex);
             }
         }
 

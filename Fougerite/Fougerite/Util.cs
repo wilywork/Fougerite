@@ -294,7 +294,7 @@ namespace Fougerite
             return DatablockDictionary.All.OfType<BlueprintDataBlock>().FirstOrDefault(obj => obj.resultItem == item);
         }
 
-        [System.Obsolete("Use FindDeployableAt", true)]
+        [System.Obsolete("Use FindDeployableAt", false)]
         public Entity FindChestAt(Vector3 givenPosition, float dist = 1f, bool forceupdate = false)
         {
             return FindDeployableAt(givenPosition, dist, forceupdate);
@@ -302,27 +302,47 @@ namespace Fougerite
 
         public Entity FindDeployableAt(Vector3 givenPosition, float dist = 1f, bool forceupdate = false)
         {
-            return World.GetWorld().DeployableObjects(forceupdate).FirstOrDefault(x => Vector3.Distance(x.Location, givenPosition) <= dist);
+            foreach (var x in World.GetWorld().DeployableObjects(forceupdate))
+            {
+                if (Vector3.Distance(x.Location, givenPosition) <= dist) return x;
+            }
+            return null;
         }
 
         public Entity FindDoorAt(Vector3 givenPosition, float dist = 2f, bool forceupdate = false)
         {
-            return World.GetWorld().BasicDoors(forceupdate).FirstOrDefault(x => Vector3.Distance(x.Location, givenPosition) <= dist);
+            foreach (var x in World.GetWorld().BasicDoors(forceupdate))
+            {
+                if (Vector3.Distance(x.Location, givenPosition) <= dist) return x;
+            }
+            return null;
         }
 
         public Entity FindStructureAt(Vector3 givenPosition, float dist = 1f, bool forceupdate = false)
         {
-            return World.GetWorld().StructureComponents(forceupdate).FirstOrDefault(x => Vector3.Distance(x.Location, givenPosition) <= dist);
+            foreach (var x in World.GetWorld().StructureComponents(forceupdate))
+            {
+                if (Vector3.Distance(x.Location, givenPosition) <= dist) return x;
+            }
+            return null;
         }
 
         public Entity FindLootableAt(Vector3 givenPosition, float dist = 1f)
         {
-            return World.GetWorld().LootableObjects.FirstOrDefault(x => Vector3.Distance(x.Location, givenPosition) <= dist);
+            foreach (var x in World.GetWorld().LootableObjects)
+            {
+                if (Vector3.Distance(x.Location, givenPosition) <= dist) return x;
+            }
+            return null;
         }
 
         public Entity FindEntityAt(Vector3 givenPosition, float dist = 1f)
         {
-            return World.GetWorld().Entities.FirstOrDefault(x => Vector3.Distance(x.Location, givenPosition) <= dist);
+            foreach (var x in World.GetWorld().Entities)
+            {
+                if (Vector3.Distance(x.Location, givenPosition) <= dist) return x;
+            }
+            return null;
         }
 
         public List<Entity> FindDeployablesAround(Vector3 givenPosition, float dist = 100f, bool forceupdate = false)
@@ -350,25 +370,25 @@ namespace Fougerite
             return World.GetWorld().Entities.Where(e => Vector3.Distance(e.Location, givenPosition) <= dist).ToList();
         }
 
-        [System.Obsolete("Use FindEntity", true)]
+        [System.Obsolete("Use FindEntity", false)]
         public Entity GetEntityatCoords(Vector3 givenPosition)
         {
             return FindEntityAt(givenPosition);
         }
 
-        [System.Obsolete("Use FindEntity", true)]
+        [System.Obsolete("Use FindEntity", false)]
         public Entity GetEntityatCoords(float x, float y, float z)
         {
             return FindEntityAt(new Vector3(x, y, z));
         }
 
-        [System.Obsolete("Use FindDoorAt", true)]
+        [System.Obsolete("Use FindDoorAt", false)]
         public Entity GetDooratCoords(Vector3 givenPosition)
         {
             return FindDoorAt(givenPosition);
         }
 
-        [System.Obsolete("Use FindDoorAt", true)]
+        [System.Obsolete("Use FindDoorAt", false)]
         public Entity GetDooratCoords(float x, float y, float z)
         {
             return FindDoorAt(new Vector3(x, y, z));

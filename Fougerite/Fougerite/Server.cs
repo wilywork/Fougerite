@@ -16,9 +16,8 @@ namespace Fougerite
         private bool HRustPP = false;
         public string server_message_name = "Fougerite";
         public static IDictionary<ulong, Fougerite.Player> Cache = new Dictionary<ulong, Fougerite.Player>();
-        public static IDictionary<Fougerite.Player, List<string>> CommandCancelList = new Dictionary<Player, List<string>>();
         public static IEnumerable<string> ForceCallForCommands = new List<string>();
-        private string path = Path.Combine(Util.GetRootFolder(), Path.Combine("Save", "GlobalBanList.ini"));
+        private readonly string path = Path.Combine(Util.GetRootFolder(), Path.Combine("Save", "GlobalBanList.ini"));
 
         public void LookForRustPP()
         {
@@ -30,11 +29,22 @@ namespace Fougerite
             }
         }
 
-        public void BanPlayer(Fougerite.Player player, string Banner = "Console", string reason = "You were banned.")
+        public void BanPlayer(Fougerite.Player player, string Banner = "Console", string reason = "You were banned.", Fougerite.Player Sender = null)
         {
             string red = "[color #FF0000]";
             string green = "[color #009900]";
             string white = "[color #FFFFFF]";
+            player.Message(red + " " + reason);
+            player.Message(red + " Banned by: " + Banner);
+            if (Sender != null)
+            {
+                var loc = player.Location.ToString();
+                Sender.Message("You banned " + player.Name);
+                Sender.Message("Player's IP: " + player.IP);
+                Sender.Message("Player's ID: " + player.SteamID);
+                Sender.Message("Player's Location: " + loc);
+            }
+            player.Disconnect();
             foreach (Fougerite.Player pl in Players.Where(pl => pl.Admin || pl.Moderator))
             {
                 pl.Message(red + player.Name + white + " was banned by: "
@@ -43,112 +53,58 @@ namespace Fougerite
             }
             BanPlayerIP(player.IP, player.Name, reason, Banner);
             BanPlayerID(player.SteamID, player.Name, reason, Banner);
-            player.Message(red + " " + reason);
-            player.Message(red + " Banned by: " + Banner);
-            player.Disconnect();
         }
 
         public void BanPlayerIP(string ip, string name = "1", string reason = "You were banned.", string adminname = "Unknown")
         {
             IniParser ini = GlobalBanList;
-            if (ini.ContainsSetting("Ips", ip))
-            {
-                return;
-            }
             ini.AddSetting("Ips", ip, name);
-            /*if (!name.Equals("1"))
-            {
-                if (ini.ContainsSetting("NameIps", name))
-                {
-                    for (int i = 1; i <= 150; i++)
-                    {
-                        if (!ini.ContainsSetting("NameIps", name + i))
-                        {
-                            ini.AddSetting("NameIps", name + i, ip);
-                            break;
-                        }
-                    }
-                }
-                else
-                {
-                    ini.AddSetting("NameIps", name, ip);
-                }
-            }*/
-            if (!ini.ContainsSetting("AdminWhoBanned", name + "|" + ip))
-            {
-                ini.AddSetting("AdminWhoBanned", name + "|" + ip, adminname + "|" + reason);
-            }
+            ini.AddSetting("AdminWhoBanned", name + "|" + ip, adminname + "|" + reason);
             ini.Save();
         }
 
         public void BanPlayerID(string id, string name = "1", string reason = "You were banned.", string adminname = "Unknown")
         {
             IniParser ini = GlobalBanList;
-            if (ini.ContainsSetting("Ids", id))
-            {
-                return;
-            }
             ini.AddSetting("Ids", id, name);
-            /*if (!name.Equals("1"))
-            {
-                if (ini.ContainsSetting("NameIds", name))
-                {
-                    for (int i = 1; i <= 150; i++)
-                    {
-                        if (!ini.ContainsSetting("NameIps", name + i))
-                        {
-                            ini.AddSetting("NameIds", name + i, id);
-                            break;
-                        }
-                    }
-                }
-                else
-                {
-                    ini.AddSetting("NameIds", name, id);
-                }
-            }*/
-            if (!ini.ContainsSetting("AdminWhoBanned", name + "|" + id))
-            {
-                ini.AddSetting("AdminWhoBanned", name + "|" + id, adminname + "|" + reason);
-            }
+            ini.AddSetting("AdminWhoBanned", name + "|" + id, adminname + "|" + reason);
             ini.Save();
         }
 
         public bool IsBannedID(string id)
         {
             IniParser ini = GlobalBanList;
-            return ini.ContainsSetting("Ids", id);
+            return (ini.GetSetting("Ids", id) != null);
         }
 
         public bool IsBannedIP(string ip)
         {
             IniParser ini = GlobalBanList;
-            return ini.ContainsSetting("Ips", ip);
+            return (ini.GetSetting("Ips", ip) != null);
         }
 
-        public bool UnbanByName(string name, string UnBanner = "Console")
+        public bool UnbanByName(string name, string UnBanner = "Console", Fougerite.Player Sender = null)
         {
-            string id = FindIDOfName(name);
-            string ip = FindIPOfName(name);
-            if (id == null)
-            {
-                return false;
-            }
+            var ids = FindIDsOfName(name);
+            var ips = FindIPsOfName(name);
             string red = "[color #FF0000]";
             string green = "[color #009900]";
             string white = "[color #FFFFFF]";
-            foreach (Fougerite.Player pl in Server.GetServer().Players.Where(pl => pl.Admin || pl.Moderator))
+            if (ids.Count == 0 && ips.Count == 0)
+            {
+                if (Sender != null) { Sender.Message(red + "Couldn't find any names matching with " + name); }
+                return false;
+            }
+            foreach (Fougerite.Player pl in Players.Where(pl => pl.Admin || pl.Moderator))
             {
                 pl.Message(red + name + white + " was unbanned by: "
-                           + green + UnBanner);
+                           + green + UnBanner + white + " Different matches: " + ids.Count);
             }
             IniParser ini = GlobalBanList;
-            //var iprq = ini.GetSetting("NameIps", ip);
-            //var idrq = ini.GetSetting("NameIds", id);
-            ini.DeleteSetting("Ips", ip);
-            ini.DeleteSetting("Ids", id);
-            //ini.DeleteSetting("NameIps", name);
-            //ini.DeleteSetting("NameIds", name);
+            var iptub = ips.Last();
+            var idtub = ids.Last();
+            ini.DeleteSetting("Ips", iptub);
+            ini.DeleteSetting("Ids", idtub);
             ini.Save();
             return true;
         }
@@ -156,7 +112,7 @@ namespace Fougerite
         public bool UnbanByIP(string ip)
         {
             IniParser ini = GlobalBanList;
-            if (ini.ContainsSetting("Ips", ip))
+            if (ini.GetSetting("Ips", ip) != null)
             {
                 ini.DeleteSetting("Ips", ip);
                 ini.Save();
@@ -168,7 +124,7 @@ namespace Fougerite
         public bool UnbanByID(string id)
         {
             IniParser ini = GlobalBanList;
-            if (ini.ContainsSetting("Ids", id))
+            if (ini.GetSetting("Ids", id) != null)
             {
                 ini.DeleteSetting("Ids", id);
                 ini.Save();
@@ -177,28 +133,30 @@ namespace Fougerite
             return false;
         }
 
-        public string FindIPOfName(string name)
+        public List<string> FindIPsOfName(string name)
         {
             IniParser ini = GlobalBanList;
             var ips = ini.EnumSection("Ips");
             string l = name.ToLower();
-            foreach (var ip in ips.Where(ip => ini.GetSetting("Ips", ip).ToLower() == l))
+            List<string> collection = new List<string>();
+            foreach (var ip in ips)
             {
-                return ip;
+                if (ini.GetSetting("Ips", ip).ToLower() == l) collection.Add(ip);
             }
-            return null;
+            return collection;
         }
 
-        public string FindIDOfName(string name)
+        public List<string> FindIDsOfName(string name)
         {
             IniParser ini = GlobalBanList;
             var ids = ini.EnumSection("Ids");
             string l = name.ToLower();
-            foreach (var id in ids.Where(ip => ini.GetSetting("Ids", ip).ToLower() == l))
+            List<string> collection = new List<string>();
+            foreach (var id in ids)
             {
-                return id;
+                if (ini.GetSetting("Ids", id).ToLower() == l) collection.Add(id);
             }
-            return null;
+            return collection;
         }
 
         public void Broadcast(string arg)
@@ -249,19 +207,21 @@ namespace Fougerite
                     query = from player in this.players
                             group player by search.Similarity(player.SteamID) into match
                             orderby match.Key descending
-                            select match.FirstOrDefault();
+                            select match.DefaultIfEmpty().FirstOrDefault();
 
                     Logger.LogDebug(string.Format("[FindPlayer] search={0} matches={1}", search, string.Join(", ", query.Select(p => p.SteamID).ToArray<string>())));
-                    return query.FirstOrDefault();
+                    return query.DefaultIfEmpty().FirstOrDefault();
                 }
             }
-            query = from player in this.players
-                    group player by search.Similarity(player.Name) into match
-                    orderby match.Key descending
-                    select match.FirstOrDefault();
+            var list = players.Where(x => x.Name.ToLower().Contains(search.ToLower()) || string.Equals(x.Name, search, StringComparison.CurrentCultureIgnoreCase)).ToList();
+            if (list.Count >= 1)
+            {
+                Logger.LogDebug("[FindPlayer] Matches: " + list.Count + " First Match: " + list[0].Name);
+                return list[0];
+            }
 
-            Logger.LogDebug(string.Format("[FindPlayer] search={0} matches={1}", search, string.Join(", ", query.Select(p => p.Name).ToArray<string>())));
-            return query.FirstOrDefault();
+            Logger.LogDebug("[FindPlayer] 0 Matches");
+            return null;
         }
 
         public static Fougerite.Server GetServer()

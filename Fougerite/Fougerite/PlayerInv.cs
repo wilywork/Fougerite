@@ -30,6 +30,11 @@
             inv.give(ref arg);
         }
 
+        public void AddItem(PlayerItem item, int i = 1)
+        {
+            _inv.AddItemAmount(item.RInventoryItem.datablock, i);
+        }
+
         public void AddItemTo(string name, int slot)
         {
             this.AddItemTo(name, slot, 1);

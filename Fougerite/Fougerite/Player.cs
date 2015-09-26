@@ -19,6 +19,8 @@ namespace Fougerite
         private ulong uid;
         private string name;
         private string ipaddr;
+        private List<string> _CommandCancelList;
+        private bool disconnected = false;
 
         public Player()
         {
@@ -35,6 +37,7 @@ namespace Fougerite
             this.name = client.netUser.displayName;
             this.ipaddr = client.netPlayer.externalIP;
             this.FixInventoryRef();
+            this._CommandCancelList = new List<string>();
         }
 
         public bool IsOnline
@@ -65,6 +68,12 @@ namespace Fougerite
                 }
                 return false;
             }
+        }
+
+        public bool IsDisconnecting
+        {
+            get { return disconnected; }
+            set { disconnected = value; }
         }
 
         public Character Character
@@ -115,18 +124,33 @@ namespace Fougerite
 
         public void Disconnect()
         {
+            if (disconnected) { return; }
+            disconnected = true;
             if (this.IsOnline)
             {
-                if (this.ourPlayer.netUser == null)
-                {
-                    return;
-                }
-                NetUser netUser = this.ourPlayer.netUser;
-                if (netUser.connected && (netUser != null))
-                {
-                    netUser.Kick(NetError.NoError, true);
-                }
+                this.ourPlayer.netUser.Kick(NetError.NoError, true);
             }
+        }
+
+        public void RestrictCommand(string cmd)
+        {
+            if (!CommandCancelList.Contains(cmd))
+            {
+                CommandCancelList.Add(cmd);
+            }
+        }
+
+        public void UnRestrictCommand(string cmd)
+        {
+            if (CommandCancelList.Contains(cmd))
+            {
+                CommandCancelList.Remove(cmd);
+            }
+        }
+
+        public void CleanRestrictedCommands()
+        {
+            CommandCancelList.Clear();
         }
 
         public Fougerite.Player Find(string search)
@@ -452,6 +476,11 @@ namespace Fougerite
             {
                 return this.uid.ToString();
             }
+        }
+
+        public List<string> CommandCancelList
+        {
+            get { return this._CommandCancelList; }
         }
 
         public bool HasBlueprint(BlueprintDataBlock dataBlock)
@@ -799,7 +828,7 @@ namespace Fougerite
                             where deployable.ownerID == this.uid
                             select new Sleeper(deployable);
 
-                return query.FirstOrDefault();
+                return query.ToList().Last();
             }
         }
 
