@@ -828,7 +828,7 @@ namespace Fougerite
                             where deployable.ownerID == this.uid
                             select new Sleeper(deployable);
 
-                return query.ToList().Last();
+                return query.ToList().FirstOrDefault();
             }
         }
 
