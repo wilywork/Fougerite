@@ -316,6 +316,14 @@
                         {
                             obj2 = new Entity(component);
                         } 
+                        else if (obj3.GetComponent<LootableObject>())
+                        {
+                            obj2 = new Entity(obj3.GetComponent<LootableObject>());
+                        }
+                        else if (obj3.GetComponent<SupplyCrate>())
+                        {
+                            obj2 = new Entity(obj3.GetComponent<SupplyCrate>());
+                        }
                         else
                         {
                             DeployableObject obj4 = obj3.GetComponent<DeployableObject>();
@@ -466,7 +474,17 @@
             get
             {
                 IEnumerable<Entity> source = from s in UnityEngine.Object.FindObjectsOfType<LootableObject>()
-                    select new Entity(s);
+                                             select new Entity(s);
+                return source.ToList();
+            }
+        }
+
+        public IEnumerable<Entity> SupplyCrates
+        {
+            get
+            {
+                IEnumerable<Entity> source = from s in UnityEngine.Object.FindObjectsOfType<SupplyCrate>()
+                                             select new Entity(s);
                 return source.ToList();
             }
         }
@@ -476,11 +494,11 @@
             get
             {
                 IEnumerable<Entity> component = from c in UnityEngine.Object.FindObjectsOfType<StructureComponent>()
-                                                select new Entity(c);
+                    select new Entity(c);
                 IEnumerable<Entity> deployable = from d in UnityEngine.Object.FindObjectsOfType<DeployableObject>()
-                                                 select new Entity(d);
+                    select new Entity(d);
                 IEnumerable<Entity> supplydrop = from s in UnityEngine.Object.FindObjectsOfType<SupplyCrate>()
-                                             select new Entity(s);
+                    select new Entity(s);
                 // this is much faster than Concat
                 List<Entity> entities = new List<Entity>(component.Count() + deployable.Count() + supplydrop.Count());
                 entities.AddRange(component);
@@ -489,7 +507,6 @@
                 {
                     entities.AddRange(supplydrop);
                 }
-
                 return entities;
             }
         }

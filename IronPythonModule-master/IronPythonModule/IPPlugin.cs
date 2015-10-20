@@ -1,8 +1,4 @@
-﻿using System.Text;
-using IronPython.Hosting;
-using IronPython.Modules;
-using IronPython.Runtime;
-using IronPython.Runtime.Exceptions;
+﻿using IronPython.Hosting;
 using UnityEngine;
 
 namespace IronPythonModule {
@@ -400,6 +396,11 @@ namespace IronPythonModule {
 		public void OnServerShutdown() {
 			this.Invoke("On_ServerShutdown", new object[0]);
 		}
+
+	    public void OnServerSaved()
+	    {
+            this.Invoke("On_ServerSaved", new object[0]);
+        }
 
         public void OnCrafting(CraftingEvent e)
 	    {

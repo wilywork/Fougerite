@@ -91,7 +91,7 @@
             Fougerite.Hooks.OnPlayerDisconnected += PlayerDisconnect;
             Fougerite.Hooks.OnPlayerHurt += PlayerHurt;
             Fougerite.Hooks.OnPlayerKilled += PlayerKilled;
-            Fougerite.Hooks.OnServerShutdown += ServerShutdown;
+            Fougerite.Hooks.OnServerSaved += OnServerSaved;
             Fougerite.Hooks.OnShowTalker += ShowTalker;
             Fougerite.Hooks.OnChatRaw += ChatReceived;
             Fougerite.Hooks.OnChat += Chat;
@@ -108,7 +108,7 @@
             Fougerite.Hooks.OnPlayerDisconnected -= PlayerDisconnect;
             Fougerite.Hooks.OnPlayerHurt -= PlayerHurt;
             Fougerite.Hooks.OnPlayerKilled -= PlayerKilled;
-            Fougerite.Hooks.OnServerShutdown -= ServerShutdown;
+            Fougerite.Hooks.OnServerSaved -= OnServerSaved;
             Fougerite.Hooks.OnShowTalker -= ShowTalker;
             Fougerite.Hooks.OnChatRaw -= ChatReceived;
             Fougerite.Hooks.OnChat -= Chat;
@@ -244,10 +244,9 @@
             Notice.Inventory(player, "☎ " + p.netUser.displayName);
         }
 
-        void ServerShutdown()
+        void OnServerSaved()
         {
-            if (Core.IsEnabled())
-                Helper.CreateSaves();
+            if (Core.IsEnabled())Helper.CreateSaves();
         }
 
         void PlayerKilled(DeathEvent event2)

@@ -55,8 +55,7 @@
                 }
                 else if (d.victim.client != null)
                 {
-                    if (!Fougerite.Server.Cache.ContainsKey(d.victim.client.userID)) { this.Victim = Fougerite.Player.FindByPlayerClient(d.attacker.client); }
-                    else { this.Victim = Fougerite.Server.Cache[d.victim.client.userID]; }
+                    this.Victim = !Fougerite.Server.Cache.ContainsKey(d.victim.client.userID) ? Fougerite.Player.FindByPlayerClient(d.attacker.client) : Fougerite.Server.Cache[d.victim.client.userID];
                     this._playervictim = true;
                 }
                 else if (d.victim.character != null)
@@ -87,8 +86,7 @@
                 }
                 else if (d.attacker.id is Metabolism && d.victim.id is Metabolism)
                 {
-                    if (!Fougerite.Server.Cache.ContainsKey(d.attacker.client.userID)) { this.Attacker = Fougerite.Player.FindByPlayerClient(d.attacker.client); }
-                    else { this.Attacker = Fougerite.Server.Cache[d.attacker.client.userID]; }
+                    this.Attacker = !Fougerite.Server.Cache.ContainsKey(d.attacker.client.userID) ? Fougerite.Player.FindByPlayerClient(d.attacker.client) : Fougerite.Server.Cache[d.attacker.client.userID];
                     this._playerattacker = false;
                     this.Victim = this.Attacker;
                     ICollection<string> list = new List<string>();
@@ -115,14 +113,7 @@
                         if (this.DamageType != "Unknown" && !list.Contains(this.DamageType))
                             list.Add(this.DamageType);
                     }
-                    if (list.Count > 0)
-                    {
-                        weaponName = string.Format("Self ({0})", string.Join(",", list.ToArray()));
-                    }
-                    else
-                    {
-                        weaponName = this.DamageType;
-                    }
+                    weaponName = list.Count > 0 ? string.Format("Self ({0})", string.Join(",", list.ToArray())) : this.DamageType;
                 }
                 else if (d.attacker.client != null)
                 {

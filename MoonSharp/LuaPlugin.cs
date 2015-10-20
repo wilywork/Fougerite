@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Fougerite;
 using Fougerite.Events;
 using MoonSharp.Interpreter;
@@ -206,6 +205,11 @@ namespace MoonSharpModule
         public void OnServerShutdown()
         {
             this.Invoke("On_ServerShutdown", new object[0]);
+        }
+
+        public void OnServerSaved()
+        {
+            this.Invoke("On_ServerSaved", new object[0]);
         }
 
         public void OnCrafting(CraftingEvent e)

@@ -175,6 +175,12 @@ namespace JintPlugin
                 case "On_Research":
                     Hooks.OnResearch += OnResearch;
                     break;
+                case "On_ServerSaved":
+                    Hooks.OnServerSaved += OnServerSaved;
+                    break;
+                case "On_AllPluginsLoaded":
+                    JintPluginModule.OnAllLoaded += OnAllLoaded;
+                    break;
                 }
             }
         }
@@ -276,6 +282,12 @@ namespace JintPlugin
                     break;
                 case "On_Research":
                     Hooks.OnResearch -= OnResearch;
+                    break;
+                case "On_ServerSaved":
+                    Hooks.OnServerSaved -= OnServerSaved;
+                    break;
+                case "On_AllPluginsLoaded":
+                    JintPluginModule.OnAllLoaded += OnAllLoaded;
                     break;
                 }
             }
@@ -556,6 +568,11 @@ namespace JintPlugin
 
         #region Hooks
 
+        public void OnAllLoaded()
+        {
+            Invoke("On_AllPluginsLoaded");
+        }
+
         public void OnBlueprintUse(Player player, BPUseEvent evt)
         {
             Invoke("On_BlueprintUse", player, evt);
@@ -710,6 +727,11 @@ namespace JintPlugin
         public void OnServerShutdown()
         {
             Invoke("On_ServerShutdown");
+        }
+
+        public void OnServerSaved()
+        {
+            Invoke("On_ServerSaved");
         }
 
         public void OnTablesLoaded(Dictionary<string, LootSpawnList> lists)

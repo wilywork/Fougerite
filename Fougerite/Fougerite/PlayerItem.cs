@@ -1,4 +1,6 @@
-﻿namespace Fougerite
+﻿using System.Linq;
+
+namespace Fougerite
 {
 
     public class PlayerItem
@@ -91,7 +93,7 @@
         {
             get
             {
-                return this.UsesLeft;
+                return Util.UStackable.Contains(Name) ? 1 : this.UsesLeft;
             }
             set
             {

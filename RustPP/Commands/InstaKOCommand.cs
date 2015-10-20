@@ -10,6 +10,16 @@
 
         public override void Execute(ref ConsoleSystem.Arg Arguments, ref string[] ChatArguments)
         {
+            var pl = Fougerite.Server.Cache[Arguments.argUser.userID];
+            if (pl.CommandCancelList.Contains("instako"))
+            {
+                if (userIDs.Contains(pl.UID))
+                {
+                    userIDs.Remove(pl.UID);
+                    Util.sayUser(Arguments.argUser.networkPlayer, Core.Name, "InstaKO mode has been deactivated!");
+                }
+                return;
+            }
             if (!this.userIDs.Contains(Arguments.argUser.userID))
             {
                 this.userIDs.Add(Arguments.argUser.userID);

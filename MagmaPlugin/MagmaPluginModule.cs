@@ -44,6 +44,8 @@ namespace MagmaPlugin
         };
         public static Hashtable inifiles = new Hashtable();
         private readonly string brktname = "[Magma]";
+        public delegate void AllLoadedDelegate();
+        public static event AllLoadedDelegate OnAllLoaded;
 
         public override void Initialize()
         {
@@ -218,7 +220,7 @@ namespace MagmaPlugin
                 if (removeFromDict)
                     plugins.Remove(name);
 
-                Logger.Log(string.Format("{0} {1} plugin was unloaded successfuly.", brktname, name));
+                Logger.Log(string.Format("{0} {1} plugin was unloaded successfully.", brktname, name));
             } else {
                 Logger.LogError(string.Format("{0} Can't unload {1}. Plugin is not loaded.", brktname, name));
                 throw new InvalidOperationException(string.Format("{0} Can't unload {1}. Plugin is not loaded.", brktname, name));
@@ -280,10 +282,10 @@ namespace MagmaPlugin
                             {
                                 if (!d && f)
                                 {
-                                    Logger.LogWarning("I detected the usage of custom commands in " + plugin.Name);
-                                    Logger.LogWarning("Make sure you add the commands manually to: Plugin.CommandList");
-                                    Logger.LogWarning("Example: Plugin.CommandList.Add(ini.GetSetting(...))");
-                                    Logger.LogWarning("If you have questions go to www.fougerite.com !");
+                                    Logger.LogDebug("I detected the usage of custom commands in " + plugin.Name);
+                                    Logger.LogDebug("Make sure you add the commands manually to: Plugin.CommandList");
+                                    Logger.LogDebug("Example: Plugin.CommandList.Add(ini.GetSetting(...))");
+                                    Logger.LogDebug("If you have questions go to www.fougerite.com !");
                                     d = true;
                                 }
                                 continue;
@@ -302,10 +304,10 @@ namespace MagmaPlugin
                             {
                                 if (!d && f)
                                 {
-                                    Logger.LogWarning("I detected the usage of custom commands in: " + plugin.Name);
-                                    Logger.LogWarning("Make sure you add the commands manually to: Plugin.CommandList");
-                                    Logger.LogWarning("Example: Plugin.CommandList.Add(ini.GetSetting(...))");
-                                    Logger.LogWarning("If you have questions go to www.fougerite.com !");
+                                    Logger.LogDebug("I detected the usage of custom commands in: " + plugin.Name);
+                                    Logger.LogDebug("Make sure you add the commands manually to: Plugin.CommandList");
+                                    Logger.LogDebug("Example: Plugin.CommandList.Add(ini.GetSetting(...))");
+                                    Logger.LogDebug("If you have questions go to www.fougerite.com !");
                                     d = true;
                                 }
                                 continue;
@@ -330,7 +332,7 @@ namespace MagmaPlugin
                 if (d) { plugin.CommandList.Clear(); }
                 plugins[name] = plugin;
 
-                Logger.Log(string.Format("{0} {1} plugin was loaded successfuly.", brktname, name));
+                Logger.Log(string.Format("{0} {1} plugin was loaded successfully.", brktname, name));
             } catch (Exception ex) {
                 Logger.LogError(string.Format("{0} {1} plugin could not be loaded.", brktname, name));
                 Logger.LogException(ex);
@@ -341,15 +343,6 @@ namespace MagmaPlugin
         {
             UnloadPlugin(name);
             LoadPlugin(name);
-            /*Thread thread = new Thread(() => LoadPlugin(name));
-            thread.Start();
-            if (!thread.Join(10000))
-            {
-                UnloadPlugin(name);
-                Logger.LogError(brktname + " " + name + " is taking too long to load. Aborting.");
-            }
-            thread.Abort();*/
-
         }
 
         public void ReloadPlugins()
@@ -359,16 +352,8 @@ namespace MagmaPlugin
             foreach (var name in GetPluginNames())
             {
                 LoadPlugin(name);
-                /*Thread thread = new Thread(() => LoadPlugin(name));
-                thread.Start();
-                if (!thread.Join(10000))
-                {
-                    UnloadPlugin(name);
-                    Logger.LogError(brktname + " " + name + " is taking too long to load. Aborting.");
-                }
-                thread.Abort();*/
             }
-                
+
             inifiles.Clear();
             foreach (string str in Directory.GetDirectories(ModuleFolder)) 
             {
@@ -386,6 +371,7 @@ namespace MagmaPlugin
                 }
             }
             Data.GetData().Load(inifiles);
+            if (OnAllLoaded != null) OnAllLoaded();
         }
 
         private IEnumerable<string> getBetween(string input, string start, string end)

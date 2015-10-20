@@ -170,10 +170,10 @@ namespace IronPythonModule
                             {
                                 if (!d && f)
                                 {
-                                    Logger.LogWarning("I detected the usage of custom commands in: " + plugin.Name);
-                                    Logger.LogWarning("Make sure you add the commands manually to: Plugin.CommandList");
-                                    Logger.LogWarning("Example: Plugin.CommandList.Add(ini.GetSetting(...))");
-                                    Logger.LogWarning("If you have questions go to www.fougerite.com !");
+                                    Logger.LogDebug("I detected the usage of custom commands in: " + plugin.Name);
+                                    Logger.LogDebug("Make sure you add the commands manually to: Plugin.CommandList");
+                                    Logger.LogDebug("Example: Plugin.CommandList.Add(ini.GetSetting(...))");
+                                    Logger.LogDebug("If you have questions go to www.fougerite.com !");
                                     d = true;
                                 }
                                 continue;
@@ -192,10 +192,10 @@ namespace IronPythonModule
                             {
                                 if (!d && f)
                                 {
-                                    Logger.LogWarning("I detected the usage of custom commands in " + plugin.Name);
-                                    Logger.LogWarning("Make sure you add the commands manually to: Plugin.CommandList");
-                                    Logger.LogWarning("Example: Plugin.CommandList.Add(ini.GetSetting(...))");
-                                    Logger.LogWarning("If you have questions go to www.fougerite.com !");
+                                    Logger.LogDebug("I detected the usage of custom commands in " + plugin.Name);
+                                    Logger.LogDebug("Make sure you add the commands manually to: Plugin.CommandList");
+                                    Logger.LogDebug("Example: Plugin.CommandList.Add(ini.GetSetting(...))");
+                                    Logger.LogDebug("If you have questions go to www.fougerite.com !");
                                     d = true;
                                 }
                                 continue;
@@ -220,7 +220,7 @@ namespace IronPythonModule
                 if (d) { plugin.CommandList.Clear(); }
 				plugins.Add(name, plugin);
 
-				Logger.Log("[IPModule] " + name + " plugin was loaded successfuly.");
+				Logger.Log("[IPModule] " + name + " plugin was loaded successfully.");
 			} catch (Exception ex) {
 				string arg = name + " plugin could not be loaded.";
 				Server.GetServer().BroadcastFrom(Name, arg);
@@ -242,7 +242,7 @@ namespace IronPythonModule
 				RemoveHooks(plugin);
 				if (removeFromDict) plugins.Remove(name);
 
-				Logger.LogDebug("[IPModule] " + name + " plugin was unloaded successfuly.");
+				Logger.Log("[IPModule] " + name + " plugin was unloaded successfully.");
 			} else {
 				Logger.LogError("[IPModule] Can't unload " + name + ". Plugin is not loaded.");
 				throw new InvalidOperationException("[IPModule] Can't unload " + name + ". Plugin is not loaded.");
@@ -311,7 +311,8 @@ namespace IronPythonModule
                 case "On_SteamDeny": Hooks.OnSteamDeny += new Hooks.SteamDenyDelegate(plugin.OnSteamDeny); break;
                 case "On_PlayerApproval": Hooks.OnPlayerApproval += new Hooks.PlayerApprovalDelegate(plugin.OnPlayerApproval); break;
                 case "On_Research": Hooks.OnResearch += new Hooks.ResearchDelegate(plugin.OnResearch); break;
-				}
+                case "On_ServerSaved": Hooks.OnServerSaved += new Hooks.ServerSavedDelegate(plugin.OnServerSaved); break;
+                }
 			}
 		}
 
@@ -354,7 +355,8 @@ namespace IronPythonModule
                 case "On_SteamDeny": Hooks.OnSteamDeny -= new Hooks.SteamDenyDelegate(plugin.OnSteamDeny); break;
                 case "On_PlayerApproval": Hooks.OnPlayerApproval -= new Hooks.PlayerApprovalDelegate(plugin.OnPlayerApproval); break;
                 case "On_Research": Hooks.OnResearch -= new Hooks.ResearchDelegate(plugin.OnResearch); break;
-				}
+                case "On_ServerSaved": Hooks.OnServerSaved -= new Hooks.ServerSavedDelegate(plugin.OnServerSaved); break;
+                }
 			}
 		}
 

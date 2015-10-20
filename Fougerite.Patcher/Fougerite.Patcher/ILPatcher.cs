@@ -765,6 +765,18 @@ namespace Fougerite.Patcher
             iLProcessor.InsertAfter(definition5.Body.Instructions[0x24], Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(definition6)));
         }
 
+        private void ServerSavePatch()
+        {
+            TypeDefinition type = rustAssembly.MainModule.GetType("ServerSaveManager");
+            MethodDefinition orig = type.GetMethod("Save");
+            MethodDefinition method = hooksClass.GetMethod("ServerSaved");
+
+            this.CloneMethod(orig);
+            ILProcessor iLProcessor = orig.Body.GetILProcessor();
+            int i = orig.Body.Instructions.Count - 1;
+            iLProcessor.InsertBefore(orig.Body.Instructions[i], Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(method)));
+        }
+
         private void PlayerKilledPatch()
         {
             TypeDefinition type = rustAssembly.MainModule.GetType("HumanController");
@@ -892,6 +904,7 @@ namespace Fougerite.Patcher
                     this.EntityDecayPatch_EnvDecay();
                     this.NPCHurtPatch_HostileWildlifeAI();
                     this.ServerShutdownPatch();
+                    this.ServerSavePatch();
                     this.BlueprintUsePatch();
                     this.EntityDeployedPatch_DeployableItemDataBlock();
                     this.EntityDeployedPatch_StructureComponentDataBlock();
@@ -926,6 +939,7 @@ namespace Fougerite.Patcher
                 }
                 catch (Exception ex)
                 {
+                    Logger.Log("Make sure you have a clean uLink.dll from our package.");
                     Logger.Log(ex);
                     flag = false;
                 }

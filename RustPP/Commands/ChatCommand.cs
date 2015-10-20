@@ -22,10 +22,7 @@
         public static void CallCommand(string cmd, ref ConsoleSystem.Arg arg, ref string[] chatArgs)
         {
             var pl = Fougerite.Server.Cache[arg.argUser.userID];
-            if (Fougerite.Server.CommandCancelList.ContainsKey(pl))
-            {
-                if (Fougerite.Server.CommandCancelList[pl].Contains(cmd)) { return; }
-            }
+            if (pl.CommandCancelList.Contains(cmd)) { return; }
             foreach (ChatCommand command in classInstances)
             {
                 if (command.Command == cmd)

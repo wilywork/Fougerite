@@ -7,7 +7,7 @@ namespace Fougerite
 
     public class Bootstrap : Facepunch.MonoBehaviour
     {
-        public static string Version = "1.1.9";
+        public static readonly string Version = "1.2.1B";
         public static bool CR = false;
         public static bool BI = false;
 

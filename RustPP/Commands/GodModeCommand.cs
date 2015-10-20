@@ -11,17 +11,14 @@
         public override void Execute(ref ConsoleSystem.Arg Arguments, ref string[] ChatArguments)
         {
             var pl = Fougerite.Server.Cache[Arguments.argUser.userID];
-            if (Fougerite.Server.CommandCancelList.ContainsKey(pl))
+            if (pl.CommandCancelList.Contains("god"))
             {
-                if (Fougerite.Server.CommandCancelList[pl].Contains("god"))
+                if (userIDs.Contains(pl.UID))
                 {
-                    if (userIDs.Contains(pl.UID))
-                    {
-                        userIDs.Remove(pl.UID);
-                        pl.PlayerClient.controllable.character.takeDamage.SetGodMode(false);
-                    } 
-                    return;
+                    userIDs.Remove(pl.UID);
+                    pl.PlayerClient.controllable.character.takeDamage.SetGodMode(false);
                 }
+                return;
             }
             if (!this.userIDs.Contains(Arguments.argUser.userID))
             {

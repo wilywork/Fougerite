@@ -235,7 +235,8 @@ namespace Fougerite
         {
             if (this.IsOnline)
             {
-                this.SendCommand("chat.add " + Facepunch.Utility.String.QuoteSafe(Fougerite.Server.GetServer().server_message_name) + " " + Facepunch.Utility.String.QuoteSafe(arg));
+                foreach (var x in Util.GetUtil().SplitInParts(arg, 100))
+                    this.SendCommand("chat.add " + Facepunch.Utility.String.QuoteSafe(Fougerite.Server.GetServer().server_message_name) + " " + Facepunch.Utility.String.QuoteSafe(x));
             }
         }
 
@@ -243,7 +244,8 @@ namespace Fougerite
         {
             if (this.IsOnline)
             {
-                this.SendCommand("chat.add " + Facepunch.Utility.String.QuoteSafe(playername) + " " + Facepunch.Utility.String.QuoteSafe(arg));
+                foreach (var x in Util.GetUtil().SplitInParts(arg, 100))
+                    this.SendCommand("chat.add " + Facepunch.Utility.String.QuoteSafe(playername) + " " + Facepunch.Utility.String.QuoteSafe(x));
             }
         }
 

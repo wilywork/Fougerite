@@ -141,7 +141,7 @@ namespace MoonSharpModule
                 {
                     plugin.Invoke("On_PluginInit", new object[0]);
                 }
-                Logger.Log("[MoonSharp] " + name + " plugin was loaded successfuly.");
+                Logger.Log("[MoonSharp] " + name + " plugin was loaded successfully.");
             }
             catch (Exception ex)
             {
@@ -164,7 +164,7 @@ namespace MoonSharpModule
                 RemoveHooks(plugin);
                 if (removeFromDict) plugins.Remove(name);
 
-                Logger.LogDebug("[MoonSharp] " + name + " plugin was unloaded successfuly.");
+                Logger.Log("[MoonSharp] " + name + " plugin was unloaded successfully.");
             }
             else
             {
@@ -268,6 +268,7 @@ namespace MoonSharpModule
                     case "On_SteamDeny": Hooks.OnSteamDeny += new Hooks.SteamDenyDelegate(plugin.OnSteamDeny); break;
                     case "On_PlayerApproval": Hooks.OnPlayerApproval += new Hooks.PlayerApprovalDelegate(plugin.OnPlayerApproval); break;
                     case "On_Research": Hooks.OnResearch += new Hooks.ResearchDelegate(plugin.OnResearch); break;
+                    case "On_ServerSaved": Hooks.OnServerSaved += new Hooks.ServerSavedDelegate(plugin.OnServerSaved); break;
                     //TODO: Oxide Hook Names
                     /*case "Init": plugin.Invoke("Init", new object[0]); break;
                     //case "ModifyDamage": Hooks.OnDoorUse += new Hooks.DoorOpenHandlerDelegate(plugin); break;
@@ -337,6 +338,7 @@ namespace MoonSharpModule
                     case "On_SteamDeny": Hooks.OnSteamDeny -= new Hooks.SteamDenyDelegate(plugin.OnSteamDeny); break;
                     case "On_PlayerApproval": Hooks.OnPlayerApproval -= new Hooks.PlayerApprovalDelegate(plugin.OnPlayerApproval); break;
                     case "On_Research": Hooks.OnResearch -= new Hooks.ResearchDelegate(plugin.OnResearch); break;
+                    case "On_ServerSaved": Hooks.OnServerSaved -= new Hooks.ServerSavedDelegate(plugin.OnServerSaved); break;
                 }
             }
         }

@@ -10,6 +10,11 @@
     {
         public override void Execute(ref ConsoleSystem.Arg Arguments, ref string[] ChatArguments)
         {
+            var pl = Fougerite.Server.Cache[Arguments.argUser.userID];
+            if (pl.CommandCancelList.Contains("give"))
+            {
+                return;
+            }
             if (ChatArguments.Length > 0)
             {
                 StringComparison ic = StringComparison.InvariantCultureIgnoreCase;

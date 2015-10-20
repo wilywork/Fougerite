@@ -121,6 +121,8 @@ namespace MagmaPlugin
                     case "On_SteamDeny": Hooks.OnSteamDeny += OnSteamDeny; break;
                     case "On_PlayerApproval": Hooks.OnPlayerApproval += OnPlayerApproval; break;
                     case "On_Research": Hooks.OnResearch += OnResearch; break;
+                    case "On_ServerSaved": Hooks.OnServerSaved += OnServerSaved; break;
+                    case "On_AllPluginsLoaded": MagmaPluginModule.OnAllLoaded += OnAllLoaded; break;
                 }
             }
         }
@@ -163,6 +165,8 @@ namespace MagmaPlugin
                     case "On_SteamDeny": Hooks.OnSteamDeny -= OnSteamDeny; break;
                     case "On_PlayerApproval": Hooks.OnPlayerApproval -= OnPlayerApproval; break;
                     case "On_Research": Hooks.OnResearch -= OnResearch; break;
+                    case "On_ServerSaved": Hooks.OnServerSaved -= OnServerSaved; break;
+                    case "On_AllPluginsLoaded": MagmaPluginModule.OnAllLoaded -= OnAllLoaded; break;
                 }
             }
         }
@@ -391,6 +395,10 @@ namespace MagmaPlugin
                 Fougerite.Logger.LogError("Failed to invoke callback " + evt.Name + " Ex: " + ex);
             }
         }
+        public void OnAllLoaded()
+        {
+            Invoke("On_AllPluginsLoaded");
+        }
 
         public void OnBlueprintUse(Player player, BPUseEvent evt)
         {
@@ -548,6 +556,11 @@ namespace MagmaPlugin
         public void OnServerShutdown()
         {
             Invoke("On_ServerShutdown");
+        }
+
+        public void OnServerSaved()
+        {
+            Invoke("On_ServerSaved");
         }
 
         public void OnTablesLoaded(Dictionary<string, LootSpawnList> lists)

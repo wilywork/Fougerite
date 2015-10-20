@@ -1,4 +1,6 @@
-﻿namespace Fougerite
+﻿using System.Linq;
+
+namespace Fougerite
 {
 
     public class PlayerInv
@@ -131,6 +133,11 @@
             {
                 if (item.Name == name)
                 {
+                    if (Util.UStackable.Contains(name))
+                    {
+                        num += 1;
+                        continue;
+                    }
                     if (item.UsesLeft >= number)
                     {
                         return true;
@@ -142,6 +149,11 @@
             {
                 if (item2.Name == name)
                 {
+                    if (Util.UStackable.Contains(name))
+                    {
+                        num += 1;
+                        continue;
+                    }
                     if (item2.UsesLeft >= number)
                     {
                         return true;
@@ -153,6 +165,11 @@
             {
                 if (item3.Name == name)
                 {
+                    if (Util.UStackable.Contains(name))
+                    {
+                        num += 1;
+                        continue;
+                    }
                     if (item3.UsesLeft >= number)
                     {
                         return true;

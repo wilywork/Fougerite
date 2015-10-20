@@ -28,19 +28,22 @@
 
         public static void savealldata()
         {
-            AvatarSaveProc.SaveAll();
-            ServerSaveManager.AutoSave();
-            Helper.CreateSaves();
-            DataStore.GetInstance().Save();
+            try
+            {
+                AvatarSaveProc.SaveAll();
+                ServerSaveManager.AutoSave();
+            }
+            catch{}
         }
 
         public static void shutdown()
         {
+            savealldata();
             time = int.Parse(Core.config.GetSetting("Settings", "shutdown_countdown"));
             System.Timers.Timer timer = new System.Timers.Timer();
             timer.Interval = 10000.0;
             timer.AutoReset = true;
-            timer.Elapsed += delegate(object x, ElapsedEventArgs y)
+            timer.Elapsed += delegate (object x, ElapsedEventArgs y)
             {
                 shutdown_tick();
             };
@@ -52,12 +55,13 @@
         {
             if (time == 0)
             {
+                //savealldata();
                 Util.sayAll(Core.Name, "Server Shutdown NOW!");
-                savealldata();
                 Process.GetCurrentProcess().Kill();
             }
             else
             {
+                Logger.Log("Server Shutting down in " + time + " seconds");
                 Util.sayAll(Core.Name, "Server Shutting down in " + time + " seconds");
             }
             time -= 10;

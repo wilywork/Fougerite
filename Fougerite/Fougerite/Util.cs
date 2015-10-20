@@ -16,6 +16,20 @@ namespace Fougerite
     {
         private Dictionary<string, System.Type> typeCache = new Dictionary<string, System.Type>();
         private static Util util;
+        public static readonly string[] UStackable = new string[]
+        {
+            "Spike Wall", "Large Spike Wall", "Wood Gate",
+            "Wood Gateway", "Wood Shelter", "Bed", "Workbench", "Furnace", "Repair Bench",
+            "Rock", "Stone Hatchet", "Hatchet", "Pick Axe", "Torch", "Flashlight Mod",
+            "9mm Pistol", "M4", "Hand Cannon", "Pipe Shotgun", "Bolt Action Rifle",
+            "P250", "Shotgun", "MP5A4", "Hunting Bow", "Revolver",
+            "Holo sight", "Silencer", "Laser Sight",
+            "Cloth Helmet", "Leather Helmet", "Rad Suit Helmet", "Kevlar Helmet", "Invisible Helmet",
+            "Cloth Vest", "Leather Vest", "Rad Suit Vest", "Kevlar Vest", "Invisible Vest",
+            "Cloth Pants", "Leather Pants", "Rad Suit Pants", "Kevlar Pants", "Invisible Pants",
+            "Cloth Boots", "Leather Boots", "Rad Suit Boots", "Kevlar Boots", "Invisible Boots",
+            "Blood Draw Kit", "Supply Signal", "Research Kit 1", "Uber Hatchet", "Uber Hunting Bow"
+        };
 
         public void ConsoleLog(string str, [Optional, DefaultParameterValue(false)] bool adminOnly)
         {
@@ -93,6 +107,11 @@ namespace Fougerite
         public static string GetServerFolder()
         {
             return Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location))), "rust_server_Data");
+        }
+
+        public string[] GetQuotedArgs(string s)
+        {
+            return Facepunch.Utility.String.SplitQuotesStrings(s.Trim(Convert.ToChar("\\")));
         }
 
         public object GetStaticField(string className, string field)
@@ -246,6 +265,13 @@ namespace Fougerite
             }
         }
 
+        public IEnumerable<string> SplitInParts(string s, int partLength)
+        {
+            if (string.IsNullOrEmpty(s) || partLength <= 0) yield return null;
+
+            for (var i = 0; i < s.Length; i += partLength) yield return s.Substring(i, Math.Min(partLength, s.Length - i));
+        }
+
         public TimeSpan ConvertToTime(long ticks)
         {
             TimeSpan ts = TimeSpan.FromTicks(ticks);
@@ -347,27 +373,52 @@ namespace Fougerite
 
         public List<Entity> FindDeployablesAround(Vector3 givenPosition, float dist = 100f, bool forceupdate = false)
         {
-            return World.GetWorld().DeployableObjects(forceupdate).Where(e => Vector3.Distance(e.Location, givenPosition) <= dist).ToList();
+            List<Entity> l = new List<Entity>();
+            foreach (var x in World.GetWorld().DeployableObjects(forceupdate))
+            {
+                if (Vector3.Distance(x.Location, givenPosition) <= dist) l.Add(x);
+            }
+            return l;
         }
 
         public List<Entity> FindDoorsAround(Vector3 givenPosition, float dist = 100f, bool forceupdate = false)
         {
-            return World.GetWorld().BasicDoors(forceupdate).Where(e => Vector3.Distance(e.Location, givenPosition) <= dist).ToList();
+            List<Entity> l = new List<Entity>();
+            foreach (var x in World.GetWorld().BasicDoors(forceupdate))
+            {
+                if (Vector3.Distance(x.Location, givenPosition) <= dist) l.Add(x);
+            }
+            return l;
         }
 
         public List<Entity> FindStructuresAround(Vector3 givenPosition, float dist = 100f, bool forceupdate = false)
         {
-            return World.GetWorld().StructureComponents(forceupdate).Where(e => Vector3.Distance(e.Location, givenPosition) <= dist).ToList();
+            List<Entity> l = new List<Entity>();
+            foreach (var x in World.GetWorld().StructureComponents(forceupdate))
+            {
+                if (Vector3.Distance(x.Location, givenPosition) <= dist) l.Add(x);
+            }
+            return l;
         }
 
         public List<Entity> FindLootablesAround(Vector3 givenPosition, float dist = 100f)
         {
-            return World.GetWorld().LootableObjects.Where(e => Vector3.Distance(e.Location, givenPosition) <= dist).ToList();
+            List<Entity> l = new List<Entity>();
+            foreach (var x in World.GetWorld().LootableObjects)
+            {
+                if (Vector3.Distance(x.Location, givenPosition) <= dist) l.Add(x);
+            }
+            return l;
         }
 
         public List<Entity> FindEntitiesAround(Vector3 givenPosition, float dist = 100f)
         {
-            return World.GetWorld().Entities.Where(e => Vector3.Distance(e.Location, givenPosition) <= dist).ToList();
+            List<Entity> l = new List<Entity>();
+            foreach (var x in World.GetWorld().Entities)
+            {
+                if (Vector3.Distance(x.Location, givenPosition) <= dist) l.Add(x);
+            }
+            return l;
         }
 
         [System.Obsolete("Use FindEntity", false)]

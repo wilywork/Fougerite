@@ -50,6 +50,7 @@
         public static event PlayerApprovalDelegate OnPlayerApproval;
         public static event PlayerMoveDelegate OnPlayerMove;
         public static event ResearchDelegate OnResearch;
+        public static event ServerSavedDelegate OnServerSaved;
 
         public static void BlueprintUse(IBlueprintItem item, BlueprintDataBlock bdb)
         {
@@ -104,11 +105,17 @@
             {
                 string[] args = Facepunch.Utility.String.SplitQuotesStrings(quotedMessage.Trim('"'));
                 var command = args[0].TrimStart('/');
+                Fougerite.Player player = Fougerite.Server.Cache[arg.argUser.playerClient.userID];
+                if (command == "fougerite")
+                {
+                    player.Message("[color #00FFFF]This Server is running Fougerite V[color yellow]" + Bootstrap.Version);
+                    player.Message("[color green]Fougerite Team: www.fougerite.com");
+                    player.Message("[color #0C86AE]Pluton Team: www.pluton-team.org");
+                }
                 var cargs = new string[args.Length - 1];
                 Array.Copy(args, 1, cargs, 0, cargs.Length);
                 if (OnCommand != null)
                 {
-                    Fougerite.Player player = Fougerite.Server.Cache[arg.argUser.playerClient.userID];
                     if (player.CommandCancelList.Contains(command))
                     {
                         player.Message("You cannot execute " + command + " at the moment!");
@@ -132,10 +139,13 @@
                 string newchat = Facepunch.Utility.String.QuoteSafe(chatstr.NewText.Substring(1, chatstr.NewText.Length - 2)).Replace("\\\"", "" + '\u0022');
 
                 if (string.IsNullOrEmpty(newchat)) { return; }
-
-                Fougerite.Data.GetData().chat_history.Add(newchat);
-                Fougerite.Data.GetData().chat_history_username.Add(quotedName);
-                ConsoleNetworker.Broadcast("chat.add " + quotedName + " " + newchat);
+                string[] ns = Util.GetUtil().SplitInParts(newchat, 100).ToArray();
+                foreach (var x in ns)
+                {
+                    Fougerite.Data.GetData().chat_history.Add(x);
+                    Fougerite.Data.GetData().chat_history_username.Add(quotedName);
+                    ConsoleNetworker.Broadcast("chat.add " + quotedName + " " + x);
+                }
             }
         }
 
@@ -265,7 +275,8 @@
                 // when entity is destroyed
                 if (e.status != LifeStatus.IsAlive)
                 {
-                    DestroyEvent de = new DestroyEvent(ref e, new Entity(entity), he.IsDecay);
+                    var ent = new Entity(entity);
+                    DestroyEvent de = new DestroyEvent(ref e, ent, he.IsDecay);
                     if (OnEntityDestroyed != null)
                         OnEntityDestroyed(de);
                 }
@@ -699,7 +710,23 @@
             }
             catch (Exception ex)
             {
-                Logger.LogError("ResourceSpawned Error: " + ex.ToString());
+                Logger.LogError("ResourceSpawned Error: " + ex);
+            }
+        }
+
+        public static void ServerSaved()
+        {
+            DataStore.GetInstance().Save();
+            try
+            {
+                if (OnServerSaved != null)
+                {
+                    OnServerSaved();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("ServerSaved Error: " + ex);
             }
         }
 
@@ -1012,6 +1039,9 @@
             OnResearch = delegate(ResearchEvent param0)
             {
             };
+            OnServerSaved = delegate ()
+            {
+            };
 
             foreach (Fougerite.Player player in Fougerite.Server.GetServer().Players)
             {
@@ -1024,7 +1054,6 @@
             if (OnServerShutdown != null)
                 OnServerShutdown();
 
-            DataStore.GetInstance().Save();
         }
 
         public static void ServerStarted()
@@ -1056,12 +1085,12 @@
         public delegate void BlueprintUseHandlerDelegate(Fougerite.Player player, BPUseEvent ae);
         public delegate void ChatHandlerDelegate(Fougerite.Player player, ref ChatString text);
         public delegate void ChatRawHandlerDelegate(ref ConsoleSystem.Arg arg);
-        public delegate void CommandHandlerDelegate(Fougerite.Player player, string text, string[] args);
+        public delegate void CommandHandlerDelegate(Fougerite.Player player, string cmd, string[] args);
         public delegate void CommandRawHandlerDelegate(ref ConsoleSystem.Arg arg);
         public delegate void ConnectionHandlerDelegate(Fougerite.Player player);
         public delegate void ConsoleHandlerDelegate(ref ConsoleSystem.Arg arg, bool external);
         public delegate void DisconnectionHandlerDelegate(Fougerite.Player player);
-        public delegate void DoorOpenHandlerDelegate(Fougerite.Player p, DoorEvent de);
+        public delegate void DoorOpenHandlerDelegate(Fougerite.Player player, DoorEvent de);
         public delegate void EntityDecayDelegate(DecayEvent de);
         public delegate void EntityDeployedDelegate(Fougerite.Player player, Entity e);
         public delegate void EntityHurtDelegate(HurtEvent he);
@@ -1078,7 +1107,7 @@
         public delegate void ServerInitDelegate();
         public delegate void ServerShutdownDelegate();
         public delegate void ModulesLoadedDelegate();
-        public delegate void RecieveNetworkDelegate(Fougerite.Player p, Metabolism m, float cal, float water, float rad, float anti, float temp, float poison);
+        public delegate void RecieveNetworkDelegate(Fougerite.Player player, Metabolism m, float cal, float water, float rad, float anti, float temp, float poison);
         public delegate void CraftingDelegate(Fougerite.Events.CraftingEvent e);
         public delegate void ResourceSpawnDelegate(ResourceTarget t);
         public delegate void ItemRemovedDelegate(Fougerite.Events.InventoryModEvent e);
@@ -1088,5 +1117,6 @@
         public delegate void PlayerApprovalDelegate(PlayerApprovalEvent e);
         public delegate void PlayerMoveDelegate(HumanController hc, Vector3 origin, int encoded, ushort stateFlags, uLink.NetworkMessageInfo info);
         public delegate void ResearchDelegate(ResearchEvent re);
+        public delegate void ServerSavedDelegate();
     }
 }

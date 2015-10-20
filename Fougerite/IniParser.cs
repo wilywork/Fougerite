@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 using Fougerite;
 
 public class IniParser
@@ -66,17 +67,6 @@ public class IniParser
         catch (Exception ex)
         {
             Logger.LogError("Error at " + iniFilePath + " Exception: " + ex);
-        }
-        FileInfo fi = new FileInfo(iniPath);
-        float mega = (fi.Length / 1024f) / 1024f;
-        if (fi.Exists)
-        {
-            if (mega > 0.65)
-            {
-                Logger.LogWarning("Ini File at: " + iniFilePath + " passed the safe size.");
-                Logger.LogWarning("Inifiles after a time with huge datas can cause bad performance.");
-                Logger.LogWarning("We recommend you to delete the inifile, and recreate It.");
-            }
         }
     }
 
@@ -176,7 +166,16 @@ public class IniParser
 
     public void Save()
     {
-        this.SaveSettings(this.iniFilePath);
+        var fi = new FileInfo(this.iniFilePath);
+        float mega = (fi.Length / 1024f) / 1024f;
+        if (mega <= 0.24)
+        {
+            this.SaveSettings(this.iniFilePath);
+            return;
+        }
+        System.Threading.ThreadPool.QueueUserWorkItem(delegate {
+            this.SaveSettings(this.iniFilePath);
+        }, null);
     }
 
     public void SaveSettings(string newFilePath)

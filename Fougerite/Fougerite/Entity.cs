@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace Fougerite
 {
     using System.Linq;
@@ -12,6 +14,7 @@ namespace Fougerite
         private EntityInv inv;
         private ulong _ownerid;
         private string _name;
+        private string _ownername;
 
         public Entity(object Obj)
         {
@@ -56,6 +59,22 @@ namespace Fougerite
                     this.hasInventory = false;
                 }
             }
+            else if (Obj is LootableObject)
+            {
+                this._ownerid = 76561198095992578UL;
+                var loot = Obj as LootableObject;
+                this._name = loot.name;
+                var inventory = loot._inventory;
+                if (inventory != null)
+                {
+                    this.hasInventory = true;
+                    this.inv = new EntityInv(inventory, this);
+                }
+                else
+                {
+                    this.hasInventory = false;
+                }
+            }
             else if (Obj is SupplyCrate)
             {
                 this._ownerid = 76561198095992578UL;
@@ -75,6 +94,22 @@ namespace Fougerite
             else
             {
                 this.hasInventory = false;
+            }
+            var nid = Convert.ToUInt64(OwnerID);
+            if (Fougerite.Server.Cache.ContainsKey(nid))
+            {
+                this._ownername = Fougerite.Server.Cache[nid].Name;
+            }
+            else if (Server.GetServer().HasRustPP)
+            {
+                if (Server.GetServer().GetRustPPAPI().Cache.ContainsKey(nid))
+                {
+                    this._ownername = Server.GetServer().GetRustPPAPI().Cache[nid];
+                }
+            }
+            else
+            {
+                this._ownername = "UnKnown";
             }
         }
 
@@ -257,6 +292,11 @@ namespace Fougerite
             {
                 return Fougerite.Player.FindByGameID(this.CreatorID);
             }
+        }
+
+        public string OwnerName
+        {
+            get { return _ownername; }
         }
 
         public string OwnerID

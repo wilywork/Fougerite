@@ -11,6 +11,11 @@
     {
         public override void Execute(ref ConsoleSystem.Arg Arguments, ref string[] ChatArguments)
         {
+            var pl = Fougerite.Server.Cache[Arguments.argUser.userID];
+            if (pl.CommandCancelList.Contains("give"))
+            {
+                return;
+            }
             string usage = "Give Item usage:  /give  playerName  itemName  (quantity)";
             if (ChatArguments.Length < 2) // minimum arguments = 2
             {
