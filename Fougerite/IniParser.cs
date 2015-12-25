@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
+using System.Threading;
 using Fougerite;
 
 public class IniParser
@@ -12,6 +12,7 @@ public class IniParser
     private Hashtable keyPairs = new Hashtable();
     public string Name;
     private System.Collections.Generic.List<SectionPair> tmpList = new System.Collections.Generic.List<SectionPair>();
+    private Thread _t;
 
     public IniParser(string iniPath)
     {
@@ -168,14 +169,13 @@ public class IniParser
     {
         var fi = new FileInfo(this.iniFilePath);
         float mega = (fi.Length / 1024f) / 1024f;
-        if (mega <= 0.24)
+        if (mega <= 0.6)
         {
             this.SaveSettings(this.iniFilePath);
             return;
         }
-        System.Threading.ThreadPool.QueueUserWorkItem(delegate {
-            this.SaveSettings(this.iniFilePath);
-        }, null);
+        _t = new Thread(() => this.SaveSettings(this.iniFilePath));
+        _t.Start();
     }
 
     public void SaveSettings(string newFilePath)

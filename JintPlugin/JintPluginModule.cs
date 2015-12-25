@@ -1,7 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using System.Threading;
 
-namespace JintPlugin
+namespace JintModule
 {
     using System;
     using System.Collections;
@@ -33,16 +33,17 @@ namespace JintPlugin
         }
 
         private DirectoryInfo pluginDirectory;
-        private Dictionary<string, Plugin> plugins;
+        private static Dictionary<string, JintPlugin> plugins;
         public static Hashtable inifiles = new Hashtable();
         private readonly string brktname = "[Jint]";
         public delegate void AllLoadedDelegate();
         public static event AllLoadedDelegate OnAllLoaded;
+        public static Dictionary<string, JintPlugin> Plugins { get { return plugins; } }
 
         public override void Initialize()
         {
+            plugins = new Dictionary<string, JintPlugin>();
             pluginDirectory = new DirectoryInfo(ModuleFolder);
-            plugins = new Dictionary<string, Plugin>();
             ReloadPlugins();
             Hooks.OnConsoleReceived -= new Hooks.ConsoleHandlerDelegate(ConsoleReceived);
             Hooks.OnConsoleReceived += new Hooks.ConsoleHandlerDelegate(ConsoleReceived);
@@ -121,7 +122,7 @@ namespace JintPlugin
 
             if (plugins.ContainsKey(name)) {
                 var plugin = plugins[name];
-
+                plugin.OnPluginShutdown();
                 plugin.RemoveHooks();
                 plugin.KillTimers();
                 plugin.AdvancedTimers.KillTimers();
@@ -160,7 +161,7 @@ namespace JintPlugin
                 string text = GetPluginScriptText(name);
                 string[] lines = text.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
                 DirectoryInfo dir = new DirectoryInfo(Path.Combine(pluginDirectory.FullName, name));
-                Plugin plugin = new Plugin(dir, name, text);
+                JintPlugin plugin = new JintPlugin(dir, name, text);
                 plugin.InstallHooks();
                 string cmdname = null;
                 bool b = false, d = false, f = false;

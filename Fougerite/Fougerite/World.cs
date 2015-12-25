@@ -40,17 +40,16 @@
 
         public void Airdrop(int rep)
         {
-            System.Random rand = new System.Random();
-            Vector3 rpog;
             for (int i = 0; i < rep; i++)
             {
-                RandomPointOnGround(ref rand, out rpog);
+                Vector3 rpog = SupplyDropZone.GetRandomTargetPos();;
                 SupplyDropZone.CallAirDropAt(rpog);
             }
         }
 
-        private static void RandomPointOnGround(ref System.Random rand, out Vector3 onground)
+        /*private void RandomPointOnGround(ref System.Random rand, out Vector3 onground)
         {
+            onground = SupplyDropZone.GetRandomTargetPos();
             float z = (float)rand.Next(-6100, -1000);
             float x = (float)3600;
             if (z < -4900 && z >= -6100)
@@ -67,7 +66,7 @@
             }
             float y = Terrain.activeTerrain.SampleHeight(new Vector3(x, 500, z));
             onground = new Vector3(x, y, z);
-        }
+        }*/
 
         public void AirdropAt(float x, float y, float z)
         {
@@ -106,6 +105,7 @@
                 }
                 target.y = original.y + rand.Next(-5, 20) * 20;
                 SupplyDropZone.CallAirDropAt(target);
+                Hooks.Airdrop(target);
                 Jitter(ref target);
             }
         }
@@ -261,10 +261,12 @@
                 {
                     DeployableItemDataBlock block2 = block as DeployableItemDataBlock;
                     File.AppendAllText(Util.GetAbsoluteFilePath("Prefabs.txt"), "[\"" + block2.ObjectToPlace.name + "\", \"" + block2.DeployableObjectPrefabName + "\"],\n");
-                } else if (block is StructureComponentDataBlock)
+                }
+                else if (block is StructureComponentDataBlock)
                 {
                     StructureComponentDataBlock block3 = block as StructureComponentDataBlock;
-                    File.AppendAllText(Util.GetAbsoluteFilePath("Prefabs.txt"), "[\"" + block3.structureToPlacePrefab.name + "\", \"" + block3.structureToPlaceName + "\"],\n");
+                    File.AppendAllText(Util.GetAbsoluteFilePath("Prefabs.txt"),
+                        "[\"" + block3.structureToPlacePrefab.name + "\", \"" + block3.structureToPlaceName + "\"],\n");
                 }
             }
         }
@@ -323,6 +325,10 @@
                         else if (obj3.GetComponent<SupplyCrate>())
                         {
                             obj2 = new Entity(obj3.GetComponent<SupplyCrate>());
+                        }
+                        else if (obj3.GetComponent<ResourceTarget>())
+                        {
+                            obj2 = new Entity(obj3.GetComponent<ResourceTarget>());
                         }
                         else
                         {
@@ -493,21 +499,28 @@
         {
             get
             {
-                IEnumerable<Entity> component = from c in UnityEngine.Object.FindObjectsOfType<StructureComponent>()
-                    select new Entity(c);
-                IEnumerable<Entity> deployable = from d in UnityEngine.Object.FindObjectsOfType<DeployableObject>()
-                    select new Entity(d);
-                IEnumerable<Entity> supplydrop = from s in UnityEngine.Object.FindObjectsOfType<SupplyCrate>()
-                    select new Entity(s);
-                // this is much faster than Concat
-                List<Entity> entities = new List<Entity>(component.Count() + deployable.Count() + supplydrop.Count());
-                entities.AddRange(component);
-                entities.AddRange(deployable);
-                if (supplydrop.Count() > 0)
+                try
                 {
-                    entities.AddRange(supplydrop);
+                    IEnumerable<Entity> component = from c in UnityEngine.Object.FindObjectsOfType<StructureComponent>()
+                        select new Entity(c);
+                    IEnumerable<Entity> deployable = from d in UnityEngine.Object.FindObjectsOfType<DeployableObject>()
+                        select new Entity(d);
+                    IEnumerable<Entity> supplydrop = from s in UnityEngine.Object.FindObjectsOfType<SupplyCrate>()
+                        select new Entity(s);
+                    // this is much faster than Concat
+                    List<Entity> entities = new List<Entity>(component.Count() + deployable.Count() + supplydrop.Count());
+                    entities.AddRange(component);
+                    entities.AddRange(deployable);
+                    if (supplydrop.Count() > 0)
+                    {
+                        entities.AddRange(supplydrop);
+                    }
+                    return entities;
                 }
-                return entities;
+                catch
+                {
+                    return new List<Entity>();
+                }
             }
         }
 

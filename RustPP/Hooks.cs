@@ -1,5 +1,4 @@
-﻿using Fougerite.Events;
-
+﻿
 namespace RustPP
 {
     using Fougerite;
@@ -7,6 +6,9 @@ namespace RustPP
     using RustPP.Permissions;
     using RustPP.Social;
     using System.Collections;
+    using System.Linq;
+    using System.Security;
+    using Fougerite.Events;
 
     internal class Hooks
     {
@@ -15,14 +17,15 @@ namespace RustPP
             if (Core.config.GetBoolSetting("Settings", "pvp_death_broadcast"))
             {
                 char ch = '⊕';
-                Util.sayAll(Core.Name, killer + " " + ch.ToString() + " " + victim + " (" + weapon + ")");
+                Server.GetServer().BroadcastFrom(Core.Name, killer + " " + ch.ToString() + " " + victim + " (" + weapon + ")");
             }
         }
 
         public static bool checkOwner(DeployableObject obj, Controllable controllable)
         {
             bool flag;
-            if (obj.ownerID == controllable.playerClient.userID)
+            Fougerite.Player pl = Fougerite.Server.Cache[controllable.playerClient.userID];
+            if (obj.ownerID == pl.UID)
             {
                 flag = true;
             }
@@ -38,7 +41,7 @@ namespace RustPP
                 {
                     flag = false;
                 }
-                if (list.Contains(controllable.playerClient.userID))
+                if (list.Contains(pl.UID))
                 {
                     flag = true;
                 }
@@ -89,7 +92,7 @@ namespace RustPP
                     FallDamage dmg = victim.FallDamage;
                     if (dmg != null)
                     {
-                        dmg.SetLegInjury(0);
+                        dmg.ClearInjury();
                     }
                     return true;
                 }
@@ -97,13 +100,15 @@ namespace RustPP
                 if (attacker != null)
                 {
                     FriendsCommand command2 = (FriendsCommand) ChatCommand.GetCommand("friends");
+                    if (command2.ContainsException(attacker.UID) && command2.ContainsException(victim.UID))
+                    {
+                        return false;
+                    }
                     bool b = Core.config.GetBoolSetting("Settings", "friendly_fire");
                     try
                     {
                         FriendList list = (FriendList) command2.GetFriendsLists()[attacker.UID];
-                        if (list == null || b ||
-                            (DataStore.GetInstance().ContainsKey("HGIG", attacker.SteamID)
-                             && DataStore.GetInstance().ContainsKey("HGIG", victim.SteamID)))
+                        if (list == null || b)
                         {
                             return false;
                         }
@@ -123,43 +128,39 @@ namespace RustPP
             return Core.config.GetBoolSetting("Settings", "keepitems");
         }
 
-        public static bool loginNotice(NetUser user)
+        public static bool loginNotice(Fougerite.Player pl)
         {
             try
             {
-                Fougerite.Player pl = Fougerite.Server.Cache[user.userID];
-                if (Core.blackList.Contains(user.userID))
+                if (Core.blackList.Contains(pl.UID))
                 {
-                    Core.tempConnect.Add(user.userID);
-                    user.Kick(NetError.Facepunch_Kick_Ban, true);
+                    Core.tempConnect.Add(pl.UID);
+                    pl.Disconnect();
                     return false;
                 }
-                if (Core.config.GetBoolSetting("WhiteList", "enabled") && !Core.whiteList.Contains(user.userID))
+                if (Core.config.GetBoolSetting("WhiteList", "enabled") && !Core.whiteList.Contains(pl.UID))
                 {
-                    user.Kick(NetError.Facepunch_Whitelist_Failure, true);
+                    pl.Disconnect();
                     return false;
                 }
-                if (!Core.userCache.ContainsKey(user.userID))
+                if (!Core.userCache.ContainsKey(pl.UID))
                 {
-                    Core.userCache.Add(user.userID, user.displayName);
+                    Core.userCache.Add(pl.UID, SecurityElement.Escape(pl.Name));
                 }
-                else if (user.displayName != Core.userCache[user.userID])
+                else if (pl.Name != Core.userCache[pl.UID])
                 {
-                    Core.userCache[user.userID] = user.displayName;
+                    Core.userCache[pl.UID] = SecurityElement.Escape(pl.Name);
                 }
-                if (Administrator.IsAdmin(user.userID) && Administrator.GetAdmin(user.userID).HasPermission("RCON"))
+                if (Administrator.IsAdmin(pl.UID) && Administrator.GetAdmin(pl.UID).HasPermission("RCON"))
                 {
-                    user.admin = true;
+                    pl.PlayerClient.netUser.admin = true;
                 }
                 Core.motd(pl);
                 if (Core.config.GetBoolSetting("Settings", "join_notice"))
                 {
-                    foreach (PlayerClient client in PlayerClient.All)
+                    foreach (var client in Fougerite.Server.GetServer().Players.Where(client => client.UID != pl.UID))
                     {
-                        if (client.userID != user.userID)
-                        {
-                            Util.sayUser(client.netPlayer, Core.Name, user.displayName + " " + RustPPModule.JoinMsg);
-                        }
+                        client.MessageFrom(Core.Name, pl.Name + " " + RustPPModule.JoinMsg);
                     }
                 }
             }
@@ -179,12 +180,9 @@ namespace RustPP
                 }
                 else if (Core.config.GetBoolSetting("Settings", "leave_notice"))
                 {
-                    foreach (PlayerClient client in PlayerClient.All)
+                    foreach (var client in Fougerite.Server.GetServer().Players.Where(client => client.UID != user.UID))
                     {
-                        if (client.userID != user.UID)
-                        {
-                            Util.sayUser(client.netPlayer, Core.Name, user.Name + " " + RustPPModule.LeaveMsg);
-                        }
+                        client.MessageFrom(Core.Name, user.Name + " " + RustPPModule.LeaveMsg);
                     }
                 }
             }

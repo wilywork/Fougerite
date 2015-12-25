@@ -6,6 +6,7 @@
     using System.Collections;
     using System.Collections.Generic;
     using UnityEngine;
+    using System.Text.RegularExpressions;
 
     public class Hooks
     {
@@ -20,7 +21,9 @@
         public static event ConsoleHandlerDelegate OnConsoleReceived;
         public static event DoorOpenHandlerDelegate OnDoorUse;
         public static event EntityDecayDelegate OnEntityDecay;
+        [System.Obsolete("Use OnEntityDeployedWithPlacer", false)]
         public static event EntityDeployedDelegate OnEntityDeployed;
+        public static event EntityDeployedWithPlacerDelegate OnEntityDeployedWithPlacer;
         public static event EntityHurtDelegate OnEntityHurt;
         public static event EntityDestroyedDelegate OnEntityDestroyed;
         public static event ItemsDatablocksLoaded OnItemsLoaded;
@@ -61,7 +64,14 @@
                 BPUseEvent ae = new BPUseEvent(bdb, item);
                 if (OnBlueprintUse != null)
                 {
-                    OnBlueprintUse(player, ae);
+                    try
+                    {
+                        OnBlueprintUse(player, ae);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError("BluePrintUseEvent Error: " + ex.ToString());
+                    }
                 }
                 if (!ae.Cancel)
                 {
@@ -96,7 +106,14 @@
 
             if (OnChatRaw != null)
             {
-                OnChatRaw(ref arg);
+                try
+                {
+                    OnChatRaw(ref arg);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError("ChatRawEvent Error: " + ex.ToString());
+                }
             }
 
             if (string.IsNullOrEmpty(arg.ArgsStr)) { return; }
@@ -121,8 +138,14 @@
                         player.Message("You cannot execute " + command + " at the moment!");
                         return;
                     }
-                    //OnCommand(Fougerite.Player.FindByPlayerClient(arg.argUser.playerClient), command, cargs);
-                    OnCommand(player, command, cargs);
+                    try
+                    {
+                        OnCommand(player, command, cargs);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError("CommandEvent Error: " + ex.ToString());
+                    }
                 }
 
             }
@@ -130,15 +153,29 @@
             {
                 Logger.ChatLog(quotedName, quotedMessage);
                 var chatstr = new ChatString(quotedMessage);
-                if (OnChat != null)
+                try
                 {
-                    //OnChat(Fougerite.Player.FindByPlayerClient(arg.argUser.playerClient), ref chatstr);
-                    OnChat(Fougerite.Server.Cache[arg.argUser.playerClient.userID], ref chatstr);
+                    if (OnChat != null)
+                    {
+                        OnChat(Fougerite.Server.Cache[arg.argUser.playerClient.userID], ref chatstr);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError("ChatEvent Error: " + ex.ToString());
                 }
 
                 string newchat = Facepunch.Utility.String.QuoteSafe(chatstr.NewText.Substring(1, chatstr.NewText.Length - 2)).Replace("\\\"", "" + '\u0022');
 
-                if (string.IsNullOrEmpty(newchat)) { return; }
+                if (string.IsNullOrEmpty(newchat) || newchat.Length == 0) { return; }
+                string s = Regex.Replace(newchat, @"\[/?color\b.*?\]", string.Empty);
+                if (s.Length <= 100)
+                {
+                    Fougerite.Data.GetData().chat_history.Add(newchat);
+                    Fougerite.Data.GetData().chat_history_username.Add(quotedName);
+                    ConsoleNetworker.Broadcast("chat.add " + quotedName + " " + newchat);
+                    return;
+                }
                 string[] ns = Util.GetUtil().SplitInParts(newchat, 100).ToArray();
                 foreach (var x in ns)
                 {
@@ -166,8 +203,77 @@
             {
                 if (adminRights)
                 {
-                    ModuleManager.ReloadModules();
-                    a.ReplyWith("Fougerite: Reloaded!");
+                    if (a.HasArgs(1))
+                    {
+                        string plugin = a.ArgsStr;
+                        foreach (var x in ModuleManager.Modules)
+                        {
+                            if (string.Equals(x.Plugin.Name, plugin, StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                if (x.Initialized) { x.DeInitialize();}
+                                x.Initialize();
+                                a.ReplyWith("Fougerite: Reloaded " + x.Plugin.Name + "!");
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        ModuleManager.ReloadModules();
+                        a.ReplyWith("Fougerite: Reloaded!");
+                    }
+                }
+            }
+            else if (a.Class.Equals("fougerite", ic) && a.Function.Equals("unload", ic))
+            {
+                if (adminRights)
+                {
+                    if (a.HasArgs(1))
+                    {
+                        string plugin = a.ArgsStr;
+                        foreach (var x in ModuleManager.Modules)
+                        {
+                            if (string.Equals(x.Plugin.Name, plugin, StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                if (x.Initialized)
+                                {
+                                    x.DeInitialize();
+                                    a.ReplyWith("Fougerite: UnLoaded " + x.Plugin.Name + "!");
+                                }
+                                else
+                                {
+                                    a.ReplyWith("Fougerite: " + x.Plugin.Name + " is already unloaded!");
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            else if (a.Class.Equals("fougerite", ic) && a.Function.Equals("load", ic))
+            {
+                if (adminRights)
+                {
+                    if (a.HasArgs(1))
+                    {
+                        string plugin = a.ArgsStr;
+                        foreach (var x in ModuleManager.Modules)
+                        {
+                            if (string.Equals(x.Plugin.Name, plugin, StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                if (!x.Initialized)
+                                {
+                                    x.Initialize();
+                                    a.ReplyWith("Fougerite: Loaded " + x.Plugin.Name + "!");
+                                }
+                                else
+                                {
+                                    a.ReplyWith("Fougerite: " + x.Plugin.Name + " is already unloaded!");
+                                }
+                                break;
+                            }
+                        }
+                    }
                 }
             }
             else if (a.Class.Equals("fougerite", ic) && a.Function.Equals("save", ic))
@@ -196,7 +302,14 @@
             }
             else if (OnConsoleReceived != null)
             {
-                OnConsoleReceived(ref a, external);
+                try
+                {
+                    OnConsoleReceived(ref a, external);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError("ConsoleReceived Error: " + ex.ToString());
+                }
             }
 
             if (string.IsNullOrEmpty(a.Reply))
@@ -217,7 +330,14 @@
 
             if (!(obj is SleepingBag) && OnDoorUse != null)
             {
-                OnDoorUse(Fougerite.Server.Cache[controllable.playerClient.userID], de);
+                try
+                {
+                    OnDoorUse(Fougerite.Server.Cache[controllable.playerClient.userID], de);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError("DoorUseEvent Error: " + ex.ToString());
+                }
             }
 
             return de.Open;
@@ -231,8 +351,15 @@
             try
             {
                 DecayEvent de = new DecayEvent(new Entity(entity), ref dmg);
-                if (OnEntityDecay != null)
-                    OnEntityDecay(de);
+                try
+                {
+                    if (OnEntityDecay != null)
+                        OnEntityDecay(de);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError("EntityDecayEvent Error: " + ex.ToString());
+                }
 
                 if (decayList.Contains(entity))
                     decayList.Remove(entity);
@@ -244,12 +371,48 @@
             return 0f;
         }
 
-        public static void EntityDeployed(object entity)
+        public static void EntityDeployed(object entity, ref uLink.NetworkMessageInfo info)
         {
             Entity e = new Entity(entity);
+            uLink.NetworkPlayer nplayer = info.sender;
             Fougerite.Player creator = e.Creator;
-            if (OnEntityDeployed != null)
-                OnEntityDeployed(creator, e);
+            var data = nplayer.GetLocalData();
+            Fougerite.Player ActualPlacer = null;
+            NetUser user = data as NetUser;
+            if (user != null)
+            {
+                ActualPlacer = Fougerite.Server.Cache[user.userID];
+            }
+            try
+            {
+                if (OnEntityDeployed != null)
+                    OnEntityDeployed(creator, e);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("EntityDeployedEvent Error: " + ex.ToString());
+            }
+            try
+            {
+                if (OnEntityDeployedWithPlacer != null)
+                    OnEntityDeployedWithPlacer(creator, e, ActualPlacer);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("EntityDeployedWithPlacerEvent Error: " + ex.ToString());
+            }
+            /*ItemRepresentation rp = new TorchItemRep();
+            rp.ActionStream(1, uLink.RPCMode.AllExceptOwner, stream);
+            Server.GetServer().Broadcast(ActualPlacer.ToString());
+            if (ActualPlacer != null) { Server.GetServer().Broadcast(ActualPlacer.Name.ToString());}
+            ScriptableObject td = ScriptableObject.CreateInstance(typeof (ThrowableItemDataBlock));
+            Server.GetServer().Broadcast(td.GetType().ToString());
+            ThrowableItemDataBlock td2 = td as ThrowableItemDataBlock;
+            Server.GetServer().Broadcast(td2.ToString());
+            Vector3 arg = Util.GetUtil().Infront(ActualPlacer, 20f);
+            Vector3 position = ActualPlacer.Location + ((Vector3)(ActualPlacer.Location * 1f));
+            Quaternion rotation = Quaternion.LookRotation(Vector3.up);
+            NetCull.InstantiateDynamicWithArgs<Vector3>(td2.throwObjectPrefab, position, rotation, arg);*/
         }
 
         public static void EntityHurt(object entity, ref DamageEvent e)
@@ -295,7 +458,7 @@
                     }
                 }
             }
-            catch (Exception ex) { Logger.LogDebug("ENTITY HURT EXCEPTION: " + ex); }
+            catch (Exception ex) { Logger.LogDebug("EntityHurtEvent Error " + ex); }
         }
 
         public static void hijack(string name)
@@ -307,8 +470,15 @@
         public static ItemDataBlock[] ItemsLoaded(System.Collections.Generic.List<ItemDataBlock> items, Dictionary<string, int> stringDB, Dictionary<int, int> idDB)
         {
             ItemsBlocks blocks = new ItemsBlocks(items);
-            if (OnItemsLoaded != null)
-                OnItemsLoaded(blocks);
+            try
+            {
+                if (OnItemsLoaded != null)
+                    OnItemsLoaded(blocks);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("DataBlockLoadEvent Error: " + ex.ToString());
+            }
 
             int num = 0;
             foreach (ItemDataBlock block in blocks)
@@ -328,8 +498,15 @@
             {
                 NPC victim = he.Victim as NPC;
                 victim.Health += he.DamageAmount;
-                if (OnNPCHurt != null)
-                    OnNPCHurt(he);
+                try
+                {
+                    if (OnNPCHurt != null)
+                        OnNPCHurt(he);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError("NPCHurtEvent Error: " + ex.ToString());
+                }
                 if (((he.Victim as NPC).Health - he.DamageAmount) <= 0f)
                     (he.Victim as NPC).Kill();
                 else
@@ -348,7 +525,7 @@
                 if (OnNPCKilled != null)
                     OnNPCKilled(de);
             }
-            catch (Exception ex) { Logger.LogDebug("NPC KILLED EXCEPTION: " + ex); }
+            catch (Exception ex) { Logger.LogDebug("NPCKilledEvent Error " + ex); }
         }
 
         public static bool PlayerConnect(NetUser user)
@@ -373,13 +550,14 @@
                 Fougerite.Server.Cache[uid] = player;
             }
 
-            if (server.Players.Contains(player))
+            if (server.ContainsPlayer(uid))
             {
                 Logger.LogError(string.Format("[PlayerConnect] Server.Players already contains {0} {1}", player.Name, player.SteamID));
                 connected = user.connected;
                 return connected;
             }
-            server.Players.Add(player);
+            server.AddPlayer(uid, player);
+            //server.Players.Add(player);
 
             try 
             {
@@ -390,7 +568,7 @@
             }
             catch(Exception ex)
             {
-                Logger.LogDebug("Failed to call OnConnected event. " + ex.ToString());
+                Logger.LogError("PlayerConnectedEvent Error " + ex.ToString());
                 return connected;
             }
 
@@ -404,11 +582,29 @@
             return connected;
         }
 
-        public static void PlayerDisconnect(NetUser user)
+        public static void PlayerDisconnect(uLink.NetworkPlayer nplayer)
         {
+            NetUser user = nplayer.GetLocalData() as NetUser;
+            if (user == null)
+            {
+                return;
+            }
             ulong uid = user.userID;
-            Fougerite.Player player = Fougerite.Server.Cache[uid];
-            player.IsDisconnecting = true;
+            Fougerite.Player player = null;
+            if (Fougerite.Server.Cache.ContainsKey(uid))
+            {
+                player = Fougerite.Server.Cache[uid];
+            }
+            else
+            {
+                Fougerite.Server.GetServer().RemovePlayer(uid);
+                Logger.LogWarning("[WeirdDisconnect] Player was null at the disconnection. Something might be wrong? OPT: " + Fougerite.Bootstrap.CR);
+                return;
+            }
+            Fougerite.Server.GetServer().RemovePlayer(uid);
+            //if (Fougerite.Server.GetServer().Players.Contains(player)) { Fougerite.Server.GetServer().Players.Remove(player); }
+            //player.PlayerClient.netUser.Dispose();
+            Fougerite.Server.Cache[uid] = player;
             try
             {
                 if (OnPlayerDisconnected != null)
@@ -418,22 +614,18 @@
             }
             catch (Exception ex)
             {
-                Logger.LogDebug("Failed to call OnDisconnected event. " + ex.ToString());
+                Logger.LogError("PlayerDisconnectedEvent Error " + ex.ToString());
             }
             Logger.LogDebug("User Disconnected: " + player.Name + " (" + player.SteamID + ")" + " (" + player.IP + ")");
-            Fougerite.Server.GetServer().Players.Remove(player);
-            if (Fougerite.Bootstrap.CR)
-            {
-                Fougerite.Server.Cache.Remove(uid);
-            }
+            if (Fougerite.Bootstrap.CR) { Fougerite.Server.Cache.Remove(uid); }
         }
 
         public static void PlayerGather(Inventory rec, ResourceTarget rt, ResourceGivePair rg, ref int amount)
         {
+            Fougerite.Player player = Fougerite.Player.FindByNetworkPlayer(rec.networkView.owner);
+            GatherEvent ge = new GatherEvent(rt, rg, amount);
             try
             {
-                Fougerite.Player player = Fougerite.Player.FindByNetworkPlayer(rec.networkView.owner);
-                GatherEvent ge = new GatherEvent(rt, rg, amount); ;
                 if (OnPlayerGathering != null)
                 {
                     OnPlayerGathering(player, ge);
@@ -445,17 +637,19 @@
                 }
                 rg.ResourceItemName = ge.Item;
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Logger.LogError("PlayerGatherEvent Error: " + ex);
+            }
         }
 
         public static void PlayerGatherWood(IMeleeWeaponItem rec, ResourceTarget rt, ref ItemDataBlock db, ref int amount, ref string name)
         {
+            Fougerite.Player player = Fougerite.Player.FindByNetworkPlayer(rec.inventory.networkView.owner);
+            GatherEvent ge = new GatherEvent(rt, db, amount);
+            ge.Item = "Wood";
             try
             {
-                Fougerite.Player player = Fougerite.Player.FindByNetworkPlayer(rec.inventory.networkView.owner);
-                //Fougerite.Player player = Fougerite.Server.Cache[rec.inventory.networkView.owner.id];
-                GatherEvent ge = new GatherEvent(rt, db, amount);
-                ge.Item = "Wood";
                 if (OnPlayerGathering != null)
                 {
                     OnPlayerGathering(player, ge);
@@ -464,7 +658,10 @@
                 amount = ge.Quantity;
                 name = ge.Item;
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Logger.LogError("PlayerGatherWoodEvent Error: " + ex);
+            }
         }
 
         public static void PlayerHurt(ref DamageEvent e)
@@ -499,7 +696,7 @@
                 }
                 e = he.DamageEvent;
             }
-            catch(Exception ex) { Logger.LogDebug("Player HURT EXCEPTION: " + ex);}
+            catch(Exception ex) { Logger.LogError("PlayerHurtEvent Error: " + ex);}
         }
 
         public static bool PlayerKilled(ref DamageEvent de)
@@ -514,48 +711,54 @@
 
                 flag = event2.DropItems;
             }
-            catch { }
+            catch (Exception ex) { Logger.LogError("PlayerKilledEvent Error: " + ex); }
 
             return flag;
         }
 
         public static void PlayerSpawned(PlayerClient pc, Vector3 pos, bool camp)
         {
+            Fougerite.Player player = Fougerite.Server.Cache[pc.userID];
+            SpawnEvent se = new SpawnEvent(pos, camp);
             try
             {
                 //Fougerite.Player player = Fougerite.Player.FindByPlayerClient(pc);
-                Fougerite.Player player = Fougerite.Server.Cache[pc.userID];
-                SpawnEvent se = new SpawnEvent(pos, camp);
-                if ((OnPlayerSpawned != null) && (player != null))
+                if (OnPlayerSpawned != null && player != null)
                 {
                     OnPlayerSpawned(player, se);
                 }
             }
-            catch { }
+            catch (Exception ex) { Logger.LogError("PlayerSpawnedEvent Error: " + ex); }
         }
 
         public static Vector3 PlayerSpawning(PlayerClient pc, Vector3 pos, bool camp)
         {
+            Fougerite.Player player = Fougerite.Server.Cache[pc.userID];
+            SpawnEvent se = new SpawnEvent(pos, camp);
             try
             {
-                //Fougerite.Player player = Fougerite.Player.FindByPlayerClient(pc);
-                Fougerite.Player player = Fougerite.Server.Cache[pc.userID];
-                SpawnEvent se = new SpawnEvent(pos, camp);
-                if ((OnPlayerSpawning != null) && (player != null))
+                if (OnPlayerSpawning != null && player != null)
                 {
                     OnPlayerSpawning(player, se);
                 }
                 return new Vector3(se.X, se.Y, se.Z);
             }
-            catch { }
-            return Vector3.zero;
+            catch (Exception ex) { Logger.LogError("PlayerSpawningEvent Error: " + ex); }
+            return pos;
         }
 
         public static void PluginInit()
         {
-            if (OnPluginInit != null)
+            try
             {
-                OnPluginInit();
+                if (OnPluginInit != null)
+                {
+                    OnPluginInit();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("PluginInitEvent Error: " + ex.ToString());
             }
         }
 
@@ -570,7 +773,7 @@
             }
             catch (Exception ex)
             {
-                Logger.LogError("Teleport Error: " + ex.ToString());
+                Logger.LogError("TeleportEvent Error: " + ex.ToString());
             }
         }
 
@@ -660,9 +863,16 @@
             if ((double)m.coreTemperature >= 1.0) { m._lastWarmTime = Time.time; }
             else if ((double)m.coreTemperature < 0.0) { m._lastWarmTime = -1000f; }
 
-            if (OnRecieveNetwork != null)
+            try
             {
-                OnRecieveNetwork(p, m, cal, water, rad, anti, temp, poison);
+                if (OnRecieveNetwork != null)
+                {
+                    OnRecieveNetwork(p, m, cal, water, rad, anti, temp, poison);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("RecieveNetworkEvent Error: " + ex.ToString());
             }
             if (!h) { RPOS.MetabolismUpdate(); }
         }
@@ -679,7 +889,7 @@
             }
             catch (Exception ex)
             {
-                Logger.LogError("Crafting Error: " + ex.ToString());
+                Logger.LogError("CraftingEvent Error: " + ex.ToString());
             }
         }
 
@@ -710,7 +920,7 @@
             }
             catch (Exception ex)
             {
-                Logger.LogError("ResourceSpawned Error: " + ex);
+                Logger.LogError("ResourceSpawnedEvent Error: " + ex);
             }
         }
 
@@ -726,7 +936,7 @@
             }
             catch (Exception ex)
             {
-                Logger.LogError("ServerSaved Error: " + ex);
+                Logger.LogError("ServerSavedEvent Error: " + ex);
             }
         }
 
@@ -740,9 +950,9 @@
                     OnItemRemoved(e);
                 }
             }
-            catch(Exception ex)
+            catch
             {
-                Logger.LogDebug("Inventory Remove error: " + ex);
+                //Logger.LogError("InventoryRemoveEvent error: " + ex);
             }
         }
 
@@ -756,26 +966,55 @@
                     OnItemAdded(e);
                 }
             }
+            catch
+            {
+                //Logger.LogError("InventoryAddEvent error: " + ex);
+            }
+        }
+
+        public static void Airdrop(Vector3 v)
+        {
+            try
+            {
+                if (OnAirdropCalled != null)
+                {
+                    OnAirdropCalled(v);
+                }
+            }
             catch (Exception ex)
             {
-                Logger.LogDebug("Inventory Add error: " + ex);
+                Logger.LogError("AirdropEvent Error: " + ex);
             }
         }
 
         public static void Airdrop(SupplyDropZone srz)
         {
-            if (OnAirdropCalled != null)
+            try
             {
-                OnAirdropCalled(srz.GetSupplyTargetPosition());
+                if (OnAirdropCalled != null)
+                {
+                    OnAirdropCalled(srz.GetSupplyTargetPosition());
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("AirdropEvent Error: " + ex);
             }
         }
 
         public static void SteamDeny(ClientConnection cc, NetworkPlayerApproval approval, string strReason, NetError errornum)
         {
             SteamDenyEvent sde = new SteamDenyEvent(cc, approval, strReason, errornum);
-            if (OnSteamDeny != null)
+            try
             {
-                OnSteamDeny(sde);
+                if (OnSteamDeny != null)
+                {
+                    OnSteamDeny(sde);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("SteamDenyEvent Error: " + ex);
             }
             if (sde.ForceAllow)
             {
@@ -788,6 +1027,45 @@
             approval.Deny((uLink.NetworkConnectionError) errornum);
             ConnectionAcceptor.CloseConnection(cc);
             Rust.Steam.Server.OnUserLeave(cc.UserID);
+        }
+
+        public static void HandleuLinkDisconnect(string msg, object NetworkPlayer)
+        {
+            GameObject[] objArray = UnityEngine.Object.FindObjectsOfType<GameObject>();
+            if (NetworkPlayer is uLink.NetworkPlayer)
+            {
+                uLink.NetworkPlayer np = (uLink.NetworkPlayer) NetworkPlayer;
+                var data = np.GetLocalData();
+                NetUser user = data as NetUser;
+                if (user != null)
+                {
+                    ulong id = user.userID;
+                    var client = user.playerClient;
+                    var loc = user.playerClient.transform.position;
+                    Fougerite.Server.Cache[id].IsDisconnecting = true;
+                    Fougerite.Server.Cache[id].DisconnectLocation = loc;
+                    Fougerite.Server.Cache[id].UpdatePlayerClient(client);
+                    var srv = Fougerite.Server.GetServer();
+                    if (srv.DPlayers.ContainsKey(id))
+                    {
+                        srv.DPlayers[id].IsDisconnecting = true;
+                        srv.DPlayers[id].DisconnectLocation = loc;
+                        srv.DPlayers[id].UpdatePlayerClient(client);
+                    }
+                }
+            }
+            foreach (GameObject obj2 in objArray)
+            {
+                //Logger.LogWarning(obj2.name);
+                try
+                {
+                    obj2.SendMessage(msg, NetworkPlayer, SendMessageOptions.DontRequireReceiver);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError("[uLink Error] Disconnect failure, report to DreTaX: " + ex);
+                }
+            }
         }
 
         public static void PlayerApproval(ConnectionAcceptor ca, NetworkPlayerApproval approval)
@@ -856,7 +1134,17 @@
                 else if (ca.IsConnected(clientConnection.UserID))
                 {
                     PlayerApprovalEvent ape = new PlayerApprovalEvent(ca, approval, clientConnection, true);
-                    if (OnPlayerApproval != null) { OnPlayerApproval(ape); }
+                    try
+                    { 
+                        if (OnPlayerApproval != null)
+                        {
+                            OnPlayerApproval(ape);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError("PlayerApprovalEvent Error: " + ex);
+                    }
                     if (ape.ForceAccept)
                     {
                         if (Fougerite.Server.Cache.ContainsKey(clientConnection.UserID) && !ape.ServerHasPlayer)
@@ -893,19 +1181,38 @@
                 float.IsNaN(origin.y) || float.IsInfinity(origin.y) ||
                 float.IsNaN(origin.z) || float.IsInfinity(origin.z))
             {
-                Logger.LogWarning("[TeleportHack] " + hc.netUser.displayName + " sent invalid packets. " + hc.netUser.userID);
-                Server.GetServer().Broadcast(hc.netUser.displayName + " might have tried to teleport with hacks.");
-                if (Fougerite.Bootstrap.BI)
+                Fougerite.Player player = Fougerite.Server.Cache.ContainsKey(hc.netUser.userID) ? Fougerite.Server.Cache[hc.netUser.userID] 
+                    : Fougerite.Server.GetServer().FindPlayer(hc.netUser.userID.ToString());
+                if (player == null)
                 {
-                    Fougerite.Server.GetServer().BanPlayer(Fougerite.Server.Cache[hc.netUser.userID], "Console", "TeleportHack");
+                    // Should never happen but just to be sure.
+                    if (hc.netUser == null) return;
+                    if (hc.netUser.connected)
+                    {
+                        hc.netUser.Kick(NetError.NoError, true);
+                    }
                     return;
                 }
-                Fougerite.Server.Cache[hc.netUser.userID].Disconnect();
+                Logger.LogWarning("[TeleportHack] " + player.Name + " sent invalid packets. " + hc.netUser.userID);
+                Server.GetServer().Broadcast(player.Name + " might have tried to teleport with hacks.");
+                if (Fougerite.Bootstrap.BI)
+                {
+                    Fougerite.Server.GetServer().BanPlayer(player, "Console", "TeleportHack");
+                    return;
+                }
+                player.Disconnect();
                 return;
             }
-            if (OnPlayerMove != null)
+            try
             {
-                OnPlayerMove(hc, origin, encoded, stateFlags, info);
+                if (OnPlayerMove != null)
+                {
+                    OnPlayerMove(hc, origin, encoded, stateFlags, info);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("PlayerMoveEvent Error: " + ex);
             }
         }
 
@@ -984,6 +1291,9 @@
             OnEntityDeployed = delegate(Fougerite.Player param0, Entity param1)
             {
             };
+            OnEntityDeployedWithPlacer = delegate (Fougerite.Player param0, Entity param1, Fougerite.Player param2)
+            {
+            };
             OnConsoleReceived = delegate(ref ConsoleSystem.Arg param0, bool param1)
             {
             };
@@ -1010,6 +1320,9 @@
             };
             OnRecieveNetwork = delegate(Fougerite.Player param0, Metabolism param1, float param2, float param3, 
                 float param4, float param5, float param6, float param7)
+            {
+            };
+            OnShowTalker = delegate(uLink.NetworkPlayer param0, Fougerite.Player param1)
             {
             };
             OnCrafting = delegate(Fougerite.Events.CraftingEvent param0)
@@ -1039,7 +1352,7 @@
             OnResearch = delegate(ResearchEvent param0)
             {
             };
-            OnServerSaved = delegate ()
+            OnServerSaved = delegate
             {
             };
 
@@ -1051,34 +1364,70 @@
 
         public static void ServerShutdown()
         {
-            if (OnServerShutdown != null)
-                OnServerShutdown();
+            try
+            {
+                if (OnServerShutdown != null)
+                    OnServerShutdown();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("ServerShutdownEvent Error: " + ex.ToString());
+            }
 
         }
 
         public static void ServerStarted()
         {
             DataStore.GetInstance().Load();
-            if (OnServerInit != null)
-                OnServerInit();
+            try
+            {
+                if (OnServerInit != null)
+                    OnServerInit();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("ServerInitEvent Error: " + ex.ToString());
+            }
         }
 
         public static void ShowTalker(uLink.NetworkPlayer player, PlayerClient p)
         {
-            if (OnShowTalker != null)
-                OnShowTalker(player, p);
+            var pl = Fougerite.Server.Cache[p.userID];
+            try
+            {
+                if (OnShowTalker != null)
+                    OnShowTalker(player, pl);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("ShowTalkerEvent Error: " + ex.ToString());
+            }
         }
 
         internal static void ModulesLoaded()
         {
-            if (OnModulesLoaded != null)
-                OnModulesLoaded();
+            try
+            {
+                if (OnModulesLoaded != null)
+                    OnModulesLoaded();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("ModulesLoadedEvent Error: " + ex.ToString());
+            }
         }
 
         public static Dictionary<string, LootSpawnList> TablesLoaded(Dictionary<string, LootSpawnList> lists)
         {
-            if (OnTablesLoaded != null)
-                OnTablesLoaded(lists);
+            try
+            {
+                if (OnTablesLoaded != null)
+                    OnTablesLoaded(lists);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("TablesLoadedEvent Error: " + ex.ToString());
+            }
             return lists;
         }
 
@@ -1093,6 +1442,7 @@
         public delegate void DoorOpenHandlerDelegate(Fougerite.Player player, DoorEvent de);
         public delegate void EntityDecayDelegate(DecayEvent de);
         public delegate void EntityDeployedDelegate(Fougerite.Player player, Entity e);
+        public delegate void EntityDeployedWithPlacerDelegate(Fougerite.Player player, Entity e, Fougerite.Player actualplacer);
         public delegate void EntityHurtDelegate(HurtEvent he);
         public delegate void EntityDestroyedDelegate(DestroyEvent de);
         public delegate void HurtHandlerDelegate(HurtEvent he);
@@ -1101,7 +1451,7 @@
         public delegate void LootTablesLoaded(Dictionary<string, LootSpawnList> lists);
         public delegate void PlayerGatheringHandlerDelegate(Fougerite.Player player, GatherEvent ge);
         public delegate void PlayerSpawnHandlerDelegate(Fougerite.Player player, SpawnEvent se);
-        public delegate void ShowTalkerDelegate(uLink.NetworkPlayer player, PlayerClient p);
+        public delegate void ShowTalkerDelegate(uLink.NetworkPlayer player, Fougerite.Player p);
         public delegate void PluginInitHandlerDelegate();
         public delegate void TeleportDelegate(Fougerite.Player player, Vector3 from, Vector3 dest);
         public delegate void ServerInitDelegate();

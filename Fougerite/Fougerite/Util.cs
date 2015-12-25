@@ -34,7 +34,9 @@ namespace Fougerite
         public void ConsoleLog(string str, [Optional, DefaultParameterValue(false)] bool adminOnly)
         {
             try {
-                foreach (Fougerite.Player player in Fougerite.Server.GetServer().Players) {
+                foreach (Fougerite.Player player in Fougerite.Server.GetServer().Players)
+                {
+                    if (!player.IsOnline) return;
                     if (!adminOnly) {
                         ConsoleNetworker.singleton.networkView.RPC<string>("CL_ConsoleMessage", player.PlayerClient.netPlayer, str);
                     } else if (player.Admin) {
@@ -162,15 +164,101 @@ namespace Fougerite
 
         public static void HashtableToFile(Hashtable ht, string path)
         {
+            var storage = ht;
+            List<object> keys = new List<object>();
+            try
+            {
+                // Running Through Table Names
+                foreach (var x in storage.Keys)
+                {
+                    // Getting the keys and values
+                    Hashtable hashtable = storage[x] as Hashtable;
+                    if (hashtable != null)
+                    {
+                        // Running through keys
+                        foreach (var y in hashtable.Keys)
+                        {
+                            // Getting value
+                            if (y != null)
+                            {
+                                Type z = y.GetType();
+                                if (z.ToString() == "IronPython.Runtime.Types.BuiltinFunction")
+                                {
+                                    if (!keys.Contains(y)) keys.Add(y);
+                                    Logger.LogDebug("[DataStore] " + x + " - " + y +
+                                                    " is not serializable. Saving skipped for It.");
+                                }
+                                else if (!z.IsSerializable)
+                                {
+                                    Logger.LogDebug("[DataStore] " + x + " - " + y +
+                                                    " is not serializable. Saving skipped for It.");
+                                    if (!keys.Contains(y)) keys.Add(y);
+                                }
+                                if (hashtable[y] != null)
+                                {
+                                    Type z2 = hashtable[y].GetType();
+                                    if (z2.ToString() == "IronPython.Runtime.Types.BuiltinFunction")
+                                    {
+                                        if (!keys.Contains(y)) keys.Add(y);
+                                        Logger.LogDebug("[DataStore] " + x + " - " + y +
+                                                        " is not serializable. (Table's key) Saving skipped for It.");
+                                    }
+                                    else if (!z2.IsSerializable)
+                                    {
+                                        Logger.LogDebug("[DataStore] " + x + " - " + y +
+                                                        " is not serializable. Saving skipped for It.");
+                                        if (!keys.Contains(y)) keys.Add(y);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("[DataStore] Failed to search for not serializable values!");
+                Logger.LogDebug("[DataStore] Error: " + ex);
+            }
+            try
+            {
+                // Running through table names
+                foreach (var x in storage.Keys)
+                {
+                    // Getting Keys and Values
+                    Hashtable hashtable = storage[x] as Hashtable;
+                    if (hashtable != null)
+                    {
+                        foreach (var y in keys)
+                        {
+                            if (hashtable.ContainsKey(y))
+                            {
+                                Logger.LogDebug("[DataStore] Key Ignored: " + y + " from table: " + storage[x]);
+                                hashtable.Remove(y);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("[DataStore] Failed to remove not serializable values!");
+                Logger.LogDebug("[DataStore] Error: " + ex);
+            }
             try
             {
                 using (FileStream stream = new FileStream(path, FileMode.Create))
                 {
                     BinaryFormatter formatter = new BinaryFormatter();
-                    formatter.Serialize(stream, ht);
+                    formatter.Serialize(stream, storage);
                 }
+                Logger.LogDebug("[DataStore] Saved!");
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Logger.LogError("[DataStore] Failed to save datastore! ");
+                Logger.LogDebug("[DataStore] Error: " + ex);
+            }
         }
 
         public Vector3 Infront(Fougerite.Player p, float length)
@@ -227,6 +315,9 @@ namespace Fougerite
 
         public static void say(uLink.NetworkPlayer player, string playername, string arg)
         {
+            Fougerite.Player pl = Fougerite.Player.FindByNetworkPlayer(player);
+            if (pl == null) return;
+            if (!pl.IsOnline) return;
             if (!string.IsNullOrEmpty(arg) && !string.IsNullOrEmpty(playername) && player != null)
                 ConsoleNetworker.SendClientCommand(player, "chat.add " + playername + " " + arg);
         }
@@ -244,12 +335,18 @@ namespace Fougerite
 
         public static void sayUser(uLink.NetworkPlayer player, string arg)
         {
+            Fougerite.Player pl = Fougerite.Player.FindByNetworkPlayer(player);
+            if (pl == null) return;
+            if (!pl.IsOnline) return;
             if (!string.IsNullOrEmpty(arg) && player != null)
                 ConsoleNetworker.SendClientCommand(player, "chat.add " + Facepunch.Utility.String.QuoteSafe(Fougerite.Server.GetServer().server_message_name) + " " + Facepunch.Utility.String.QuoteSafe(arg));
         }
 
         public static void sayUser(uLink.NetworkPlayer player, string customName, string arg)
         {
+            Fougerite.Player pl = Fougerite.Player.FindByNetworkPlayer(player);
+            if (pl == null) return;
+            if (!pl.IsOnline) return;
             if (!string.IsNullOrEmpty(arg) && !string.IsNullOrEmpty(customName) && player != null)
                 ConsoleNetworker.SendClientCommand(player, "chat.add " + Facepunch.Utility.String.QuoteSafe(customName) + " " + Facepunch.Utility.String.QuoteSafe(arg));
         }
@@ -466,9 +563,9 @@ namespace Fougerite
         {
             BindingFlags bindFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic
                 | BindingFlags.Static;
-            FieldInfo field = type.GetField(fieldName, bindFlags);
             try
             {
+                FieldInfo field = type.GetField(fieldName, bindFlags);
                 field.SetValue(instance, val);
             }
             catch (Exception ex)

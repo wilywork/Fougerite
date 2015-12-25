@@ -1,6 +1,5 @@
-﻿using UnityEngine;
-
-namespace MagmaPlugin
+﻿
+namespace MagmaModule
 {
     using System;
     using System.Collections.Generic;
@@ -10,19 +9,20 @@ namespace MagmaPlugin
     using Fougerite.Events;
     using Jint;
     using Jint.Expressions;
+    using UnityEngine;
 
-    public class Plugin
+    public class MagmaPlugin
     {
         public readonly JintEngine Engine;
-        public string Name;
-        public string Code;
-        public DirectoryInfo RootDirectory;
-        public AdvancedTimer AdvancedTimers;
+        public readonly string Name;
+        public readonly string Code;
+        public readonly DirectoryInfo RootDirectory;
+        public readonly AdvancedTimer AdvancedTimers;
         public readonly Dictionary<String, TimedEvent> Timers;
-        private readonly string brktname = "[Magma]";
-        public List<string> CommandList;
+        private const string brktname = "[Magma]";
+        public readonly List<string> CommandList;
 
-        public Plugin(DirectoryInfo directory, string name, string code)
+        public MagmaPlugin(DirectoryInfo directory, string name, string code)
         {
             Name = name;
             Code = code;
@@ -45,7 +45,7 @@ namespace MagmaPlugin
         public void InitGlobals()
         {
             Engine.SetParameter("Server", Fougerite.Server.GetServer());
-            Engine.SetParameter("Data", MagmaPlugin.Data.GetData());
+            Engine.SetParameter("Data", MagmaModule.Data.GetData());
             Engine.SetParameter("DataStore", Fougerite.DataStore.GetInstance());
             Engine.SetParameter("Util", Fougerite.Util.GetUtil());
             Engine.SetParameter("Web", new Fougerite.Web());
@@ -107,7 +107,17 @@ namespace MagmaPlugin
                     case "On_PlayerGathering": Hooks.OnPlayerGathering += OnPlayerGathering; break;
                     case "On_EntityHurt": Hooks.OnEntityHurt += OnEntityHurt; break;
                     case "On_EntityDecay": Hooks.OnEntityDecay += OnEntityDecay; break;
-                    case "On_EntityDeployed": Hooks.OnEntityDeployed += OnEntityDeployed; break;
+                    case "On_EntityDeployed":
+                        switch (funcDecl.Parameters.Count())
+                        {
+                            case 2:
+                                Hooks.OnEntityDeployed += OnEntityDeployed;
+                                break;
+                            case 3:
+                                Hooks.OnEntityDeployedWithPlacer += OnEntityDeployed2;
+                                break;
+                        }
+                        break;
                     case "On_NPCHurt": Hooks.OnNPCHurt += OnNPCHurt; break;
                     case "On_NPCKilled": Hooks.OnNPCKilled += OnNPCKilled; break;
                     case "On_BlueprintUse": Hooks.OnBlueprintUse += OnBlueprintUse; break;
@@ -123,6 +133,7 @@ namespace MagmaPlugin
                     case "On_Research": Hooks.OnResearch += OnResearch; break;
                     case "On_ServerSaved": Hooks.OnServerSaved += OnServerSaved; break;
                     case "On_AllPluginsLoaded": MagmaPluginModule.OnAllLoaded += OnAllLoaded; break;
+                    case "On_VoiceChat": Hooks.OnShowTalker += OnShowTalker; break;
                 }
             }
         }
@@ -151,7 +162,17 @@ namespace MagmaPlugin
                     case "On_PlayerGathering": Hooks.OnPlayerGathering -= OnPlayerGathering; break;
                     case "On_EntityHurt": Hooks.OnEntityHurt -= OnEntityHurt; break;
                     case "On_EntityDecay": Hooks.OnEntityDecay -= OnEntityDecay; break;
-                    case "On_EntityDeployed": Hooks.OnEntityDeployed -= OnEntityDeployed; break;
+                    case "On_EntityDeployed":
+                        switch (funcDecl.Parameters.Count())
+                        {
+                            case 2:
+                                Hooks.OnEntityDeployed -= OnEntityDeployed;
+                                break;
+                            case 3:
+                                Hooks.OnEntityDeployedWithPlacer -= OnEntityDeployed2;
+                                break;
+                        }
+                        break;
                     case "On_NPCHurt": Hooks.OnNPCHurt -= OnNPCHurt; break;
                     case "On_NPCKilled": Hooks.OnNPCKilled -= OnNPCKilled; break;
                     case "On_BlueprintUse": Hooks.OnBlueprintUse -= OnBlueprintUse; break;
@@ -167,6 +188,7 @@ namespace MagmaPlugin
                     case "On_Research": Hooks.OnResearch -= OnResearch; break;
                     case "On_ServerSaved": Hooks.OnServerSaved -= OnServerSaved; break;
                     case "On_AllPluginsLoaded": MagmaPluginModule.OnAllLoaded -= OnAllLoaded; break;
+                    case "On_VoiceChat": Hooks.OnShowTalker -= OnShowTalker; break;
                 }
             }
         }
@@ -222,6 +244,18 @@ namespace MagmaPlugin
                 return new IniParser(path);
 
             return null;
+        }
+
+        public MagmaPlugin GetPlugin(string name)
+        {
+            MagmaPlugin plugin;
+            MagmaPluginModule.Plugins.TryGetValue(name, out plugin);
+            if (plugin == null)
+            {
+                Logger.LogDebug("[MagmaPlugin] [GetPlugin] '" + name + "' plugin not found!");
+                return null;
+            }
+            return plugin;
         }
 
         public bool IniExists(string path)
@@ -448,6 +482,11 @@ namespace MagmaPlugin
             Invoke("On_EntityDeployed", player, entity);
         }
 
+        public void OnEntityDeployed2(Player player, Entity entity, Fougerite.Player actualplacer)
+        {
+            Invoke("On_EntityDeployed", player, entity, actualplacer);
+        }
+
         public void OnEntityHurt(HurtEvent evt)
         {
             Invoke("On_EntityHurt", evt);
@@ -566,6 +605,20 @@ namespace MagmaPlugin
         public void OnTablesLoaded(Dictionary<string, LootSpawnList> lists)
         {
             Invoke("On_TablesLoaded", lists);
+        }
+
+        public void OnShowTalker(uLink.NetworkPlayer np, Fougerite.Player player)
+        {
+            Invoke("On_VoiceChat", np, player);
+        }
+
+        public void OnPluginShutdown()
+        {
+            try
+            {
+                Engine.CallFunction("On_PluginShutdown");
+            }
+            catch { }
         }
 
         public void OnTimerCB(string name)

@@ -131,7 +131,7 @@
             }
             catch (Exception ex)
             {
-                Logger.LogError("[Rust++] " + path + " seems to be corrupted. Deletion is suggested. Error: " + ex);
+                Logger.LogError("[Rust++] " + path + " seems to be corrupted. Stop the server and delete the file. Error: " + ex);
             }
         }
 
@@ -146,7 +146,7 @@
             }
             catch (Exception ex)
             {
-                Logger.LogError("[Rust++] " + path + " seems to be corrupted. Deletion is suggested. Error: " + ex);
+                Logger.LogError("[Rust++] " + path + " seems to be corrupted. Stop the server and delete the file. Error: " + ex);
             }
         }
     }

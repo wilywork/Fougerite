@@ -1,9 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Timers;
-
-namespace MagmaPlugin
+﻿
+namespace MagmaModule
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Timers;
+
     public class MagmaTE
     {
         private Dictionary<string, object> _args;

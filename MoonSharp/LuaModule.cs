@@ -25,7 +25,7 @@ namespace MoonSharpModule
         public override string Name { get { return "MoonSharp"; } }
         public override string Author { get { return "DreTaX"; } }
         public override string Description { get { return "Gives you LUA support"; } }
-        public override Version Version { get { return new Version("1.0.0.0"); } }
+        public override Version Version { get { return new Version("1.1.0.0"); } }
         private static LuaModule instance;
 
         public static void ConsoleReceived(ref ConsoleSystem.Arg arg, bool external)
@@ -137,17 +137,11 @@ namespace MoonSharpModule
                 LuaPlugin plugin = new LuaPlugin(name, code, path);
                 InstallHooks(plugin);
                 plugins.Add(name, plugin);
-                if (plugin.Globals.Contains("On_PluginInit"))
-                {
-                    plugin.Invoke("On_PluginInit", new object[0]);
-                }
                 Logger.Log("[MoonSharp] " + name + " plugin was loaded successfully.");
             }
             catch (Exception ex)
             {
-                string arg = name + " plugin could not be loaded.";
-                Server.GetServer().BroadcastFrom(Name, arg);
-                Logger.LogError(arg);
+                Logger.LogError("[MoonSharp] " + name + " couldn't be loaded.");
                 Logger.LogException(ex);
             }
         }
@@ -159,7 +153,7 @@ namespace MoonSharpModule
             if (plugins.ContainsKey(name))
             {
                 LuaPlugin plugin = plugins[name];
-
+                plugin.OnPluginShutdown();
                 plugin.KillTimers();
                 RemoveHooks(plugin);
                 if (removeFromDict) plugins.Remove(name);
@@ -225,8 +219,6 @@ namespace MoonSharpModule
             LoadPlugins();
         }
 
-        //private static List<String> asd = new List<string> {("CanOpenDoor", )}; 
-
         private void InstallHooks(LuaPlugin plugin)
         {
             foreach (string method in plugin.Globals)
@@ -252,7 +244,7 @@ namespace MoonSharpModule
                     case "On_EntityHurt": Hooks.OnEntityHurt += new Hooks.EntityHurtDelegate(plugin.OnEntityHurt); break;
                     case "On_EntityDecay": Hooks.OnEntityDecay += new Hooks.EntityDecayDelegate(plugin.OnEntityDecay); break;
                     case "On_EntityDestroyed": Hooks.OnEntityDestroyed += new Hooks.EntityDestroyedDelegate(plugin.OnEntityDestroyed); break;
-                    case "On_EntityDeployed": Hooks.OnEntityDeployed += new Hooks.EntityDeployedDelegate(plugin.OnEntityDeployed); break;
+                    case "On_EntityDeployed": Hooks.OnEntityDeployedWithPlacer += new Hooks.EntityDeployedWithPlacerDelegate(plugin.OnEntityDeployed); break;
                     case "On_NPCHurt": Hooks.OnNPCHurt += new Hooks.HurtHandlerDelegate(plugin.OnNPCHurt); break;
                     case "On_NPCKilled": Hooks.OnNPCKilled += new Hooks.KillHandlerDelegate(plugin.OnNPCKilled); break;
                     case "On_BlueprintUse": Hooks.OnBlueprintUse += new Hooks.BlueprintUseHandlerDelegate(plugin.OnBlueprintUse); break;
@@ -269,6 +261,7 @@ namespace MoonSharpModule
                     case "On_PlayerApproval": Hooks.OnPlayerApproval += new Hooks.PlayerApprovalDelegate(plugin.OnPlayerApproval); break;
                     case "On_Research": Hooks.OnResearch += new Hooks.ResearchDelegate(plugin.OnResearch); break;
                     case "On_ServerSaved": Hooks.OnServerSaved += new Hooks.ServerSavedDelegate(plugin.OnServerSaved); break;
+                    case "On_VoiceChat": Hooks.OnShowTalker += new Hooks.ShowTalkerDelegate(plugin.OnShowTalker); break;
                     //TODO: Oxide Hook Names
                     /*case "Init": plugin.Invoke("Init", new object[0]); break;
                     //case "ModifyDamage": Hooks.OnDoorUse += new Hooks.DoorOpenHandlerDelegate(plugin); break;
@@ -323,7 +316,7 @@ namespace MoonSharpModule
                     case "On_EntityHurt": Hooks.OnEntityHurt -= new Hooks.EntityHurtDelegate(plugin.OnEntityHurt); break;
                     case "On_EntityDecay": Hooks.OnEntityDecay -= new Hooks.EntityDecayDelegate(plugin.OnEntityDecay); break;
                     case "On_EntityDestroyed": Hooks.OnEntityDestroyed -= new Hooks.EntityDestroyedDelegate(plugin.OnEntityDestroyed); break;
-                    case "On_EntityDeployed": Hooks.OnEntityDeployed -= new Hooks.EntityDeployedDelegate(plugin.OnEntityDeployed); break;
+                    case "On_EntityDeployed": Hooks.OnEntityDeployedWithPlacer -= new Hooks.EntityDeployedWithPlacerDelegate(plugin.OnEntityDeployed); break;
                     case "On_NPCHurt": Hooks.OnNPCHurt -= new Hooks.HurtHandlerDelegate(plugin.OnNPCHurt); break;
                     case "On_NPCKilled": Hooks.OnNPCKilled -= new Hooks.KillHandlerDelegate(plugin.OnNPCKilled); break;
                     case "On_BlueprintUse": Hooks.OnBlueprintUse -= new Hooks.BlueprintUseHandlerDelegate(plugin.OnBlueprintUse); break;
@@ -339,6 +332,7 @@ namespace MoonSharpModule
                     case "On_PlayerApproval": Hooks.OnPlayerApproval -= new Hooks.PlayerApprovalDelegate(plugin.OnPlayerApproval); break;
                     case "On_Research": Hooks.OnResearch -= new Hooks.ResearchDelegate(plugin.OnResearch); break;
                     case "On_ServerSaved": Hooks.OnServerSaved -= new Hooks.ServerSavedDelegate(plugin.OnServerSaved); break;
+                    case "On_VoiceChat": Hooks.OnShowTalker -= new Hooks.ShowTalkerDelegate(plugin.OnShowTalker); break;
                 }
             }
         }

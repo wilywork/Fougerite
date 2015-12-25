@@ -1,17 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace MagmaPlugin
+﻿
+namespace MagmaModule
 {
+    using System.Collections.Generic;
+    using System.Linq;
+
     public class AdvancedTimer
     {
         public readonly Dictionary<string, MagmaTE> Timers;
         public readonly List<MagmaTE> ParallelTimers;
-        public Plugin Plugin;
+        public MagmaPlugin Plugin;
 
-        public AdvancedTimer(Plugin pl)
+        public AdvancedTimer(MagmaPlugin pl)
         {
             Plugin = pl;
             Timers = new Dictionary<string, MagmaTE>();

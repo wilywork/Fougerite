@@ -1,7 +1,5 @@
 ﻿
-using System.Text.RegularExpressions;
-
-namespace MagmaPlugin
+namespace MagmaModule
 {
     using System;
     using System.Collections;
@@ -9,6 +7,7 @@ namespace MagmaPlugin
     using System.IO;
     using System.Reflection;
     using Fougerite;
+    using System.Text.RegularExpressions;
 
     public class MagmaPluginModule : Fougerite.Module
     {
@@ -37,20 +36,21 @@ namespace MagmaPlugin
         }
 
         private DirectoryInfo pluginDirectory;
-        private Dictionary<string, Plugin> plugins;
+        private static Dictionary<string, MagmaPlugin> plugins;
         private readonly string[] filters = new string[2] {
             "SYSTEM.IO",
             "SYSTEM.XML"
         };
         public static Hashtable inifiles = new Hashtable();
-        private readonly string brktname = "[Magma]";
+        private const string brktname = "[Magma]";
         public delegate void AllLoadedDelegate();
         public static event AllLoadedDelegate OnAllLoaded;
+        public static Dictionary<string, MagmaPlugin> Plugins { get { return plugins; } }
 
         public override void Initialize()
         {
             pluginDirectory = new DirectoryInfo(ModuleFolder);
-            plugins = new Dictionary<string, Plugin>();
+            plugins = new Dictionary<string, MagmaPlugin>();
             ReloadPlugins();
             Hooks.OnConsoleReceived -= new Hooks.ConsoleHandlerDelegate(ConsoleReceived);
             Hooks.OnConsoleReceived += new Hooks.ConsoleHandlerDelegate(ConsoleReceived);
@@ -213,7 +213,7 @@ namespace MagmaPlugin
 
             if (plugins.ContainsKey(name)) {
                 var plugin = plugins[name];
-
+                plugin.OnPluginShutdown();
                 plugin.RemoveHooks();
                 plugin.KillTimers();
                 plugin.AdvancedTimers.KillTimers();
@@ -252,7 +252,7 @@ namespace MagmaPlugin
                 String text = GetPluginScriptText(name);
                 string[] lines = text.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
                 DirectoryInfo dir = new DirectoryInfo(Path.Combine(pluginDirectory.FullName, name));
-                Plugin plugin = new Plugin(dir, name, text);
+                MagmaPlugin plugin = new MagmaPlugin(dir, name, text);
                 plugin.InstallHooks();
                 string cmdname = null;
                 bool b = false, d = false, f = false;

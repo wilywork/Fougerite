@@ -16,7 +16,7 @@
         {
             for (int i = 0; i < int.Parse(Core.config.GetSetting("Settings", "notice_messages_amount")); i++)
             {
-                Util.sayAll(Core.Name, Core.config.GetSetting("Settings", "notice" + (i + 1)));
+                Server.GetServer().BroadcastFrom(Core.Name, Core.config.GetSetting("Settings", "notice" + (i + 1)));
             }
         }
 
@@ -56,13 +56,14 @@
             if (time == 0)
             {
                 //savealldata();
-                Util.sayAll(Core.Name, "Server Shutdown NOW!");
+                Helper.CreateSaves();
+                Server.GetServer().BroadcastFrom(Core.Name, "Server Shutdown NOW!");
                 Process.GetCurrentProcess().Kill();
             }
             else
             {
                 Logger.Log("Server Shutting down in " + time + " seconds");
-                Util.sayAll(Core.Name, "Server Shutting down in " + time + " seconds");
+                Server.GetServer().BroadcastFrom(Core.Name, "Server Shutting down in " + time + " seconds");
             }
             time -= 10;
         }

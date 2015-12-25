@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Fougerite.Patcher
 {
@@ -50,6 +51,17 @@ namespace Fougerite.Patcher
             //WrapMethod(think, logex, rustAssembly, false);
         }
 
+        private void PatchFacePunch()
+        {
+            AssemblyDefinition facepunch = AssemblyDefinition.ReadAssembly("Facepunch.MeshBatch.dll");
+            TypeDefinition MeshBatchPhysicalOutput = facepunch.MainModule.GetType("Facepunch.MeshBatch.Runtime.MeshBatchPhysicalOutput");
+            MethodDefinition ActivateImmediatelyUnchecked = MeshBatchPhysicalOutput.GetMethod("ActivateImmediatelyUnchecked");
+            TypeDefinition logger = fougeriteAssembly.MainModule.GetType("Fougerite.Logger");
+            MethodDefinition logex = logger.GetMethod("LogException");
+            WrapMethod(ActivateImmediatelyUnchecked, logex, facepunch, false);
+            facepunch.Write("Facepunch.MeshBatch.dll");
+        }
+
         private void uLinkLateUpdateInTryCatch()
         {
             AssemblyDefinition ulink = AssemblyDefinition.ReadAssembly("uLink.dll");
@@ -57,33 +69,90 @@ namespace Fougerite.Patcher
             TypeDefinition Class56 = ulink.MainModule.GetType("Class56");
             TypeDefinition Class52 = ulink.MainModule.GetType("Class52");
             TypeDefinition Class48 = ulink.MainModule.GetType("Class48");
+            //TypeDefinition Class46 = ulink.MainModule.GetType("Class46");
             TypeDefinition Class45 = ulink.MainModule.GetType("Class45");
+            //TypeDefinition Class1 = ulink.MainModule.GetType("Class1");
+            //MethodDefinition method_61 = Class1.GetMethod("method_61");
             MethodDefinition method_22 = Class56.GetMethod("method_22");
             MethodDefinition method_25 = Class56.GetMethod("method_25");
             MethodDefinition method_36 = Class56.GetMethod("method_36");
+            //MethodDefinition method_44 = Class56.GetMethod("method_44");
+            MethodDefinition method_20 = Class56.GetMethod("method_20");
             MethodDefinition method_435 = Class52.GetMethod("method_435");
             MethodDefinition vmethod_3 = Class52.GetMethod("vmethod_3");
             MethodDefinition method_250 = Class48.GetMethod("method_250");
             MethodDefinition method_252 = Class48.GetMethod("method_252");
             MethodDefinition method_269 = Class48.GetMethod("method_269");
+            MethodDefinition method_299 = Class48.GetMethod("method_299");
             MethodDefinition method_4 = Class45.GetMethod("method_4");
+            //MethodDefinition method_124 = Class46.GetMethod("method_124");
             MethodDefinition update = type.GetMethod("LateUpdate");
-
             TypeDefinition logger = fougeriteAssembly.MainModule.GetType("Fougerite.Logger");
+
+            MethodDefinition method = hooksClass.GetMethod("HandleuLinkDisconnect");
+            ILProcessor iLProcessor = method_435.Body.GetILProcessor();
+            iLProcessor.Body.Instructions.Clear();
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, ulink.MainModule.Import(method)));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+
+            TypeDefinition Network = ulink.MainModule.GetType("uLink.Network");
+            IEnumerable<MethodDefinition> CloseConnections = Network.GetMethods();
             MethodDefinition logex = logger.GetMethod("LogException");
+
+            TypeDefinition NClass48 = ulink.MainModule.GetType("Class48");
+            var Nmethod_249 = NClass48.GetMethod("method_249");
+            var Nmethod_250 = NClass48.GetMethod("method_250");
+            
+            WrapMethod(Nmethod_249, logex, ulink, false);
+            WrapMethod(Nmethod_250, logex, ulink, false);
 
             WrapMethod(update, logex, ulink, false);
             WrapMethod(method_22, logex, ulink, false);
             WrapMethod(method_25, logex, ulink, false);
             WrapMethod(method_36, logex, ulink, false);
-            WrapMethod(method_435, logex, ulink, false);
+
             WrapMethod(vmethod_3, logex, ulink, false);
             WrapMethod(method_250, logex, ulink, false);
             WrapMethod(method_252, logex, ulink, false);
             WrapMethod(method_269, logex, ulink, false);
             WrapMethod(method_4, logex, ulink, false);
+            WrapMethod(method_299, logex, ulink, false);
+            WrapMethod(method_20, logex, ulink, false);
+            foreach (var x in CloseConnections.Where(x => x.Name == "CloseConnection"))
+            {
+                WrapMethod(x, logex, ulink, false);
+            }
+            /*List<Instruction> ls = method_124.Body.Instructions.Where(x => x.ToString().Contains("ArgumentOutOfRangeException") || x.ToString().Contains("throw")).ToList();
+            foreach (var x in ls)
+            {
+                method_124.Body.Instructions.Remove(x);
+            }*/
             ulink.Write("uLink.dll");
         }
+
+        /*private void uLinkKeyDuplicationError()
+        {
+            AssemblyDefinition ulink = AssemblyDefinition.ReadAssembly("uLink.dll");
+            TypeDefinition Class48 = ulink.MainModule.GetType("Class48");
+            MethodDefinition method_299 = Class48.GetMethod("method_299");
+            int Position2 = method_299.Body.Instructions.Count - 3;
+
+             ILProcessor iLProcessor2 = method_299.Body.GetILProcessor();
+             iLProcessor2.InsertBefore(method_299.Body.Instructions[Position2],
+                 Instruction.Create(OpCodes.Callvirt, ulink.MainModule.Import(hooksClass.GetMethod("Ulala"))));
+             iLProcessor2.InsertBefore(method_299.Body.Instructions[Position2], Instruction.Create(OpCodes.Ldarg_1));
+            Instruction md = null;
+            foreach (var x in method_299.Body.Instructions)
+            {
+                Logger.Log(" - " + x);
+                if (x.ToString().Contains("Fougerite.Logger")) md = x;
+            }
+            Logger.Log("s: " + md);
+            method_299.Body.Instructions.Remove(md);
+            ulink.Write("uLink.dll");
+        }*/
 
         private void LatePostInTryCatch()
         {
@@ -219,6 +288,9 @@ namespace Fougerite.Patcher
                     met.SetPublic(true);
                 }
             }
+            //TypeDefinition ServerManagement = rustAssembly.MainModule.GetType("ServerManagement");
+            //MethodDefinition EraseCharactersForClient = ServerManagement.GetMethod("EraseCharactersForClient");
+            //EraseCharactersForClient.SetPublic(true);
 
             /*TypeDefinition Inventory = rustAssembly.MainModule.GetType("Inventory");
             TypeDefinition SlotOperationsInfo = Inventory.GetNestedType("SlotOperationsInfo").;
@@ -421,27 +493,6 @@ namespace Fougerite.Patcher
             iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
         }
 
-        private void RayCastPatch()
-        {
-            AssemblyDefinition Unity = AssemblyDefinition.ReadAssembly("UnityEngine.dll");
-            TypeDefinition Physics = Unity.MainModule.GetType("UnityEngine.Physics");
-            IEnumerable<MethodDefinition> allmethods = Physics.GetMethods();
-            TypeDefinition logger = fougeriteAssembly.MainModule.GetType("Fougerite.Logger");
-            MethodDefinition logex = logger.GetMethod("LogException");
-
-            TypeDefinition Object = Unity.MainModule.GetType("UnityEngine.Object");
-            MethodDefinition d = Object.GetMethod("FindObjectOfType");
-            //Logger.Log(d.Parameters.ToString());
-            foreach (MethodDefinition f in allmethods)
-            {
-                if (f.Name.Equals("RaycastAll"))
-                {
-                    WrapMethod(f, logex, Unity, false);
-                }
-            }
-            Unity.Write("UnityEngine.dll");
-        }
-
         private void SupplyCratePatch()
         {
             TypeDefinition SupplyCrate = rustAssembly.MainModule.GetType("SupplyCrate");
@@ -596,10 +647,10 @@ namespace Fougerite.Patcher
             TypeDefinition type = rustAssembly.MainModule.GetType("DeployableItemDataBlock");
             MethodDefinition orig = type.GetMethod("DoAction1");
             MethodDefinition method = hooksClass.GetMethod("EntityDeployed");
-
             this.CloneMethod(orig);
             ILProcessor iLProcessor = orig.Body.GetILProcessor(); // 60 - leave (end of try block)
             iLProcessor.InsertBefore(orig.Body.Instructions[60], Instruction.Create(OpCodes.Call, this.rustAssembly.MainModule.Import(method)));
+            iLProcessor.InsertBefore(orig.Body.Instructions[60], Instruction.Create(OpCodes.Ldarg_S, orig.Parameters[2]));
             iLProcessor.InsertBefore(orig.Body.Instructions[60], Instruction.Create(OpCodes.Ldloc_S, orig.Body.Variables[8]));
         }
 
@@ -608,10 +659,10 @@ namespace Fougerite.Patcher
             TypeDefinition type = rustAssembly.MainModule.GetType("StructureComponentDataBlock");
             MethodDefinition orig = type.GetMethod("DoAction1");
             MethodDefinition method = hooksClass.GetMethod("EntityDeployed");
-
             this.CloneMethod(orig);
             ILProcessor iLProcessor = orig.Body.GetILProcessor(); // 102 - int count = 1;
             iLProcessor.InsertBefore(orig.Body.Instructions[102], Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(method)));
+            iLProcessor.InsertBefore(orig.Body.Instructions[102], Instruction.Create(OpCodes.Ldarg_S, orig.Parameters[2]));
             iLProcessor.InsertBefore(orig.Body.Instructions[102], Instruction.Create(OpCodes.Ldloc_S, orig.Body.Variables[8]));
         }
 
@@ -761,8 +812,10 @@ namespace Fougerite.Patcher
             iLProcessor.InsertBefore(orig.Body.Instructions[0], Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(method)));
             iLProcessor.InsertBefore(orig.Body.Instructions[0], Instruction.Create(OpCodes.Ldarg_1));
             iLProcessor = definition5.Body.GetILProcessor();
-            iLProcessor.InsertAfter(definition5.Body.Instructions[0x23], Instruction.Create(OpCodes.Ldloc_1));
-            iLProcessor.InsertAfter(definition5.Body.Instructions[0x24], Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(definition6)));
+            iLProcessor.InsertBefore(definition5.Body.Instructions[0], Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(definition6)));
+            iLProcessor.InsertBefore(definition5.Body.Instructions[0], Instruction.Create(OpCodes.Ldarg_1));
+            //iLProcessor.InsertAfter(definition5.Body.Instructions[0x23], Instruction.Create(OpCodes.Ldloc_1));
+            //iLProcessor.InsertAfter(definition5.Body.Instructions[0x24], Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(definition6)));
         }
 
         private void ServerSavePatch()
@@ -935,6 +988,7 @@ namespace Fougerite.Patcher
                     this.ResearchPatch();
                     this.ConditionDebug();
                     this.NetcullPatch();
+                    this.PatchFacePunch();
                     //this.RayCastPatch();
                 }
                 catch (Exception ex)

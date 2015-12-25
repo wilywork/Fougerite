@@ -1,6 +1,4 @@
 ﻿
-using System;
-
 namespace Fougerite
 {
     using System.Linq;
@@ -11,24 +9,27 @@ namespace Fougerite
     {
         public readonly bool hasInventory;
         private readonly object _obj;
-        private EntityInv inv;
-        private ulong _ownerid;
-        private string _name;
-        private string _ownername;
+        private readonly EntityInv inv;
+        private readonly ulong _ownerid;
+        private readonly ulong _creatorid;
+        private readonly string _creatorname;
+        private readonly string _name;
+        private readonly string _ownername;
 
         public Entity(object Obj)
         {
             this._obj = Obj;
-
             if (Obj is StructureMaster)
             {
                 this._ownerid = (Obj as StructureMaster).ownerID;
+                this._creatorid = (Obj as StructureMaster).creatorID;
                 this._name = "Structure Master";
             }
 
             if (Obj is StructureComponent)
             {
                 this._ownerid = (Obj as StructureComponent)._master.ownerID;
+                this._creatorid = (Obj as StructureComponent)._master.creatorID;
                 string clone = this.GetObject<StructureComponent>().ToString();
                 var index = clone.IndexOf("(Clone)");
                 this._name = clone.Substring(0, index);
@@ -36,6 +37,7 @@ namespace Fougerite
             if (Obj is DeployableObject)
             {
                 this._ownerid = (Obj as DeployableObject).ownerID;
+                this._creatorid = (Obj as DeployableObject).creatorID;
                 string clone = this.GetObject<DeployableObject>().ToString();
                 if (clone.Contains("Barricade"))
                 {
@@ -62,6 +64,7 @@ namespace Fougerite
             else if (Obj is LootableObject)
             {
                 this._ownerid = 76561198095992578UL;
+                this._creatorid = 76561198095992578UL;
                 var loot = Obj as LootableObject;
                 this._name = loot.name;
                 var inventory = loot._inventory;
@@ -78,6 +81,7 @@ namespace Fougerite
             else if (Obj is SupplyCrate)
             {
                 this._ownerid = 76561198095992578UL;
+                this._creatorid = 76561198095992578UL;
                 this._name = "Supply Crate";
                 var crate = Obj as SupplyCrate;
                 var inventory = crate.lootableObject._inventory;
@@ -91,25 +95,47 @@ namespace Fougerite
                     this.hasInventory = false;
                 }
             }
+            else if (Obj is ResourceTarget)
+            {
+                var x = (ResourceTarget) Obj;
+                this._ownerid = 76561198095992578UL;
+                this._creatorid = 76561198095992578UL;
+                this._name = x.name;
+                this.hasInventory = false;
+            }
             else
             {
                 this.hasInventory = false;
             }
-            var nid = Convert.ToUInt64(OwnerID);
-            if (Fougerite.Server.Cache.ContainsKey(nid))
+            if (Fougerite.Server.Cache.ContainsKey(_ownerid))
             {
-                this._ownername = Fougerite.Server.Cache[nid].Name;
+                this._ownername = Fougerite.Server.Cache[_ownerid].Name;
             }
             else if (Server.GetServer().HasRustPP)
             {
-                if (Server.GetServer().GetRustPPAPI().Cache.ContainsKey(nid))
+                if (Server.GetServer().GetRustPPAPI().Cache.ContainsKey(_ownerid))
                 {
-                    this._ownername = Server.GetServer().GetRustPPAPI().Cache[nid];
+                    this._ownername = Server.GetServer().GetRustPPAPI().Cache[_ownerid];
                 }
             }
             else
             {
                 this._ownername = "UnKnown";
+            }
+            if (Fougerite.Server.Cache.ContainsKey(_creatorid))
+            {
+                this._creatorname = Fougerite.Server.Cache[_creatorid].Name;
+            }
+            else if (Server.GetServer().HasRustPP)
+            {
+                if (Server.GetServer().GetRustPPAPI().Cache.ContainsKey(_creatorid))
+                {
+                    this._creatorname = Server.GetServer().GetRustPPAPI().Cache[_creatorid];
+                }
+            }
+            else
+            {
+                this._creatorname = "UnKnown";
             }
         }
 
@@ -222,6 +248,24 @@ namespace Fougerite
             return null;
         }
 
+        public ResourceTarget ResourceTarget
+        {
+            get
+            {
+                if (IsResourceTarget())
+                {
+                    var x = (ResourceTarget) _obj;
+                    return x;
+                }
+                return null;
+            }
+        }
+
+        public bool IsResourceTarget()
+        {
+            return (this.Object is ResourceTarget);
+        }
+
         public bool IsDeployableObject()
         {
             return (this.Object is DeployableObject);
@@ -290,13 +334,18 @@ namespace Fougerite
         {
             get
             {
-                return Fougerite.Player.FindByGameID(this.CreatorID);
+                return Fougerite.Server.Cache.ContainsKey(_ownerid) ? Fougerite.Server.Cache[_ownerid] : Fougerite.Player.FindByGameID(this.CreatorID);
             }
         }
 
         public string OwnerName
         {
             get { return _ownername; }
+        }
+
+        public string CreatorName
+        {
+            get { return _creatorname; }
         }
 
         public string OwnerID
@@ -311,7 +360,7 @@ namespace Fougerite
         {
             get
             {
-                return this._ownerid.ToString();
+                return this._creatorid.ToString();
             }
         }
 

@@ -1,13 +1,12 @@
-using Fougerite;
-using System;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using Fougerite.Events;
-using UnityEngine;
-
 namespace GlitchFix
 {
+    using Fougerite;
+    using System;
+    using System.IO;
+    using System.Linq;
+    using Fougerite.Events;
+    using UnityEngine;
+
     public class GlitchFix : Fougerite.Module
     {
         private bool enabled;
@@ -39,7 +38,7 @@ namespace GlitchFix
 
         public override Version Version
         {
-            get { return new Version("1.4.3");}
+            get { return new Version("1.4.5");}
         }
 
         public override uint Order
@@ -57,10 +56,10 @@ namespace GlitchFix
             RockGlitch = Config.GetBoolSetting("Settings", "RockGlitch");
             RockGlitchKill = Config.GetBoolSetting("Settings", "RockGlitchKill");
             CheckForRampLoot = Config.GetBoolSetting("Settings", "CheckForRampLoot");
-            terrainLayer = LayerMask.GetMask(new string[] { "Static", "Terrain" });
+            terrainLayer = UnityEngine.LayerMask.GetMask(new string[] { "Static", "Terrain" });
             if (enabled)
             {
-                Fougerite.Hooks.OnEntityDeployed += EntityDeployed;
+                Fougerite.Hooks.OnEntityDeployedWithPlacer += EntityDeployed;
                 Fougerite.Hooks.OnPlayerSpawned += OnPlayerSpawned;
             }
         }
@@ -69,7 +68,7 @@ namespace GlitchFix
         {
             if (enabled)
             {
-                Fougerite.Hooks.OnEntityDeployed -= EntityDeployed;
+                Fougerite.Hooks.OnEntityDeployedWithPlacer -= EntityDeployed;
                 Fougerite.Hooks.OnPlayerSpawned -= OnPlayerSpawned;
             }
         }
@@ -111,109 +110,137 @@ namespace GlitchFix
             }
         }
 
-        public void EntityDeployed(Fougerite.Player Player, Fougerite.Entity Entity)
+        public void EntityDeployed(Fougerite.Player Player, Fougerite.Entity Entity, Fougerite.Player actualplacer)
         {
-            if (Entity != null)
+            try
             {
-                if (Entity.Name.Contains("Foundation") || Entity.Name.Contains("Ramp") 
-                    || Entity.Name.Contains("Pillar") || Entity.Name == "WoodDoor" || Entity.Name == "MetalDoor")
+                if (Entity != null)
                 {
-                    string name = Entity.Name;
-                    var location = Entity.Location;
-                    if (Ramp && Entity.Name.Contains("Ramp"))
+                    if (Entity.Name.Contains("Foundation") || Entity.Name.Contains("Ramp")
+                        || Entity.Name.Contains("Pillar") || Entity.Name == "WoodDoor" || Entity.Name == "MetalDoor")
                     {
-                        StructureComponent[] structurelist = UnityEngine.Object.FindObjectsOfType(typeof(StructureComponent)) as StructureComponent[];
-                        if (structurelist != null && structurelist.Where(structure => structure.name.Contains("Ramp") && Entity.InstanceID != structure.GetInstanceID()).Any(structure => (int)Math.Round(Vector3.Distance(location, structure.gameObject.transform.position)) == 0))
+                        string name = Entity.Name;
+                        var location = Entity.Location;
+                        if (Ramp && Entity.Name.Contains("Ramp"))
                         {
-                            Entity.Destroy();
-                            if (GiveBack && Player.IsOnline)
+                            StructureComponent[] structurelist =
+                                UnityEngine.Object.FindObjectsOfType(typeof (StructureComponent)) as
+                                    StructureComponent[];
+                            if (structurelist != null &&
+                                structurelist.Where(
+                                    structure =>
+                                        structure.name.Contains("Ramp") &&
+                                        Entity.InstanceID != structure.GetInstanceID())
+                                    .Any(
+                                        structure =>
+                                            (int)
+                                                Math.Round(Vector3.Distance(location,
+                                                    structure.gameObject.transform.position)) == 0))
                             {
-                                switch (name)
+                                Entity.Destroy();
+                                if (GiveBack && actualplacer.IsOnline)
                                 {
-                                    case "WoodFoundation":
-                                        name = "Wood Foundation";
-                                        break;
-                                    case "MetalFoundation":
-                                        name = "Metal Foundation";
-                                        break;
-                                    case "WoodRamp":
-                                        name = "Wood Ramp";
-                                        break;
-                                    case "MetalRamp":
-                                        name = "Metal Ramp";
-                                        break;
-                                    case "WoodPillar":
-                                        name = "Wood Pillar";
-                                        break;
-                                    case "MetalPillar":
-                                        name = "Metal Pillar";
-                                        break;
+                                    switch (name)
+                                    {
+                                        case "WoodFoundation":
+                                            name = "Wood Foundation";
+                                            break;
+                                        case "MetalFoundation":
+                                            name = "Metal Foundation";
+                                            break;
+                                        case "WoodRamp":
+                                            name = "Wood Ramp";
+                                            break;
+                                        case "MetalRamp":
+                                            name = "Metal Ramp";
+                                            break;
+                                        case "WoodPillar":
+                                            name = "Wood Pillar";
+                                            break;
+                                        case "MetalPillar":
+                                            name = "Metal Pillar";
+                                            break;
+                                    }
+                                    actualplacer.Inventory.AddItem(name, 1);
                                 }
-                                Player.Inventory.AddItem(name, 1);
                             }
                         }
-                    }
-                    if (Struct)
-                    {
-                        float d = 4.5f;
-                        if (Entity.Name.Contains("Pillar"))
+                        if (Struct)
                         {
-                            d = 0.40f;
-                        }
-                        else if (Entity.Name.Contains("Door"))
-                        {
-                            d = 0.40f;
-                        }
-                        else if (Entity.Name.Contains("Foundation"))
-                        {
-                            d = 4.5f;
-                        }
-                        else if (Entity.Name.Contains("Ramp"))
-                        {
-                            if (!CheckForRampLoot)
+                            bool isdoor = false;
+                            float d = 4.5f;
+                            if (Entity.Name.Contains("Pillar"))
                             {
-                                return;
+                                d = 0.40f;
                             }
-                            d = 3.5f;
-                        }
-                        var x = Physics.OverlapSphere(location, d);
-                        if (x.Any(l => l.name.ToLower().Contains("woodbox") || l.name.ToLower().Contains("smallstash")))
-                        {
-                            Entity.Destroy();
-                            if (Player.IsOnline && GiveBack)
+                            else if (Entity.Name.Contains("Door"))
                             {
-                                switch (name)
+                                isdoor = true;
+                                d = 0.40f;
+                            }
+                            else if (Entity.Name.ToLower().Contains("smallstash"))
+                            {
+                                d = 0.40f;
+                            }
+                            else if (Entity.Name.Contains("Foundation"))
+                            {
+                                d = 4.5f;
+                            }
+                            else if (Entity.Name.Contains("Ramp"))
+                            {
+                                if (!CheckForRampLoot)
                                 {
-                                    case "WoodFoundation":
-                                        name = "Wood Foundation";
-                                        break;
-                                    case "MetalFoundation":
-                                        name = "Metal Foundation";
-                                        break;
-                                    case "WoodRamp":
-                                        name = "Wood Ramp";
-                                        break;
-                                    case "MetalRamp":
-                                        name = "Metal Ramp";
-                                        break;
-                                    case "WoodPillar":
-                                        name = "Wood Pillar";
-                                        break;
-                                    case "MetalPillar":
-                                        name = "Metal Pillar";
-                                        break;
-                                    case "WoodDoor":
-                                        name = "Wood Door";
-                                        break;
-                                    case "MetalDoor":
-                                        name = "Metal Door";
-                                        break;
+                                    return;
                                 }
-                                Player.Inventory.AddItem(name, 1);
+                                d = 3.5f;
+                            }
+                            var x = Physics.OverlapSphere(location, d);
+                            if (
+                                x.Any(
+                                    l =>
+                                        l.name.ToLower().Contains("woodbox") || l.name.ToLower().Contains("smallstash") ||
+                                        (l.name.ToLower().Contains("door") && !isdoor)))
+                            {
+                                Entity.Destroy();
+                                if (actualplacer.IsOnline && GiveBack)
+                                {
+                                    switch (name)
+                                    {
+                                        case "WoodFoundation":
+                                            name = "Wood Foundation";
+                                            break;
+                                        case "MetalFoundation":
+                                            name = "Metal Foundation";
+                                            break;
+                                        case "WoodRamp":
+                                            name = "Wood Ramp";
+                                            break;
+                                        case "MetalRamp":
+                                            name = "Metal Ramp";
+                                            break;
+                                        case "WoodPillar":
+                                            name = "Wood Pillar";
+                                            break;
+                                        case "MetalPillar":
+                                            name = "Metal Pillar";
+                                            break;
+                                        case "WoodDoor":
+                                            name = "Wood Door";
+                                            break;
+                                        case "MetalDoor":
+                                            name = "Metal Door";
+                                            break;
+                                    }
+                                    actualplacer.Inventory.AddItem(name, 1);
+                                }
                             }
                         }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogDebug("[GlitchFix] Some error showed up. Report this. " + ex);
             }
         }
     }

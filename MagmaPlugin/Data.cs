@@ -1,4 +1,4 @@
-﻿namespace MagmaPlugin
+﻿namespace MagmaModule
 {
     using System.Collections;
     using Fougerite;
@@ -8,7 +8,7 @@
     {
         public readonly System.Collections.Generic.List<string> chat_history = new System.Collections.Generic.List<string>();
         public readonly System.Collections.Generic.List<string> chat_history_username = new System.Collections.Generic.List<string>();
-        private static MagmaPlugin.Data data;
+        private static MagmaModule.Data data;
         private DataStore ds = DataStore.GetInstance();
         private Hashtable inifiles = new Hashtable();
 
@@ -31,11 +31,11 @@
             return parser.GetSetting(section, key);
         }
 
-        public static MagmaPlugin.Data GetData()
+        public static Data GetData()
         {
             if (data == null)
             {
-                data = new MagmaPlugin.Data();
+                data = new Data();
             }
             return data;
         }

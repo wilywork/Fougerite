@@ -1,4 +1,6 @@
 ﻿
+using System.Text.RegularExpressions;
+
 namespace Fougerite
 {
     using Fougerite.Events;
@@ -16,11 +18,13 @@ namespace Fougerite
         private bool invError;
         private bool justDied;
         private PlayerClient ourPlayer;
-        private ulong uid;
+        private readonly ulong uid;
         private string name;
         private string ipaddr;
         private List<string> _CommandCancelList;
-        private bool disconnected = false;
+        private bool disconnected;
+        private Vector3 _lastpost;
+        internal uLink.NetworkPlayer _np;
 
         public Player()
         {
@@ -29,6 +33,7 @@ namespace Fougerite
 
         public Player(PlayerClient client)
         {
+            this.disconnected = false;
             this.justDied = true;
             this.ourPlayer = client;
             this.connectedAt = DateTime.UtcNow.Ticks;
@@ -38,6 +43,17 @@ namespace Fougerite
             this.ipaddr = client.netPlayer.externalIP;
             this.FixInventoryRef();
             this._CommandCancelList = new List<string>();
+            this._lastpost = Vector3.zero;
+            this._np = client.netUser.networkPlayer;
+        }
+
+        internal void UpdatePlayerClient(PlayerClient client)
+        {
+            this.ourPlayer = client;
+            if (client.netUser != null)
+            {
+                this._np = client.netUser.networkPlayer;
+            }
         }
 
         public bool IsOnline
@@ -48,10 +64,8 @@ namespace Fougerite
                 {
                     if (this.ourPlayer.netUser != null)
                     {
-                        if (this.ourPlayer.netUser.connected && Fougerite.Server.GetServer().Players.Contains(this))
-                        {
-                            return true;
-                        }
+                        return Fougerite.Server.GetServer().ContainsPlayer(uid) && ourPlayer.netUser.connected && !IsDisconnecting;
+                        //return (!this.ourPlayer.netUser.disposed && this.ourPlayer.netUser.connected && Fougerite.Server.GetServer().Players.Contains(this));
                     }
                 }
                 return false;
@@ -89,6 +103,11 @@ namespace Fougerite
             }
         }
 
+        public uLink.NetworkPlayer NetworkPlayer
+        {
+            get { return this._np; }
+        }
+
         public long ConnectedAt
         {
             get { return this.connectedAt; }
@@ -124,8 +143,6 @@ namespace Fougerite
 
         public void Disconnect()
         {
-            if (disconnected) { return; }
-            disconnected = true;
             if (this.IsOnline)
             {
                 this.ourPlayer.netUser.Kick(NetError.NoError, true);
@@ -180,18 +197,21 @@ namespace Fougerite
 
         public static Fougerite.Player FindByNetworkPlayer(uLink.NetworkPlayer np)
         {
-            var query = from player in Fougerite.Server.GetServer().Players
-                        where player.PlayerClient.netPlayer == np
-                        select player;
-            return query.FirstOrDefault();
+            foreach (var x in Fougerite.Server.GetServer().Players)
+            {
+                if (x.PlayerClient.netPlayer == null) continue;
+                if (x.PlayerClient.netPlayer == np) return x;
+            }
+            return null;
         }
 
         public static Fougerite.Player FindByPlayerClient(PlayerClient pc)
         {
-            var query = from player in Fougerite.Server.GetServer().Players
-                        where player.PlayerClient == pc
-                        select player;
-            return query.FirstOrDefault();
+            foreach (var x in Fougerite.Server.GetServer().Players)
+            {
+                if (x.PlayerClient == pc) return x;
+            }
+            return null;
         }
 
         public void FixInventoryRef()
@@ -235,8 +255,18 @@ namespace Fougerite
         {
             if (this.IsOnline)
             {
-                foreach (var x in Util.GetUtil().SplitInParts(arg, 100))
-                    this.SendCommand("chat.add " + Facepunch.Utility.String.QuoteSafe(Fougerite.Server.GetServer().server_message_name) + " " + Facepunch.Utility.String.QuoteSafe(x));
+                if (string.IsNullOrEmpty(arg) || arg.Length == 0) { return; }
+                string s = Regex.Replace(arg, @"\[/?color\b.*?\]", string.Empty);
+                if (string.IsNullOrEmpty(s) || s.Length == 0) { return; }
+                if (s.Length <= 100)
+                {
+                    this.SendCommand("chat.add " + Facepunch.Utility.String.QuoteSafe(Fougerite.Server.GetServer().server_message_name) + " " + Facepunch.Utility.String.QuoteSafe(arg));
+                }
+                else
+                { 
+                    foreach (var x in Util.GetUtil().SplitInParts(arg, 100))
+                        this.SendCommand("chat.add " + Facepunch.Utility.String.QuoteSafe(Fougerite.Server.GetServer().server_message_name) + " " + Facepunch.Utility.String.QuoteSafe(x));
+                }
             }
         }
 
@@ -244,8 +274,18 @@ namespace Fougerite
         {
             if (this.IsOnline)
             {
-                foreach (var x in Util.GetUtil().SplitInParts(arg, 100))
-                    this.SendCommand("chat.add " + Facepunch.Utility.String.QuoteSafe(playername) + " " + Facepunch.Utility.String.QuoteSafe(x));
+                if (string.IsNullOrEmpty(arg) || arg.Length == 0) { return; }
+                string s = Regex.Replace(arg, @"\[/?color\b.*?\]", string.Empty);
+                if (string.IsNullOrEmpty(s) || s.Length == 0) { return; }
+                if (s.Length <= 100)
+                {
+                    this.SendCommand("chat.add " + Facepunch.Utility.String.QuoteSafe(playername) + " " + Facepunch.Utility.String.QuoteSafe(arg));
+                }
+                else
+                { 
+                    foreach (var x in Util.GetUtil().SplitInParts(arg, 100))
+                        this.SendCommand("chat.add " + Facepunch.Utility.String.QuoteSafe(playername) + " " + Facepunch.Utility.String.QuoteSafe(x));
+                }
             }
         }
 
@@ -280,9 +320,18 @@ namespace Fougerite
                 if (this == p) // lol
                     return false;
 
-                Transform transform = p.PlayerClient.controllable.transform;                                            // get the target player's transform
-                Vector3 target = transform.TransformPoint(new Vector3(0f, 0f, (this.Admin ? -distance : distance)));    // rcon admin teleports behind target player
-                return this.SafeTeleportTo(target, callhook);
+                try
+                {
+                    Transform transform = p.PlayerClient.controllable.transform; // get the target player's transform
+                    Vector3 target = transform.TransformPoint(new Vector3(0f, 0f, (this.Admin ? -distance : distance)));
+                    // rcon admin teleports behind target player
+                    return this.SafeTeleportTo(target, callhook);
+                }
+                catch
+                {
+                    if (p.Location == Vector3.zero) return false;
+                    return TeleportTo(p.Location, callhook);
+                }
             }
             return false;
         }
@@ -587,9 +636,21 @@ namespace Fougerite
             {
                 if (this.IsOnline && this.IsAlive)
                 {
-                    return this.ourPlayer.controllable.GetComponent<HumanBodyTakeDamage>().IsBleeding();
+                    return HumanBodyTakeDmg.IsBleeding();
                 }
                 return false;
+            }
+        }
+
+        public HumanBodyTakeDamage HumanBodyTakeDmg
+        {
+            get
+            {
+                if (this.IsOnline && this.IsAlive)
+                {
+                    return this.ourPlayer.controllable.GetComponent<HumanBodyTakeDamage>();
+                }
+                return null;
             }
         }
 
@@ -683,7 +744,7 @@ namespace Fougerite
             {
                 if (this.IsOnline && this.IsAlive)
                 {
-                    return this.PlayerClient.controllable.GetComponent<HumanBodyTakeDamage>()._bleedingLevel;
+                    return HumanBodyTakeDmg._bleedingLevel;
                 }
                 return 0f;
             }
@@ -777,6 +838,18 @@ namespace Fougerite
 
                 else if (amount > 0)
                     this.PlayerClient.controllable.GetComponent<Metabolism>().AddPoison(amount);
+            }
+        }
+
+        public Vector3 DisconnectLocation
+        {
+            get
+            {
+                return this._lastpost;
+            }
+            set
+            {
+                this._lastpost = value;
             }
         }
 
@@ -880,8 +953,7 @@ namespace Fougerite
             {
                 if (this.IsOnline)
                 {
-                    FallDamage dmg = this.PlayerClient.controllable.takeDamage.GetComponent(typeof(FallDamage)) as FallDamage;
-                    if (dmg != null) return dmg;
+                    return this.ourPlayer.controllable.GetComponent<FallDamage>();
                 }
                 return null;
             }

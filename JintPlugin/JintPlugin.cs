@@ -1,33 +1,33 @@
-﻿using System.Linq;
-using UnityEngine;
+﻿
+using Jint.Native;
 
-namespace JintPlugin
+namespace JintModule
 {
     using System;
     using System.Net;
     using System.Text;
     using System.Collections.Generic;
     using System.IO;
-    using System.Timers;
     using Fougerite;
     using Fougerite.Events;
     using Jint;
-    using Jint.Native;
     using Jint.Parser;
     using Jint.Parser.Ast;
+    using System.Linq;
+    using UnityEngine;
 
-    public class Plugin
+    public class JintPlugin
     {
         public readonly Engine Engine;
         public readonly string Name;
         public readonly string Code;
         public readonly DirectoryInfo RootDirectory;
         public readonly Dictionary<string, TimedEvent> Timers;
-        public AdvancedTimer AdvancedTimers;
-        public List<string> CommandList;
-        private readonly string brktname = "[Jint]";
+        public readonly AdvancedTimer AdvancedTimers;
+        public readonly List<string> CommandList;
+        private const string brktname = "[Jint]";
 
-        public Plugin(DirectoryInfo directory, string name, string code)
+        public JintPlugin(DirectoryInfo directory, string name, string code)
         {
             Name = name;
             Code = code;
@@ -57,6 +57,23 @@ namespace JintPlugin
                 Engine.Invoke("On_PluginInit");
             } catch {
             }
+        }
+
+        public JintPlugin GetPlugin(string name)
+        {
+            JintPlugin plugin;
+            JintPluginModule.Plugins.TryGetValue(name, out plugin);
+            if (plugin == null)
+            {
+                Logger.LogDebug("[JintPlugin] [GetPlugin] '" + name + "' plugin not found!");
+                return null;
+            }
+            return plugin;
+        }
+
+        public JsValue GetVariable(string name)
+        {
+            return Engine.GetValue(name);
         }
 
         private void Invoke(string func, params object[] obj)
@@ -134,7 +151,15 @@ namespace JintPlugin
                     Hooks.OnEntityDecay += OnEntityDecay;
                     break;
                 case "On_EntityDeployed":
-                    Hooks.OnEntityDeployed += OnEntityDeployed;
+                    switch (funcDecl.Parameters.Count())
+                    {
+                        case 2:
+                            Hooks.OnEntityDeployed += OnEntityDeployed;
+                            break;
+                        case 3:
+                            Hooks.OnEntityDeployedWithPlacer += OnEntityDeployed2;
+                            break;
+                    }
                     break;
                 case "On_NPCHurt":
                     Hooks.OnNPCHurt += OnNPCHurt;
@@ -180,6 +205,9 @@ namespace JintPlugin
                     break;
                 case "On_AllPluginsLoaded":
                     JintPluginModule.OnAllLoaded += OnAllLoaded;
+                    break;
+                case "On_VoiceChat":
+                    Hooks.OnShowTalker += OnShowTalker;
                     break;
                 }
             }
@@ -242,7 +270,15 @@ namespace JintPlugin
                     Hooks.OnEntityDecay -= OnEntityDecay;
                     break;
                 case "On_EntityDeployed":
-                    Hooks.OnEntityDeployed -= OnEntityDeployed;
+                    switch (funcDecl.Parameters.Count())
+                    {
+                        case 2:
+                            Hooks.OnEntityDeployed -= OnEntityDeployed;
+                            break;
+                        case 3:
+                            Hooks.OnEntityDeployedWithPlacer -= OnEntityDeployed2;
+                            break;
+                    }
                     break;
                 case "On_NPCHurt":
                     Hooks.OnNPCHurt -= OnNPCHurt;
@@ -287,7 +323,10 @@ namespace JintPlugin
                     Hooks.OnServerSaved -= OnServerSaved;
                     break;
                 case "On_AllPluginsLoaded":
-                    JintPluginModule.OnAllLoaded += OnAllLoaded;
+                    JintPluginModule.OnAllLoaded -= OnAllLoaded;
+                    break;
+                case "On_VoiceChat":
+                    Hooks.OnShowTalker -= OnShowTalker;
                     break;
                 }
             }
@@ -619,6 +658,11 @@ namespace JintPlugin
             Invoke("On_EntityDeployed", player, entity);
         }
 
+        public void OnEntityDeployed2(Player player, Entity entity, Fougerite.Player actualplacer)
+        {
+            Invoke("On_EntityDeployed", player, entity, actualplacer);
+        }
+
         public void OnEntityHurt(HurtEvent evt)
         {
             Invoke("On_EntityHurt", evt);
@@ -737,6 +781,20 @@ namespace JintPlugin
         public void OnTablesLoaded(Dictionary<string, LootSpawnList> lists)
         {
             Invoke("On_TablesLoaded", lists);
+        }
+
+        public void OnShowTalker(uLink.NetworkPlayer np, Fougerite.Player player)
+        {
+            Invoke("On_VoiceChat", np, player);
+        }
+
+        public void OnPluginShutdown()
+        {
+            try
+            {
+                Invoke("On_PluginShutdown");
+            }
+            catch { }
         }
 
         public void OnTimerCB2(JintTE evt)

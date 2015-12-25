@@ -35,20 +35,15 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\References\Assembly-CSharp.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Scripting, Version=1.1.0.20, Culture=neutral, PublicKeyToken=7f709c5b713576e1, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\IronPythonModule-master\IronPythonModule\ref\Microsoft.Scripting.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Scripting.Core, Version=1.1.0.20, Culture=neutral, PublicKeyToken=7f709c5b713576e1, processorArchitecture=MSIL" />
-    <Reference Include="MoonSharp.Interpreter">
-      <HintPath>..\References\MoonSharp.Interpreter.dll</HintPath>
-    </Reference>
     <Reference Include="RustPP">
       <HintPath>..\bin\modules\RustPP\RustPP.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Data" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="uLink, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\References\uLink.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine">
       <HintPath>..\References\UnityEngine.dll</HintPath>
     </Reference>
@@ -104,15 +99,9 @@
     <Reference Include="Google.ProtocolBuffers">
       <HintPath>..\References\Google.ProtocolBuffers.dll</HintPath>
     </Reference>
-    <Reference Include="uLink">
-      <HintPath>..\References\uLink.dll</HintPath>
-    </Reference>
     <Reference Include="System.Xml" />
     <Compile Include="Fougerite\Events\DestroyEvent.cs" />
     <Compile Include="Fougerite\SerializableDictionary.cs" />
-    <Reference Include="UnityEngine.Cloud.Analytics">
-      <HintPath>..\..\IronPythonModule-master\IronPythonModule\ref\UnityEngine.Cloud.Analytics.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <None Include="Fougerite.cfg">

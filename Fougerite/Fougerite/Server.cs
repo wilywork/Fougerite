@@ -1,8 +1,8 @@
-﻿using System;
-using System.IO;
-
+﻿
 namespace Fougerite
 {
+    using System;
+    using System.IO;
     using System.Linq;
     using System.Collections.Generic;
 
@@ -11,7 +11,7 @@ namespace Fougerite
         private ItemsBlocks _items;
         private StructureMaster _serverStructs = new StructureMaster();
         public Fougerite.Data data = new Fougerite.Data();
-        private List<Fougerite.Player> players = new List<Fougerite.Player>();
+        private Dictionary<ulong, Fougerite.Player> players = new Dictionary<ulong, Fougerite.Player>();
         private static Fougerite.Server server;
         private bool HRustPP = false;
         public string server_message_name = "Fougerite";
@@ -36,13 +36,13 @@ namespace Fougerite
             string white = "[color #FFFFFF]";
             player.Message(red + " " + reason);
             player.Message(red + " Banned by: " + Banner);
+            player.Disconnect();
             if (Sender != null)
             {
                 Sender.Message("You banned " + player.Name);
                 Sender.Message("Player's IP: " + player.IP);
                 Sender.Message("Player's ID: " + player.SteamID);
             }
-            player.Disconnect();
             foreach (Fougerite.Player pl in Players.Where(pl => pl.Admin || pl.Moderator))
             {
                 pl.Message(red + player.Name + white + " was banned by: " + green + Banner);
@@ -53,27 +53,31 @@ namespace Fougerite
 
         public void BanPlayerIPandID(string ip, string id, string name = "1", string reason = "You were banned.", string adminname = "Unknown")
         {
+            File.AppendAllText(Path.Combine(Util.GetRootFolder(), "Save\\BanLog.log"), "[" + DateTime.Now.ToShortDateString() + " "
+                + DateTime.Now.ToString("HH:mm:ss") + "] " + name + "|" + ip + "|" + adminname + "|" + reason + "\r\n");
+            File.AppendAllText(Path.Combine(Util.GetRootFolder(), "Save\\BanLog.log"), "[" + DateTime.Now.ToShortDateString()
+                + " " + DateTime.Now.ToString("HH:mm:ss") + "] " + name + "|" + id + "|" + adminname + "|" + reason + "\r\n");
             var ini = GlobalBanList;
             ini.AddSetting("Ips", ip, name);
             ini.AddSetting("Ids", id, name);
-            ini.AddSetting("AdminWhoBanned", name + "|" + ip, adminname + "|" + reason);
-            ini.AddSetting("AdminWhoBanned", name + "|" + id, adminname + "|" + reason);
             ini.Save();
         }
 
         public void BanPlayerIP(string ip, string name = "1", string reason = "You were banned.", string adminname = "Unknown")
         {
+            File.AppendAllText(Path.Combine(Util.GetRootFolder(), "Save\\BanLog.log"), "[" + DateTime.Now.ToShortDateString() + " "
+                + DateTime.Now.ToString("HH:mm:ss") + "] " + name + "|" + ip + "|" + adminname + "|" + reason + "\r\n");
             var ini = GlobalBanList;
             ini.AddSetting("Ips", ip, name);
-            ini.AddSetting("AdminWhoBanned", name + "|" + ip, adminname + "|" + reason);
             ini.Save();
         }
 
         public void BanPlayerID(string id, string name = "1", string reason = "You were banned.", string adminname = "Unknown")
         {
+            File.AppendAllText(Path.Combine(Util.GetRootFolder(), "Save\\BanLog.log"), "[" + DateTime.Now.ToShortDateString()
+                + " " + DateTime.Now.ToString("HH:mm:ss") + "] " + name + "|" + id + "|" + adminname + "|" + reason + "\r\n");
             var ini = GlobalBanList;
             ini.AddSetting("Ids", id, name);
-            ini.AddSetting("AdminWhoBanned", name + "|" + id, adminname + "|" + reason);
             ini.Save();
         }
 
@@ -202,35 +206,42 @@ namespace Fougerite
                 {
                     if (Cache.ContainsKey(uid))
                     {
+                        Logger.LogDebug("[FindPlayer] Match: " + Cache[uid].Name);
                         return Cache[uid];
                     }
-                    var flist = players.Where(x => x.UID == uid).ToList();
+                    var flist = Players.Where(x => x.UID == uid).ToList();
                     var names = flist.Select(x => x.Name).ToList();
                     if (flist.Count >= 1)
                     {
-                        Logger.LogDebug("[FindPlayer] Matches: " + flist.Count + " First Match: " + flist[0].Name + " Matches: " + string.Join(", ", names.ToArray()));
+                        Logger.LogDebug("[FindPlayer] Matches: " + flist.Count + " First Match: " + flist[0].Name +
+                                        " Matches: " + string.Join(", ", names.ToArray()));
                         return flist[0];
                     }
                 }
                 else
                 {
-                    var flist = players.Where(x => x.SteamID == search || x.SteamID.Contains(search)).ToList();
+                    var flist = Players.Where(x => x.SteamID == search || x.SteamID.Contains(search)).ToList();
                     var names = flist.Select(x => x.Name).ToList();
                     if (flist.Count >= 1)
                     {
-                        Logger.LogDebug("[FindPlayer] Matches: " + flist.Count + " First Match: " + flist[0].Name + " Matches: " + string.Join(", ", names.ToArray()));
+                        Logger.LogDebug("[FindPlayer] Matches: " + flist.Count + " First Match: " + flist[0].Name +
+                                        " Matches: " + string.Join(", ", names.ToArray()));
                         return flist[0];
                     }
                 }
             }
-            var list = players.Where(x => x.Name.ToLower().Contains(search.ToLower()) || string.Equals(x.Name, search, StringComparison.CurrentCultureIgnoreCase)).ToList();
-            var nnames = list.Select(x => x.Name).ToList();
-            if (list.Count >= 1)
+            else
             {
-                Logger.LogDebug("[FindPlayer] Matches: " + list.Count + " First Match: " + list[0].Name + " Matches: " + string.Join(", ", nnames.ToArray()));
-                return list[0];
+                var list = Players.Where(x => x.Name.ToLower().Contains(search.ToLower()) || 
+                    string.Equals(x.Name, search, StringComparison.CurrentCultureIgnoreCase)).ToList();
+                var nnames = list.Select(x => x.Name).ToList();
+                if (list.Count >= 1)
+                {
+                    Logger.LogDebug("[FindPlayer] Matches: " + list.Count + " First Match: " + list[0].Name +
+                                    " Matches: " + string.Join(", ", nnames.ToArray()));
+                    return list[0];
+                }
             }
-
             Logger.LogDebug("[FindPlayer] 0 Matches");
             return null;
         }
@@ -282,9 +293,39 @@ namespace Fougerite
         {
             get
             {
-                return this.players;
+                return this.players.Values.ToList();
             }
         }
+
+        internal void AddPlayer(ulong id, Fougerite.Player player)
+        {
+            if (!this.players.ContainsKey(id))
+            {
+                this.players.Add(id, player);
+            }
+            else
+            {
+                this.players[id] = player;
+            }
+        }
+
+        internal void RemovePlayer(ulong id)
+        {
+            if (this.players.ContainsKey(id))
+            {
+                this.players.Remove(id);
+            }
+        }
+
+        internal bool ContainsPlayer(ulong id)
+        {
+            return this.players.ContainsKey(id);
+        }
+
+        internal Dictionary<ulong, Player> DPlayers
+        {
+            get { return this.players; }
+        } 
 
         public List<Sleeper> Sleepers
         {

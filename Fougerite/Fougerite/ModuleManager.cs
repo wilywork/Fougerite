@@ -141,7 +141,7 @@ namespace Fougerite
             {
                 try
                 {
-                    ModuleContainer.DeInitialize();
+                    if (ModuleContainer.Initialized) ModuleContainer.DeInitialize();
                 }
                 catch (Exception ex)
                 {

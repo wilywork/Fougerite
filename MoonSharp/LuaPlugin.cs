@@ -65,8 +65,8 @@ namespace MoonSharpModule
             }
             catch (Exception ex)
             {
-                Fougerite.Logger.LogError("Error in plugin " + Name + ":");
-                Fougerite.Logger.LogError("Invoke failed: " + ex.ToString());
+                Fougerite.Logger.LogError("[MoonSharp] Error in plugin " + Name + ":");
+                Fougerite.Logger.LogError("[MoonSharp] Invoke failed: " + ex.ToString());
             }
         }
 
@@ -122,9 +122,21 @@ namespace MoonSharpModule
             this.Invoke("On_EntityDecay", new object[] { evt });
         }
 
-        public void OnEntityDeployed(Fougerite.Player player, Entity entity)
+        public void OnEntityDeployed(Fougerite.Player player, Entity entity, Fougerite.Player actualplacer)
         {
-            this.Invoke("On_EntityDeployed", new object[] { player, entity });
+            try
+            {
+                DynValue luaFactFunction = script.Globals.Get("On_EntityDeployed");
+                if (luaFactFunction != null)
+                {
+                    script.Call(luaFactFunction, new object[] {player, entity, actualplacer});
+                }
+            }
+            catch(Exception ex)
+            {
+                Logger.LogError("lua: " + ex);
+                this.Invoke("On_EntityDeployed", new object[] {player, entity});
+            }
         }
 
         public void OnEntityDestroyed(DestroyEvent evt)
@@ -227,6 +239,11 @@ namespace MoonSharpModule
             this.Invoke("On_ItemAdded", new object[] { e });
         }
 
+        public void OnShowTalker(uLink.NetworkPlayer np, Fougerite.Player player)
+        {
+            this.Invoke("On_VoiceChat", np, player);
+        }
+
         /*public void OnItemAddedOxide(InventoryModEvent e)
         {
             this.Invoke("OnItemAdded", new object[] { e.Inventory, e.Slot, e.Item });
@@ -255,6 +272,11 @@ namespace MoonSharpModule
         public void OnPlayerApproval(PlayerApprovalEvent e)
         {
             this.Invoke("On_PlayerApproval", new object[] { e });
+        }
+
+        public void OnPluginShutdown()
+        {
+            Invoke("On_PluginShutdown", new object[0]);
         }
 
         public void OnTimerCB(MoonSharpTE evt)
@@ -380,7 +402,7 @@ namespace MoonSharpModule
         public LuaPlugin GetPlugin(string name)
         {
             LuaPlugin plugin;
-            plugin = LuaModule.Plugins[name];
+            LuaModule.Plugins.TryGetValue(name, out plugin);
             if (plugin == null)
             {
                 Logger.LogDebug("[MoonSharp] [GetPlugin] '" + name + "' plugin not found!");

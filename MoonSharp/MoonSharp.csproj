@@ -48,6 +48,10 @@
       <HintPath>..\References\MoonSharp.Interpreter.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="uLink, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\bin\uLink.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine">
       <HintPath>..\bin\UnityEngine.dll</HintPath>
     </Reference>

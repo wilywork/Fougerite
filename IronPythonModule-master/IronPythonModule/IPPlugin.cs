@@ -25,7 +25,7 @@ namespace IronPythonModule {
 
 		public readonly Dictionary<string, IPTimedEvent> Timers;
 		public readonly List<IPTimedEvent> ParallelTimers;
-	    public List<string> CommandList;
+	    public readonly List<string> CommandList;
 
 		public IPPlugin(string name, string code, DirectoryInfo path) {
 			Name = name;
@@ -54,13 +54,14 @@ namespace IronPythonModule {
 		}
 
 		public void Invoke(string func, params object[] obj) {
-			try {
+			try
+            {
 				if (Globals.Contains(func))
 					Engine.Operations.InvokeMember(Class, func, obj);
 				else
 					Fougerite.Logger.LogDebug("[IronPython] Function: " + func + " not found in plugin: " + Name);
 			} catch (Exception ex) {
-                Fougerite.Logger.LogError("Error in plugin " + Name + ":");
+                Fougerite.Logger.LogError("[IronPython] Error in plugin " + Name + ":");
 				Fougerite.Logger.LogError(Engine.GetService<ExceptionOperations>().FormatException(ex));
 			}
 		}
@@ -252,13 +253,13 @@ namespace IronPythonModule {
 		#endregion
 
 		public IPPlugin GetPlugin(string name) {
-			IPPlugin plugin;	
-			plugin = IPModule.Plugins[name];
+			IPPlugin plugin;
+            IPModule.Plugins.TryGetValue(name, out plugin);
 			if (plugin == null) {
 				Logger.LogDebug("[IPModule] [GetPlugin] '" + name + "' plugin not found!");
 				return null;
 			}
-			return plugin;
+            return plugin;
 		}
 
 		#region time
@@ -286,11 +287,11 @@ namespace IronPythonModule {
 		#region hooks
 
 		public void OnTablesLoaded(Dictionary<string, LootSpawnList> tables) {
-			Invoke ("On_TablesLoaded", tables);
+			this.Invoke("On_TablesLoaded", tables);
 		}
 
 		public void OnAllPluginsLoaded() {
-			Invoke("On_AllPluginsLoaded", new object[0]);
+			this.Invoke("On_AllPluginsLoaded", new object[0]);
 		}
 
 		public void OnBlueprintUse(Fougerite.Player player, BPUseEvent evt) {
@@ -328,8 +329,20 @@ namespace IronPythonModule {
 			this.Invoke("On_EntityDecay", new object[] { evt });
 		}
 
-		public void OnEntityDeployed(Fougerite.Player player, Entity entity) {
-			this.Invoke("On_EntityDeployed", new object[] { player, entity });
+		public void OnEntityDeployed(Fougerite.Player player, Entity entity, Fougerite.Player actualplacer) {
+		    try
+		    {
+		        Engine.Operations.InvokeMember(Class, "On_EntityDeployed", new object[] {player, entity, actualplacer});
+		    }
+		    catch (Microsoft.Scripting.ArgumentTypeException)
+		    {
+		        this.Invoke("On_EntityDeployed", new object[] {player, entity});
+		    }
+		    catch (Exception ex)
+		    {
+                Fougerite.Logger.LogError("[IronPython] Error in plugin " + Name + ":");
+                Fougerite.Logger.LogError(Engine.GetService<ExceptionOperations>().FormatException(ex));
+            }
 		}
 
 		public void OnEntityDestroyed(DestroyEvent evt) {
@@ -442,13 +455,18 @@ namespace IronPythonModule {
             this.Invoke("On_PluginShutdown", new object[0]);
         }
 
-		/*public void OnTimerCB(IPTimedEvent evt) {
+	    public void OnShowTalker(uLink.NetworkPlayer np, Fougerite.Player player)
+	    {
+            this.Invoke("On_VoiceChat", new object[] { np, player });
+        }
+
+        /*public void OnTimerCB(IPTimedEvent evt) {
 			if (Globals.Contains(evt.Name + "Callback")) {
 				Invoke(evt.Name + "Callback", evt);
 			}
 		}*/
 
-	    public void OnTimerCB(IPTimedEvent evt)
+        public void OnTimerCB(IPTimedEvent evt)
 	    {
 	        if (Globals.Contains(evt.Name + "Callback"))
 	        {
@@ -462,8 +480,9 @@ namespace IronPythonModule {
 	            }
 	            catch (Exception ex)
 	            {
-	                Fougerite.Logger.LogError(Engine.GetService<ExceptionOperations>().FormatException(ex));
-	            }
+                    Fougerite.Logger.LogError("[IronPython] Error in plugin " + Name + ":");
+                    Fougerite.Logger.LogError(Engine.GetService<ExceptionOperations>().FormatException(ex));
+                }
 	        }
 	    }
 

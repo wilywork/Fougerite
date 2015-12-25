@@ -12,16 +12,24 @@ namespace Fougerite
     {
         public FriendList FriendsOf(ulong steamid)
         {
-            FriendsCommand command2 = (FriendsCommand)ChatCommand.GetCommand("friends");
+            FriendsCommand command2 = (FriendsCommand) ChatCommand.GetCommand("friends");
             FriendList list = (FriendList) command2.GetFriendsLists()[steamid];
             return list;
         }
 
         public FriendList FriendsOf(string steamid)
         {
-            FriendsCommand command2 = (FriendsCommand)ChatCommand.GetCommand("friends");
-            FriendList list = (FriendList)command2.GetFriendsLists()[Convert.ToUInt64(steamid)];
+            FriendsCommand command2 = (FriendsCommand) ChatCommand.GetCommand("friends");
+            FriendList list = (FriendList) command2.GetFriendsLists()[Convert.ToUInt64(steamid)];
             return list;
+        }
+
+        public FriendsCommand GetFriendsCommand
+        {
+            get
+            {
+                return (FriendsCommand) ChatCommand.GetCommand("friends");
+            }
         }
 
         public Administrator AdminClass
@@ -65,6 +73,54 @@ namespace Fougerite
         public Administrator Admin(ulong userID, string name)
         {
             return new Administrator(userID, name);
+        }
+
+        public void RemoveInstaKO(ulong userID)
+        {
+            InstaKOCommand command = (InstaKOCommand)ChatCommand.GetCommand("instako");
+            if (command.userIDs.Contains(userID))
+            {
+                command.userIDs.Remove(userID);
+            }
+        }
+
+        public void AddInstaKO(ulong userID)
+        {
+            InstaKOCommand command = (InstaKOCommand)ChatCommand.GetCommand("instako");
+            if (!command.userIDs.Contains(userID))
+            {
+                command.userIDs.Add(userID);
+            }
+        }
+
+        public bool HasInstaKO(ulong userID)
+        {
+            InstaKOCommand command = (InstaKOCommand)ChatCommand.GetCommand("instako");
+            return command.userIDs.Contains(userID);
+        }
+
+        public void RemoveGod(ulong userID)
+        {
+            GodModeCommand command = (GodModeCommand)ChatCommand.GetCommand("god");
+            if (command.userIDs.Contains(userID))
+            {
+                command.userIDs.Remove(userID);
+            }
+        }
+
+        public void AddGod(ulong userID)
+        {
+            GodModeCommand command = (GodModeCommand)ChatCommand.GetCommand("god");
+            if (!command.userIDs.Contains(userID))
+            {
+                command.userIDs.Add(userID);
+            }
+        }
+
+        public bool HasGod(ulong userID)
+        {
+            GodModeCommand command = (GodModeCommand)ChatCommand.GetCommand("god");
+            return command.userIDs.Contains(userID);
         }
 
         public void RustPPSave()
