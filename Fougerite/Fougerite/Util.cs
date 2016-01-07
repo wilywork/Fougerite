@@ -313,6 +313,7 @@ namespace Fougerite
             return (q *= Quaternion.Euler(0f, 0f, angle));
         }
 
+        [System.Obsolete("Use the Player class's message system instead.", false)]
         public static void say(uLink.NetworkPlayer player, string playername, string arg)
         {
             Fougerite.Player pl = Fougerite.Player.FindByNetworkPlayer(player);
@@ -322,17 +323,20 @@ namespace Fougerite
                 ConsoleNetworker.SendClientCommand(player, "chat.add " + playername + " " + arg);
         }
 
+        [System.Obsolete("Use the Server class's broadcast methods instead.", false)]
         public static void sayAll(string customName, string arg)
         {
             ConsoleNetworker.Broadcast("chat.add " + Facepunch.Utility.String.QuoteSafe(customName) + " " + Facepunch.Utility.String.QuoteSafe(arg));
         }
 
+        [System.Obsolete("Use the Server class's broadcast methods instead.", false)]
         public static void sayAll(string arg)
         {
             if (!string.IsNullOrEmpty(arg))
                 ConsoleNetworker.Broadcast("chat.add " + Facepunch.Utility.String.QuoteSafe(Fougerite.Server.GetServer().server_message_name) + " " + Facepunch.Utility.String.QuoteSafe(arg));
         }
 
+        [System.Obsolete("Use the Player class's message system instead.", false)]
         public static void sayUser(uLink.NetworkPlayer player, string arg)
         {
             Fougerite.Player pl = Fougerite.Player.FindByNetworkPlayer(player);
@@ -342,6 +346,7 @@ namespace Fougerite
                 ConsoleNetworker.SendClientCommand(player, "chat.add " + Facepunch.Utility.String.QuoteSafe(Fougerite.Server.GetServer().server_message_name) + " " + Facepunch.Utility.String.QuoteSafe(arg));
         }
 
+        [System.Obsolete("Use the Player class's message system instead.", false)]
         public static void sayUser(uLink.NetworkPlayer player, string customName, string arg)
         {
             Fougerite.Player pl = Fougerite.Player.FindByNetworkPlayer(player);

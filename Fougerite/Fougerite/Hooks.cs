@@ -49,6 +49,7 @@
         public static event ItemRemovedDelegate OnItemRemoved;
         public static event ItemAddedDelegate OnItemAdded;
         public static event AirdropDelegate OnAirdropCalled;
+        //public static event AirdropCrateDroppedDelegate OnAirdropCrateDropped;
         public static event SteamDenyDelegate OnSteamDeny;
         public static event PlayerApprovalDelegate OnPlayerApproval;
         public static event PlayerMoveDelegate OnPlayerMove;
@@ -987,7 +988,7 @@
             }
         }
 
-        public static void Airdrop(SupplyDropZone srz)
+        public static void Airdrop2(SupplyDropZone srz)
         {
             try
             {
@@ -1001,6 +1002,21 @@
                 Logger.LogError("AirdropEvent Error: " + ex);
             }
         }
+
+        /*public static void AirdropCrateDropped(GameObject go)
+        {
+            try
+            {
+                if (OnAirdropCrateDropped != null)
+                {
+                    OnAirdropCrateDropped(go);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("AirdropCrateDroppedEvent Error: " + ex);
+            }
+        }*/
 
         public static void SteamDeny(ClientConnection cc, NetworkPlayerApproval approval, string strReason, NetError errornum)
         {
@@ -1041,9 +1057,8 @@
                 {
                     ulong id = user.userID;
                     var client = user.playerClient;
-                    var loc = user.playerClient.transform.position;
+                    var loc = user.playerClient.lastKnownPosition;
                     Fougerite.Server.Cache[id].IsDisconnecting = true;
-                    Fougerite.Server.Cache[id].DisconnectLocation = loc;
                     Fougerite.Server.Cache[id].UpdatePlayerClient(client);
                     var srv = Fougerite.Server.GetServer();
                     if (srv.DPlayers.ContainsKey(id))
@@ -1086,7 +1101,6 @@
                 ulong uid = clientConnection.UserID;
                 string ip = approval.ipAddress;
                 string name = clientConnection.UserName;
-                IniParser ini = srv.GlobalBanList;
                 if (clientConnection.Protocol != 1069)
                 {
                     Debug.Log((object) ("Denying entry to client with invalid protocol version (" + ip + ")"));
@@ -1107,10 +1121,9 @@
                     }
                     else
                     {
-                        if (ini.GetSetting("Ips", ip) == "1")
+                        if (DataStore.GetInstance().Get("Ips", ip).ToString() == "1")
                         {
-                            ini.SetSetting("Ips", ip, name);
-                            ini.Save();
+                            DataStore.GetInstance().Add("Ips", ip, name);
                         }
                     }
                     if (!srv.IsBannedID(uid.ToString()))
@@ -1121,10 +1134,9 @@
                     }
                     else
                     {
-                        if (ini.GetSetting("Ids", uid.ToString()) == "1")
+                        if (DataStore.GetInstance().Get("Ids", uid.ToString()).ToString() == "1")
                         {
-                            ini.SetSetting("Ids", uid.ToString(), name);
-                            ini.Save();
+                            DataStore.GetInstance().Add("Ids", uid.ToString(), name);
                         }
                     }
                     Logger.LogWarning("[FougeriteBan] Disconnected: " + name
@@ -1355,7 +1367,9 @@
             OnServerSaved = delegate
             {
             };
-
+            /*OnAirdropCrateDropped = delegate (GameObject param0)
+            {
+            };*/
             foreach (Fougerite.Player player in Fougerite.Server.GetServer().Players)
             {
                 player.FixInventoryRef();
@@ -1379,6 +1393,7 @@
         public static void ServerStarted()
         {
             DataStore.GetInstance().Load();
+            Server.GetServer().UpdateBanlist();
             try
             {
                 if (OnServerInit != null)
@@ -1468,5 +1483,6 @@
         public delegate void PlayerMoveDelegate(HumanController hc, Vector3 origin, int encoded, ushort stateFlags, uLink.NetworkMessageInfo info);
         public delegate void ResearchDelegate(ResearchEvent re);
         public delegate void ServerSavedDelegate();
+        //public delegate void AirdropCrateDroppedDelegate(GameObject go);
     }
 }

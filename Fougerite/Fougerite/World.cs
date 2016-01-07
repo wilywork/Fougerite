@@ -42,7 +42,7 @@
         {
             for (int i = 0; i < rep; i++)
             {
-                Vector3 rpog = SupplyDropZone.GetRandomTargetPos();;
+                Vector3 rpog = SupplyDropZone.GetRandomTargetPos();
                 SupplyDropZone.CallAirDropAt(rpog);
             }
         }
@@ -501,12 +501,12 @@
             {
                 try
                 {
-                    IEnumerable<Entity> component = from c in UnityEngine.Object.FindObjectsOfType<StructureComponent>()
-                        select new Entity(c);
-                    IEnumerable<Entity> deployable = from d in UnityEngine.Object.FindObjectsOfType<DeployableObject>()
-                        select new Entity(d);
-                    IEnumerable<Entity> supplydrop = from s in UnityEngine.Object.FindObjectsOfType<SupplyCrate>()
-                        select new Entity(s);
+                    var structs = UnityEngine.Object.FindObjectsOfType<StructureComponent>();
+                    var deployables = UnityEngine.Object.FindObjectsOfType<DeployableObject>();
+                    var crates = UnityEngine.Object.FindObjectsOfType<SupplyCrate>();
+                    IEnumerable<Entity> component = structs.Select(x => new Entity(x)).ToList();
+                    IEnumerable<Entity> deployable = deployables.Select(x => new Entity(x)).ToList();
+                    IEnumerable<Entity> supplydrop = crates.Select(x => new Entity(x)).ToList();
                     // this is much faster than Concat
                     List<Entity> entities = new List<Entity>(component.Count() + deployable.Count() + supplydrop.Count());
                     entities.AddRange(component);

@@ -20,7 +20,7 @@
                 }
                 return;
             }
-            if (!Administrator.IsAdmin(Arguments.argUser.userID))
+            if (!Administrator.IsAdmin(pl.UID))
             {
                 pl.MessageFrom(Core.Name, "Only Administrators can get the locations of other players.");
                 return;
@@ -35,7 +35,7 @@
                     if (GetLocationString(ref Arguments.argUser, client, out reply))
                     {
                         Arguments.ReplyWith(reply);
-                        Util.sayUser(pl.PlayerClient.netUser.networkPlayer, Core.Name, reply);
+                        pl.MessageFrom(Core.Name, reply);
                     }
                 }
             }

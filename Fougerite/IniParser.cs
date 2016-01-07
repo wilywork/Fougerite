@@ -71,6 +71,11 @@ public class IniParser
         }
     }
 
+    public string IniPath
+    {
+        get { return iniFilePath; }
+    }
+
     public void AddSetting(string sectionName, string settingName)
     {
         this.AddSetting(sectionName, settingName, string.Empty);

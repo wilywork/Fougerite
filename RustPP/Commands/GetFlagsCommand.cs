@@ -67,7 +67,7 @@
             pl.MessageFrom(Core.Name, string.Format("{0}  player{1} {2}: ", ((list.Count - 1)).ToString(), (((list.Count - 1) > 1) ? "s match" : " matches"), playerName));
             for (int i = 1; i < list.Count; i++)
             {
-                Util.sayUser(Arguments.argUser.networkPlayer, Core.Name, string.Format("{0} - {1}", i, list[i].DisplayName));
+                pl.MessageFrom(Core.Name, string.Format("{0} - {1}", i, list[i].DisplayName));
             }
             pl.MessageFrom(Core.Name, "0 - Cancel");
             pl.MessageFrom(Core.Name, "Please enter the number matching the administrator you were looking for.");
@@ -82,7 +82,7 @@
                 pl.MessageFrom(Core.Name, "Cancelled!");
                 return;
             }
-            List<Administrator> list = (List<Administrator>)Core.adminFlagsWaitList[Arguments.argUser.userID];
+            List<Administrator> list = (List<Administrator>)Core.adminFlagsWaitList[pl.UID];
             GetFlags(list[id], pl);
         }
 

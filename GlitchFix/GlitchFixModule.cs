@@ -16,6 +16,7 @@ namespace GlitchFix
         private bool RockGlitch;
         private bool RockGlitchKill;
         private bool CheckForRampLoot;
+        private bool BarricadePillar;
         private IniParser Config;
         private Vector3 Vector3Down = new Vector3(0f, -1f, 0f);
         private Vector3 Vector3Up = new Vector3(0f, 1f, 0f);
@@ -38,7 +39,7 @@ namespace GlitchFix
 
         public override Version Version
         {
-            get { return new Version("1.4.5");}
+            get { return new Version("1.4.6");}
         }
 
         public override uint Order
@@ -56,6 +57,7 @@ namespace GlitchFix
             RockGlitch = Config.GetBoolSetting("Settings", "RockGlitch");
             RockGlitchKill = Config.GetBoolSetting("Settings", "RockGlitchKill");
             CheckForRampLoot = Config.GetBoolSetting("Settings", "CheckForRampLoot");
+            BarricadePillar = Config.GetBoolSetting("Settings", "BarricadePillarGlitchDetection");
             terrainLayer = UnityEngine.LayerMask.GetMask(new string[] { "Static", "Terrain" });
             if (enabled)
             {
@@ -232,6 +234,31 @@ namespace GlitchFix
                                             break;
                                     }
                                     actualplacer.Inventory.AddItem(name, 1);
+                                }
+                                return;
+                            }
+                        }
+                        if (BarricadePillar)
+                        {
+                            if (Entity.Name.Contains("Pillar"))
+                            {
+                                if (Physics.OverlapSphere(Entity.Location, 0.34f).Where(collider => collider.GetComponent<DeployableObject>() != null).Any(collider => collider.GetComponent<DeployableObject>().name.Contains("Barricade_Fence")))
+                                {
+                                    actualplacer.Message("Pillar Barricade glitching is not allowed!");
+                                    Entity.Destroy();
+                                    if (actualplacer.IsOnline && GiveBack)
+                                    {
+                                        switch (name)
+                                        {
+                                            case "WoodPillar":
+                                                name = "Wood Pillar";
+                                                break;
+                                            case "MetalPillar":
+                                                name = "Metal Pillar";
+                                                break;
+                                        }
+                                        actualplacer.Inventory.AddItem(name, 1);
+                                    }
                                 }
                             }
                         }

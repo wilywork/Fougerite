@@ -35,11 +35,11 @@
                 pl.MessageFrom(Core.Name, string.Format("{0}  players match  {1}: ", query.Count(), queryName));
                 for (int i = 1; i < query.Count(); i++)
                 {
-                    Util.sayUser(Arguments.argUser.networkPlayer, Core.Name, string.Format("{0} - {1}", i, query.ElementAt(i).DisplayName));
+                    pl.MessageFrom(Core.Name, string.Format("{0} - {1}", i, query.ElementAt(i).DisplayName));
                 }
                 pl.MessageFrom(Core.Name, "0 - Cancel");
                 pl.MessageFrom(Core.Name, "Please enter the number matching the player to ban.");
-                Core.banWaitList[Arguments.argUser.userID] = query;
+                Core.banWaitList[pl.UID] = query;
             }
         }
 

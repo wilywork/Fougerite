@@ -84,14 +84,28 @@ namespace Fougerite
                 if (ht[setting] != null)
                 {
                     float tryfloat;
-                    if (float.TryParse((string)ht[setting], out tryfloat))
+                    if (float.TryParse((string) ht[setting], out tryfloat))
                     {
-                        val = ((float)ht[setting]).ToString("G9");
+                        try
+                        {
+                            val = ((float) ht[setting]).ToString("G9");
+                        }
+                        catch
+                        {
+                            
+                        }
                     } 
                     var t = ht[setting].GetType();
                     if (t == typeof(Vector4) || t == typeof(Vector3) || t == typeof(Vector2) || t == typeof(Quaternion) || t == typeof(Bounds))
                     {
-                        val = ((Vector3)ht[setting]).ToString("F5");
+                        try
+                        {
+                            val = ((Vector3) ht[setting]).ToString("F5");
+                        }
+                        catch
+                        {
+                            
+                        }
                     } else
                     {
                         val = ht[setting].ToString();
