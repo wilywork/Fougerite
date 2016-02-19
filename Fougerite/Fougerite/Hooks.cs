@@ -1047,39 +1047,58 @@
 
         public static void HandleuLinkDisconnect(string msg, object NetworkPlayer)
         {
-            GameObject[] objArray = UnityEngine.Object.FindObjectsOfType<GameObject>();
-            if (NetworkPlayer is uLink.NetworkPlayer)
+            try
             {
-                uLink.NetworkPlayer np = (uLink.NetworkPlayer) NetworkPlayer;
-                var data = np.GetLocalData();
-                NetUser user = data as NetUser;
-                if (user != null)
+                UnityEngine.Object[] obj = UnityEngine.Object.FindObjectsOfType(typeof(GameObject));
+                GameObject[] objArray = null;
+                if (obj is GameObject[])
                 {
-                    ulong id = user.userID;
-                    var client = user.playerClient;
-                    var loc = user.playerClient.lastKnownPosition;
-                    Fougerite.Server.Cache[id].IsDisconnecting = true;
-                    Fougerite.Server.Cache[id].UpdatePlayerClient(client);
-                    var srv = Fougerite.Server.GetServer();
-                    if (srv.DPlayers.ContainsKey(id))
+                    objArray = obj as GameObject[];
+                }
+                if (objArray == null)
+                {
+                    Logger.LogWarning("Something bad happened during the disconnection... Report this.");
+                    return;
+                }
+                if (NetworkPlayer is uLink.NetworkPlayer)
+                {
+                    uLink.NetworkPlayer np = (uLink.NetworkPlayer) NetworkPlayer;
+                    var data = np.GetLocalData();
+                    NetUser user = data as NetUser;
+                    if (user != null)
                     {
-                        srv.DPlayers[id].IsDisconnecting = true;
-                        srv.DPlayers[id].DisconnectLocation = loc;
-                        srv.DPlayers[id].UpdatePlayerClient(client);
+                        ulong id = user.userID;
+                        var client = user.playerClient;
+                        var loc = user.playerClient.lastKnownPosition;
+                        Fougerite.Server.Cache[id].IsDisconnecting = true;
+                        Fougerite.Server.Cache[id].DisconnectLocation = loc;
+                        Fougerite.Server.Cache[id].UpdatePlayerClient(client);
+                        var srv = Fougerite.Server.GetServer();
+                        if (srv.DPlayers.ContainsKey(id))
+                        {
+                            srv.DPlayers[id].IsDisconnecting = true;
+                            srv.DPlayers[id].DisconnectLocation = loc;
+                            srv.DPlayers[id].UpdatePlayerClient(client);
+                        }
+                    }
+                }
+
+                foreach (GameObject obj2 in objArray)
+                {
+                    //Logger.LogWarning(obj2.name);
+                    try
+                    {
+                        obj2.SendMessage(msg, NetworkPlayer, SendMessageOptions.DontRequireReceiver);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError("[uLink Error] Disconnect failure, report to DreTaX: " + ex);
                     }
                 }
             }
-            foreach (GameObject obj2 in objArray)
+            catch (Exception ex)
             {
-                //Logger.LogWarning(obj2.name);
-                try
-                {
-                    obj2.SendMessage(msg, NetworkPlayer, SendMessageOptions.DontRequireReceiver);
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogError("[uLink Error] Disconnect failure, report to DreTaX: " + ex);
-                }
+                Logger.LogError("[uLink Error] Full Exception: " + ex);
             }
         }
 

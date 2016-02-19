@@ -32,17 +32,16 @@ namespace Fougerite
             }
         }
 
-        public Administrator AdminClass
+        public bool HasPermission(ulong userID, string perm)
         {
-            get
-            {
-                return new Administrator();
-            }
+            var admin = GetAdmin(userID);
+            return admin != null && admin.HasPermission(perm);
         }
 
-        public bool HasPermission(string perm)
+        public bool HasPermission(string name, string perm)
         {
-            return AdminClass.HasPermission(perm);
+            var admin = GetAdmin(name);
+            return admin != null && admin.HasPermission(perm);
         }
 
         public bool IsAdmin(ulong uid)

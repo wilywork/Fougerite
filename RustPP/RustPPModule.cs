@@ -25,7 +25,7 @@
         }
         public override Version Version
         {
-            get { return new Version("1.1.7.5"); }
+            get { return new Version("1.1.7.6"); }
         }
 
         public static string GetAbsoluteFilePath(string fileName)

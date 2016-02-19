@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 [assembly: AssemblyConfiguration ("")]
 [assembly: AssemblyCompany ("")]
 [assembly: AssemblyProduct ("")]
-[assembly: AssemblyCopyright("Copyright © 2015 Pluton Team")]
+[assembly: AssemblyCopyright("Copyright © 2015-2016 Pluton Team")]
 [assembly: AssemblyTrademark ("")]
 [assembly: AssemblyCulture ("")]
 

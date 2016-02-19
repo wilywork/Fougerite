@@ -1,6 +1,7 @@
 ﻿using Fougerite;
 using RustPP;
 using System;
+using RustPP.Commands;
 
 public class rustpp : ConsoleSystem
 {
@@ -25,6 +26,7 @@ public class rustpp : ConsoleSystem
     [Admin]
     public static void shutdown(ref ConsoleSystem.Arg arg)
     {
-        TimedEvents.shutdown();
+        ShutDownCommand.StartShutdown();
+        //TimedEvents.shutdown();
     }
 }

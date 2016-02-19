@@ -16,7 +16,7 @@ namespace RustPP
     public class Core
     {
         public static string Name = "Rust++";
-        public static string Version = "1.6.9";
+        public static string Version = "1.1.7.6";
         public static IniParser config;
         public static PList blackList = new PList();
         public static PList whiteList = new PList();
@@ -229,6 +229,9 @@ namespace RustPP
             WhiteListAddCommand command23 = new WhiteListAddCommand();
             command23.AdminFlags = "CanWhiteList";
             ChatCommand.AddCommand("/addwl", command23);
+            ShutDownCommand command24 = new ShutDownCommand();
+            command24.AdminFlags = "CanShutdown";
+            ChatCommand.AddCommand("/shutdown", command24);
         }
 
         public static bool IsEnabled()

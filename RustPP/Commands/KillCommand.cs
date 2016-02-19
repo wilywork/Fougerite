@@ -71,7 +71,8 @@
             {
                 Administrator.NotifyAdmins(string.Format("{0} killed {1} with mind bullets.", myAdmin.Name, victim.Name));
                 myAdmin.MessageFrom(myAdmin.Name, string.Format("I killed you with mind bullets. That's telekinesis, {1}.", myAdmin.Name, victim.Name));
-                TakeDamage.Kill(myAdmin.PlayerClient.netUser.playerClient, victim.PlayerClient.netUser.playerClient, null);
+                myAdmin.Kill();
+                //TakeDamage.Kill(myAdmin.PlayerClient.netUser.playerClient, victim.PlayerClient.netUser.playerClient, null);
             }
         }
     }

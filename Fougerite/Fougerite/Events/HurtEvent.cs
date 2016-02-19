@@ -124,7 +124,7 @@
                     {
                         WeaponImpact extraData = d.extraData as WeaponImpact;
                         this.WeaponData = extraData;
-                        if (extraData.dataBlock != null)
+                        if (extraData != null && extraData.dataBlock != null)
                         {
                             weaponName = extraData.dataBlock.name;
                         }
