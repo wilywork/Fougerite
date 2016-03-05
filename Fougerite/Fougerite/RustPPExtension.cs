@@ -127,14 +127,14 @@ namespace Fougerite
             Helper.CreateSaves();
         }
 
-        public void IsMuted(ulong id)
+        public bool IsMuted(ulong id)
         {
-            RustPP.Core.muteList.Contains(id);
+            return RustPP.Core.muteList.Contains(id);
         }
 
-        public void IsMuted(Player pl)
+        public bool IsMuted(Player pl)
         {
-            RustPP.Core.muteList.Contains(pl.UID);
+            return RustPP.Core.muteList.Contains(pl.UID);
         }
 
         public void UnMute(ulong id)
