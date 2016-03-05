@@ -25,7 +25,7 @@
         }
         public override Version Version
         {
-            get { return new Version("1.1.7.6"); }
+            get { return new Version("1.1.7.7"); }
         }
 
         public static string GetAbsoluteFilePath(string fileName)
@@ -49,7 +49,6 @@
         {
             ConfigsFolder = ModuleFolder;
             ConfigFile = Path.Combine(ConfigsFolder, "Rust++.cfg");
-
             Core.Init();
             Core.config = new IniParser(ConfigFile);
 
@@ -215,7 +214,7 @@
         {
             if (Core.IsEnabled() && Core.muteList.Contains(p.UID))
             {
-                text.NewText = "          ";
+                text.NewText = null;
                 p.MessageFrom(Core.Name, "You are muted.");
             }
         }

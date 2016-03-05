@@ -357,6 +357,11 @@ namespace Fougerite
             }
         }
 
+        public string Version
+        {
+            get { return Bootstrap.Version; }
+        }
+
         /*
          *  ETC....
          */
