@@ -76,6 +76,7 @@
     <Compile Include="Core.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="Hooks.cs" />
+    <Compile Include="Commands\InstaKOAllCommand.cs" />
     <Compile Include="Permissions\Administrator.cs" />
     <Compile Include="PList.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

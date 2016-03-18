@@ -46,6 +46,21 @@
                 flags.Clear();
                 flags.AddRange(Administrator.PermissionsFlags);
             }
+            Fougerite.Player matchingplayer = Fougerite.Server.GetServer().FindPlayer(name[0]);
+            if (matchingplayer != null)
+            {
+                if (Administrator.IsAdmin(matchingplayer.UID))
+                {
+                    Core.adminUnflagWaitList[pl.UID] = admins;
+                    Core.adminFlagsList[pl.UID] = flags;
+                    RemoveFlags(Administrator.GetAdmin(matchingplayer.UID), pl);
+                }
+                else
+                {
+                    pl.MessageFrom(Core.Name, string.Format("{0} is not an administrator.", string.Join(" ", name.ToArray())));
+                }
+                return;
+            }
             List<Administrator> match = new List<Administrator>();
             for (int i = 0; i < name.Count; i++)
             {

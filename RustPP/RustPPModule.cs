@@ -25,7 +25,7 @@
         }
         public override Version Version
         {
-            get { return new Version("1.1.7.7"); }
+            get { return new Version("1.1.7.8"); }
         }
 
         public static string GetAbsoluteFilePath(string fileName)
@@ -298,32 +298,67 @@
         {
             if (Core.IsEnabled())
             {
-                InstaKOCommand command = ChatCommand.GetCommand("instako") as InstaKOCommand;
-                if (!he.AttackerIsPlayer)
+                if (!he.AttackerIsPlayer || he.Attacker == null)
                 {
                     return;
                 }
-
-                if (command == null)
-                    return;
-
-                Fougerite.Player pl = (Fougerite.Player) he.Attacker;
-
-                if (command.IsOn(pl.UID))
+                InstaKOCommand command = ChatCommand.GetCommand("instako") as InstaKOCommand;
+                InstaKOAllCommand command2 = ChatCommand.GetCommand("instakoall") as InstaKOAllCommand;
+                Fougerite.Player pl = (Fougerite.Player)he.Attacker;
+                if (command != null)
                 {
-                    if (he.Entity != null)
+                    if (command.IsOn(pl.UID))
                     {
-                        try
+                        if (he.Entity != null)
                         {
-                            if (!he.IsDecay)
-                                he.Entity.Destroy();
-                            else if (Fougerite.Hooks.decayList.Contains(he.Entity))
-                                Fougerite.Hooks.decayList.Remove(he.Entity);
+                            try
+                            {
+                                if (!he.IsDecay)
+                                    he.Entity.Destroy();
+                                else if (Fougerite.Hooks.decayList.Contains(he.Entity))
+                                    Fougerite.Hooks.decayList.Remove(he.Entity);
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.LogDebug("EntityHurt EX: " + ex);
+                            }
                         }
-                        catch (Exception ex)
-                        { Logger.LogDebug("EntityHurt EX: " + ex); }
+                        else Logger.LogDebug("he.Entity is null!");
                     }
-                    else Logger.LogDebug("he.Entity is null!");
+                }
+                if (command2 != null)
+                {
+                    if (command2.IsOn(pl.UID))
+                    {
+                        if (he.Entity != null)
+                        {
+                            var list = he.Entity.GetLinkedStructs();
+                            foreach (var x in list)
+                            {
+                                try
+                                {
+                                    x.Destroy();
+                                    if (Fougerite.Hooks.decayList.Contains(x))
+                                        Fougerite.Hooks.decayList.Remove(x);
+                                }
+                                catch
+                                {
+                                    
+                                }
+                            }
+                            try
+                            {
+                                he.Entity.Destroy();
+                                if (Fougerite.Hooks.decayList.Contains(he.Entity))
+                                    Fougerite.Hooks.decayList.Remove(he.Entity);
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.LogDebug("EntityHurt EX: " + ex);
+                            }
+                        }
+                        else Logger.LogDebug("he.Entity is null!");
+                    }
                 }
             }
         }

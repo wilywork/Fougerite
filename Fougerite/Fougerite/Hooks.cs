@@ -1055,6 +1055,10 @@
                 {
                     objArray = obj as GameObject[];
                 }
+                else
+                {
+                    Logger.LogWarning("[uLink Error] Array was not GameObject?!");
+                }
                 if (objArray == null)
                 {
                     Logger.LogWarning("Something bad happened during the disconnection... Report this.");
@@ -1088,7 +1092,10 @@
                     //Logger.LogWarning(obj2.name);
                     try
                     {
-                        obj2.SendMessage(msg, NetworkPlayer, SendMessageOptions.DontRequireReceiver);
+                        if (obj2 != null)
+                        {
+                            obj2.SendMessage(msg, NetworkPlayer, SendMessageOptions.DontRequireReceiver);
+                        }
                     }
                     catch (Exception ex)
                     {

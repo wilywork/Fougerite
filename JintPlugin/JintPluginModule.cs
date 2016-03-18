@@ -154,7 +154,8 @@ namespace JintModule
 
             if (plugins.ContainsKey(name)) {
                 Logger.LogError(string.Format("{0} {1} plugin is already loaded.", brktname, name));
-                throw new InvalidOperationException(string.Format("{0} {1} plugin is already loaded.", brktname, name));
+                return;
+                //throw new InvalidOperationException(string.Format("{0} {1} plugin is already loaded.", brktname, name));
             }
 
             try {
@@ -163,6 +164,7 @@ namespace JintModule
                 DirectoryInfo dir = new DirectoryInfo(Path.Combine(pluginDirectory.FullName, name));
                 JintPlugin plugin = new JintPlugin(dir, name, text);
                 plugin.InstallHooks();
+                plugin.Invoke("On_PluginInit");
                 string cmdname = null;
                 bool b = false, d = false, f = false;
                 foreach (string line in lines)

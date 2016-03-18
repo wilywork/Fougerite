@@ -21,6 +21,12 @@ namespace RustPP.Commands
             }
             List<Administrator> list = new List<Administrator>();
             list.Add(new Administrator(0, "Cancel"));
+            Fougerite.Player fplayer = Fougerite.Server.GetServer().FindPlayer(playerName);
+            if (fplayer != null)
+            {
+                NewAdmin(new Administrator(fplayer.UID, fplayer.Name), pl);
+                return;
+            }
             foreach (KeyValuePair<ulong, string> entry in Core.userCache)
             {
                 if (entry.Value.Equals(playerName, StringComparison.OrdinalIgnoreCase))

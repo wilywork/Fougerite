@@ -25,6 +25,7 @@ namespace JintModule
         public readonly Dictionary<string, TimedEvent> Timers;
         public readonly AdvancedTimer AdvancedTimers;
         public readonly List<string> CommandList;
+        public List<string> FunctionNames; 
         private const string brktname = "[Jint]";
 
         public JintPlugin(DirectoryInfo directory, string name, string code)
@@ -32,8 +33,9 @@ namespace JintModule
             Name = name;
             Code = code;
             RootDirectory = directory;
+            FunctionNames = new List<string>();
             CommandList = new List<string>();
-            Timers = new Dictionary<String, TimedEvent>();
+            Timers = new Dictionary<string, TimedEvent>();
             AdvancedTimers = new AdvancedTimer(this);
 
             Engine = new Engine(cfg => cfg.AllowClr(typeof(UnityEngine.GameObject).Assembly,
@@ -53,10 +55,6 @@ namespace JintModule
                 typeof(UnityEngine.GameObject).Assembly.GetName().Name,
                 typeof(uLink.NetworkPlayer).Assembly.GetName().Name,
                 typeof(PlayerInventory).Assembly.GetName().Name));
-            try {
-                Engine.Invoke("On_PluginInit");
-            } catch {
-            }
         }
 
         public JintPlugin GetPlugin(string name)
@@ -76,10 +74,14 @@ namespace JintModule
             return Engine.GetValue(name);
         }
 
-        private void Invoke(string func, params object[] obj)
+        internal void Invoke(string func, params object[] obj)
         {
-            try {
-                Engine.Invoke(func, obj);
+            try
+            {
+                if (FunctionNames.Contains(func))
+                { 
+                    Engine.Invoke(func, obj);
+                }
             } catch (Exception ex) {
                 Logger.LogError(string.Format("{0} Error invoking function {1} in {2} plugin.", brktname, func, Name));
                 Logger.LogException(ex);
@@ -98,6 +100,7 @@ namespace JintModule
         {
             foreach (var funcDecl in GetSourceCodeGlobalFunctions()) {
                 Logger.LogDebug(string.Format("{0} Found Function: {1}", brktname, funcDecl.Id.Name));
+                if (!FunctionNames.Contains(funcDecl.Id.Name)) { FunctionNames.Add(funcDecl.Id.Name);}
                 switch (funcDecl.Id.Name) {
                 case "On_ServerInit":
                     Hooks.OnServerInit += OnServerInit;
@@ -191,6 +194,9 @@ namespace JintModule
                 case "On_Airdrop":
                     Hooks.OnAirdropCalled += OnAirdrop;
                     break;
+                /*case "On_AirdropCrateDropped":
+                    Hooks.OnAirdropCrateDropped += OnAirdropCrateDropped;
+                    break;*/
                 case "On_SteamDeny":
                     Hooks.OnSteamDeny += OnSteamDeny;
                     break;
@@ -310,6 +316,9 @@ namespace JintModule
                 case "On_Airdrop":
                     Hooks.OnAirdropCalled -= OnAirdrop;
                     break;
+                /*case "On_AirdropCrateDropped":
+                    Hooks.OnAirdropCrateDropped -= OnAirdropCrateDropped;
+                    break;*/
                 case "On_SteamDeny":
                     Hooks.OnSteamDeny -= OnSteamDeny;
                     break;
@@ -747,6 +756,11 @@ namespace JintModule
         {
             Invoke("On_Airdrop", v);
         }
+
+        /*public void OnAirdropCrateDropped(GameObject go)
+        {
+            Invoke("On_AirdropCrateDropped", go);
+        }*/
 
         public void OnSteamDeny(SteamDenyEvent e)
         {

@@ -440,7 +440,12 @@ namespace IronPythonModule {
             this.Invoke("On_Airdrop", new object[] { v });
         }
 
-	    public void OnSteamDeny(SteamDenyEvent e)
+        /*public void OnAirdropCrateDropped(GameObject go)
+        {
+            this.Invoke("On_AirdropCrateDropped", new object[] { go });
+        }*/
+
+        public void OnSteamDeny(SteamDenyEvent e)
 	    {
             this.Invoke("On_SteamDeny", new object[] { e });
 	    }

@@ -63,15 +63,15 @@
             {
                 myAdmin.MessageFrom(Core.Name, "Suicide isn't painless. " + Core.Name + " won't let you kill yourself.");
             }
-            else if (Administrator.IsAdmin(victim.UID) && !Administrator.GetAdmin(myAdmin.UID).HasPermission("RCON"))
+            else if (Administrator.IsAdmin(victim.UID) && !Administrator.GetAdmin(victim.UID).HasPermission("RCON"))
             {
                 myAdmin.MessageFrom(Core.Name, victim.Name + " is an administrator. May I suggest a rock?");
             }
             else
             {
                 Administrator.NotifyAdmins(string.Format("{0} killed {1} with mind bullets.", myAdmin.Name, victim.Name));
-                myAdmin.MessageFrom(myAdmin.Name, string.Format("I killed you with mind bullets. That's telekinesis, {1}.", myAdmin.Name, victim.Name));
-                myAdmin.Kill();
+                victim.MessageFrom(myAdmin.Name, string.Format("I killed you with mind bullets. That's telekinesis, {0}.", victim.Name));
+                victim.Kill();
                 //TakeDamage.Kill(myAdmin.PlayerClient.netUser.playerClient, victim.PlayerClient.netUser.playerClient, null);
             }
         }

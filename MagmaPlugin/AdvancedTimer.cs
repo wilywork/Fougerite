@@ -1,4 +1,6 @@
 ﻿
+using Fougerite;
+
 namespace MagmaModule
 {
     using System.Collections.Generic;
@@ -25,7 +27,7 @@ namespace MagmaModule
             if (timedEvent == null)
             {
                 timedEvent = new MagmaTE(name, (double)timeoutDelay);
-                timedEvent.OnFire += new MagmaTE.TimedEventFireDelegate(Plugin.OnTimerCB2);
+                timedEvent.OnFire += new MagmaTE.TimedEventFireDelegate(Plugin.OnTimerCB);
                 Timers.Add(name, timedEvent);
             }
             return timedEvent;
@@ -38,7 +40,7 @@ namespace MagmaModule
             {
                 timedEvent = new MagmaTE(name, (double)timeoutDelay);
                 timedEvent.Args = args;
-                timedEvent.OnFire += new MagmaTE.TimedEventFireDelegate(Plugin.OnTimerCB2);
+                timedEvent.OnFire += new MagmaTE.TimedEventFireDelegate(Plugin.OnTimerCB);
                 Timers.Add(name, timedEvent);
             }
             return timedEvent;
@@ -88,9 +90,8 @@ namespace MagmaModule
 
         public MagmaTE CreateParallelTimer(string name, int timeoutDelay, Dictionary<string, object> args)
         {
-            MagmaTE timedEvent = new MagmaTE(name, (double)timeoutDelay);
-            timedEvent.Args = args;
-            timedEvent.OnFire += new MagmaTE.TimedEventFireDelegate(Plugin.OnTimerCB2);
+            MagmaTE timedEvent = new MagmaTE(name, timeoutDelay, args);
+            timedEvent.OnFire += new MagmaTE.TimedEventFireDelegate(Plugin.OnTimerCB);
             ParallelTimers.Add(timedEvent);
             return timedEvent;
         }

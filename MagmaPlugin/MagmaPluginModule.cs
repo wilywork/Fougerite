@@ -245,7 +245,8 @@ namespace MagmaModule
 
             if (plugins.ContainsKey(name)) {
                 Logger.LogError(string.Format("{0} {1} plugin is already loaded.", brktname, name));
-                throw new InvalidOperationException(string.Format("{0} {1} plugin is already loaded.", brktname, name));
+                return;
+                //throw new InvalidOperationException(string.Format("{0} {1} plugin is already loaded.", brktname, name));
             }
 
             try {
@@ -254,6 +255,7 @@ namespace MagmaModule
                 DirectoryInfo dir = new DirectoryInfo(Path.Combine(pluginDirectory.FullName, name));
                 MagmaPlugin plugin = new MagmaPlugin(dir, name, text);
                 plugin.InstallHooks();
+                plugin.Invoke("On_PluginInit");
                 string cmdname = null;
                 bool b = false, d = false, f = false;
                 foreach (string line in lines)

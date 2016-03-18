@@ -19,6 +19,7 @@ namespace MagmaModule
         public readonly DirectoryInfo RootDirectory;
         public readonly AdvancedTimer AdvancedTimers;
         public readonly Dictionary<String, TimedEvent> Timers;
+        public List<string> FunctionNames;
         private const string brktname = "[Magma]";
         public readonly List<string> CommandList;
 
@@ -27,6 +28,7 @@ namespace MagmaModule
             Name = name;
             Code = code;
             RootDirectory = directory;
+            FunctionNames = new List<string>();
             CommandList = new List<string>();
             Timers = new Dictionary<String, TimedEvent>();
             AdvancedTimers = new AdvancedTimer(this);
@@ -35,11 +37,6 @@ namespace MagmaModule
 
             InitGlobals();
             Engine.Run(code);
-            try
-            {
-                Engine.CallFunction("On_PluginInit");
-            }
-            catch { }
         }
 
         public void InitGlobals()
@@ -55,11 +52,14 @@ namespace MagmaModule
             //Engine.SetParameter("SQLite", new Fougerite.SQLite());
         }
 
-        private void Invoke(string func, params object[] obj)
+        internal void Invoke(string func, params object[] obj)
         {
             try
             {
-                Engine.CallFunction(func, obj);
+                if (FunctionNames.Contains(func))
+                {
+                    Engine.CallFunction(func, obj);
+                }
             }
             catch (Exception ex)
             {
@@ -88,6 +88,10 @@ namespace MagmaModule
             foreach (var funcDecl in GetSourceCodeGlobalFunctions())
             {
                 Logger.LogDebug(string.Format("{0} Found Function: {1}", brktname, funcDecl.Name));
+                if (!FunctionNames.Contains(funcDecl.Name))
+                {
+                    FunctionNames.Add(funcDecl.Name.Trim());
+                }
                 switch (funcDecl.Name)
                 {
                     case "On_ServerInit": Hooks.OnServerInit += OnServerInit; break;
@@ -128,6 +132,7 @@ namespace MagmaModule
                     case "On_ItemAdded": Hooks.OnItemAdded += OnItemAdded; break;
                     case "On_ItemRemoved": Hooks.OnItemRemoved += OnItemRemoved; break;
                     case "On_Airdrop": Hooks.OnAirdropCalled += OnAirdrop; break;
+                    //case "On_AirdropCrateDropped": Hooks.OnAirdropCrateDropped += OnAirdropCrateDropped; break;
                     case "On_SteamDeny": Hooks.OnSteamDeny += OnSteamDeny; break;
                     case "On_PlayerApproval": Hooks.OnPlayerApproval += OnPlayerApproval; break;
                     case "On_Research": Hooks.OnResearch += OnResearch; break;
@@ -183,6 +188,7 @@ namespace MagmaModule
                     case "On_ItemAdded": Hooks.OnItemAdded -= OnItemAdded; break;
                     case "On_ItemRemoved": Hooks.OnItemRemoved -= OnItemRemoved; break;
                     case "On_Airdrop": Hooks.OnAirdropCalled -= OnAirdrop; break;
+                    //case "On_AirdropCrateDropped": Hooks.OnAirdropCrateDropped -= OnAirdropCrateDropped; break;
                     case "On_SteamDeny": Hooks.OnSteamDeny -= OnSteamDeny; break;
                     case "On_PlayerApproval": Hooks.OnPlayerApproval -= OnPlayerApproval; break;
                     case "On_Research": Hooks.OnResearch -= OnResearch; break;
@@ -418,7 +424,7 @@ namespace MagmaModule
 
         #region Hooks
 
-        public void OnTimerCB2(MagmaTE evt)
+        public void OnTimerCB(MagmaTE evt)
         {
             try
             {
@@ -429,6 +435,7 @@ namespace MagmaModule
                 Fougerite.Logger.LogError("Failed to invoke callback " + evt.Name + " Ex: " + ex);
             }
         }
+
         public void OnAllLoaded()
         {
             Invoke("On_AllPluginsLoaded");
@@ -572,6 +579,11 @@ namespace MagmaModule
             Invoke("On_Airdrop", v);
         }
 
+        /*public void OnAirdropCrateDropped(GameObject go)
+        {
+            Invoke("On_AirdropCrateDropped", new Entity());
+        }*/
+
         public void OnSteamDeny(SteamDenyEvent e)
         {
             Invoke("On_SteamDeny", e );
@@ -614,11 +626,7 @@ namespace MagmaModule
 
         public void OnPluginShutdown()
         {
-            try
-            {
-                Engine.CallFunction("On_PluginShutdown");
-            }
-            catch { }
+            Invoke("On_PluginShutdown");
         }
 
         public void OnTimerCB(string name)

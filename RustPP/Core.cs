@@ -232,6 +232,9 @@ namespace RustPP
             ShutDownCommand command24 = new ShutDownCommand();
             command24.AdminFlags = "CanShutdown";
             ChatCommand.AddCommand("/shutdown", command24);
+            InstaKOAllCommand command25 = new InstaKOAllCommand();
+            command25.AdminFlags = "CanInstaKOAll";
+            ChatCommand.AddCommand("/instakoall", command25);
         }
 
         public static bool IsEnabled()
