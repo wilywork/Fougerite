@@ -9,7 +9,7 @@
 [assembly: System.Reflection.AssemblyTrademark("")]
 [assembly: System.Runtime.InteropServices.ComVisible(false)]
 [assembly: System.Runtime.InteropServices.Guid("861b169f-9f84-4ff9-a58d-b3f53a1e5ee1")]
-[assembly: System.Reflection.AssemblyFileVersion("1.5.9")]
+[assembly: System.Reflection.AssemblyFileVersion("1.6.7")]
 [assembly: System.Diagnostics.Debuggable(System.Diagnostics.DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)]
 [assembly: System.Runtime.CompilerServices.CompilationRelaxations(8)]
 [assembly: System.Runtime.CompilerServices.RuntimeCompatibility(WrapNonExceptionThrows=true)]

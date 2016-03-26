@@ -74,6 +74,56 @@ namespace JintModule
             return Engine.GetValue(name);
         }
 
+        public IniParser GetIni(string path)
+        {
+            path = ValidateRelativePath(path + ".ini");
+
+            if (path == null)
+                return null;
+
+            if (File.Exists(path))
+                return new IniParser(path);
+
+            return null;
+        }
+
+        public bool IniExists(string path)
+        {
+            path = ValidateRelativePath(path + ".ini");
+
+            if (path == null)
+                return false;
+
+            return File.Exists(path);
+        }
+
+        public IniParser CreateIni(string path)
+        {
+            try
+            {
+                path = ValidateRelativePath(path + ".ini");
+
+                File.WriteAllText(path, "");
+                return new IniParser(path);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("[JintPlugin] " + Name + " Failed to Create IniFile! Path: " + path + " Exception: " + ex);
+            }
+
+            return null;
+        }
+
+        public List<IniParser> GetInis(string path)
+        {
+            path = ValidateRelativePath(path);
+
+            if (path == null)
+                return new List<IniParser>();
+
+            return Directory.GetFiles(path).Select(p => new IniParser(p)).ToList();
+        }
+
         internal void Invoke(string func, params object[] obj)
         {
             try

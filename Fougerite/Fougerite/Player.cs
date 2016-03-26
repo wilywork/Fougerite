@@ -145,6 +145,7 @@ namespace Fougerite
         {
             if (this.IsOnline)
             {
+                Server.GetServer().RemovePlayer(uid);
                 this.ourPlayer.netUser.Kick(NetError.NoError, true);
             }
         }

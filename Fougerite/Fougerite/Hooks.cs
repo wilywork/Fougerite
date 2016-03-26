@@ -480,7 +480,6 @@
             {
                 Logger.LogError("DataBlockLoadEvent Error: " + ex.ToString());
             }
-
             int num = 0;
             foreach (ItemDataBlock block in blocks)
             {
@@ -495,7 +494,8 @@
         public static void NPCHurt(ref DamageEvent e)
         {
             HurtEvent he = new HurtEvent(ref e);
-            if ((he.Victim as NPC).Health > 0f)
+            var npc = he.Victim as NPC;
+            if (npc != null && npc.Health > 0f)
             {
                 NPC victim = he.Victim as NPC;
                 victim.Health += he.DamageAmount;
@@ -527,6 +527,12 @@
                     OnNPCKilled(de);
             }
             catch (Exception ex) { Logger.LogDebug("NPCKilledEvent Error " + ex); }
+        }
+
+        public static void ConnectHandler(NetUser user)
+        {
+            GameEvent.DoPlayerConnected(user.playerClient);
+            PlayerConnect(user);
         }
 
         public static bool PlayerConnect(NetUser user)
@@ -681,7 +687,7 @@
                     Zone3D zoned = Zone3D.GlobalContains(attacker);
                     if ((zoned != null) && !zoned.PVP)
                     {
-                        attacker.Message("You are in a PVP restricted area.");
+                        if (attacker != null) { attacker.Message("You are in a PVP restricted area.");}
                         he.DamageAmount = 0f;
                         e = he.DamageEvent;
                         return;
@@ -689,7 +695,7 @@
                     zoned = Zone3D.GlobalContains(victim);
                     if ((zoned != null) && !zoned.PVP)
                     {
-                        attacker.Message(victim.Name + " is in a PVP restricted area.");
+                        if (attacker != null && victim != null) { attacker.Message(victim.Name + " is in a PVP restricted area.");}
                         he.DamageAmount = 0f;
                         e = he.DamageEvent;
                         return;

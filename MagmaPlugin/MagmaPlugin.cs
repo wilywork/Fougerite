@@ -283,7 +283,10 @@ namespace MagmaModule
                 File.WriteAllText(path, "");
                 return new IniParser(path);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Logger.LogError("[MagmaPlugin] " + Name + " Failed to Create IniFile! Path: " + path + " Exception: " + ex);
+            }
 
             return null;
         }

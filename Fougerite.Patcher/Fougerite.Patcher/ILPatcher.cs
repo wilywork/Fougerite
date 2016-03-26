@@ -808,19 +808,27 @@ namespace Fougerite.Patcher
 
         private void PlayerJoinLeavePatch()
         {
-            TypeDefinition type = rustAssembly.MainModule.GetType("RustServerManagement");
+            TypeDefinition type = rustAssembly.MainModule.GetType("ServerManagement");
             TypeDefinition definition2 = rustAssembly.MainModule.GetType("ConnectionAcceptor");
             MethodDefinition orig = type.GetMethod("OnUserConnected");
-            MethodDefinition method = hooksClass.GetMethod("PlayerConnect");
+            //MethodDefinition method = hooksClass.GetMethod("PlayerConnect");
+            MethodDefinition method = hooksClass.GetMethod("ConnectHandler");
             MethodDefinition definition5 = definition2.GetMethod("uLink_OnPlayerDisconnected");
             MethodDefinition definition6 = hooksClass.GetMethod("PlayerDisconnect");
 
             this.CloneMethod(orig);
             this.CloneMethod(definition5);
             ILProcessor iLProcessor = orig.Body.GetILProcessor();
-            iLProcessor.InsertBefore(orig.Body.Instructions[0], Instruction.Create(OpCodes.Brfalse, orig.Body.Instructions[orig.Body.Instructions.Count - 1]));
+            iLProcessor.Body.Instructions.Clear();
+            //ConnectHandler
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(method)));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+            //iLProcessor.InsertBefore(orig.Body.Instructions[0], Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(method)));
+            //iLProcessor.InsertBefore(orig.Body.Instructions[0], Instruction.Create(OpCodes.Ldarg_1));
+            /*iLProcessor.InsertBefore(orig.Body.Instructions[0], Instruction.Create(OpCodes.Brfalse, orig.Body.Instructions[orig.Body.Instructions.Count - 1]));
             iLProcessor.InsertBefore(orig.Body.Instructions[0], Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(method)));
-            iLProcessor.InsertBefore(orig.Body.Instructions[0], Instruction.Create(OpCodes.Ldarg_1));
+            iLProcessor.InsertBefore(orig.Body.Instructions[0], Instruction.Create(OpCodes.Ldarg_1));*/
             iLProcessor = definition5.Body.GetILProcessor();
             iLProcessor.InsertBefore(definition5.Body.Instructions[0], Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(definition6)));
             iLProcessor.InsertBefore(definition5.Body.Instructions[0], Instruction.Create(OpCodes.Ldarg_1));

@@ -55,10 +55,11 @@ namespace Fougerite
             string red = "[color #FF0000]";
             string green = "[color #009900]";
             string white = "[color #FFFFFF]";
-            player.Message(red + " " + reason);
-            player.Message(red + " Banned by: " + Banner);
-            if (player.IsOnline)
+            
+            if (player.IsOnline && !player.IsDisconnecting)
             {
+                player.Message(red + " " + reason);
+                player.Message(red + " Banned by: " + Banner);
                 player.Disconnect();
             }
             if (Sender != null)
