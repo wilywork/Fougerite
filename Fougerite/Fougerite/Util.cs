@@ -85,6 +85,24 @@ namespace Fougerite
             return new Vector2(x, y);
         }
 
+        public Vector3 ConvertStringToVector3(string s)
+        {
+            try
+            {
+                s = s.Replace("(", "").Replace(")", "").Replace(" ", "");
+                var spl = s.Split(Convert.ToChar(","));
+                float f1, f2, f3;
+                float.TryParse(spl[0], out f1);
+                float.TryParse(spl[1], out f2);
+                float.TryParse(spl[2], out f3);
+                return new Vector3(f1, f2, f3);
+            }
+            catch
+            {
+                return Vector3.zero;
+            }
+        }
+
         public void DestroyObject(GameObject go)
         {
             NetCull.Destroy(go);

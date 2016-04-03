@@ -128,5 +128,26 @@ namespace Fougerite
                 this.RInventoryItem.SetUses(value);
             }
         }
+
+        /*public class Mods
+        {
+            public BulletWeaponDataBlock Weapon;
+            public bool _IsWeapon;
+            public Mods(IInventoryItem iitem)
+            {
+                Weapon = iitem.datablock as BulletWeaponDataBlock;
+                if (Weapon == null)
+                {
+                    _IsWeapon = false;
+                    return;
+                }
+                
+            }
+
+            public bool IsWeapon
+            {
+                get { return _IsWeapon; }
+            }
+        }*/
     }
 }

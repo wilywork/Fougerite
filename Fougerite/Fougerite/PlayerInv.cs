@@ -18,6 +18,14 @@ namespace Fougerite
             this.InitItems();
         }
 
+        public PlayerItem ActiveItem
+        {
+            get
+            {
+                return new PlayerItem(ref _inv, InternalInventory.activeItem.slot);
+            }
+        }
+
         public void AddItem(string name)
         {
             this.AddItem(name, 1);

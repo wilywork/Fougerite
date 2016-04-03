@@ -13,8 +13,13 @@
         private object _victim;
         private string _weapon;
         private WeaponImpact _wi;
-        private readonly bool _playerattacker;
         private readonly bool _playervictim;
+        private readonly bool _entityvictim = false;
+        private readonly bool _npcvictim = false;
+        private readonly bool _playerattacker;
+        private readonly bool _entityattacker = false;
+        private readonly bool _metabolismattacker = false;
+        private readonly bool _npcattacker = false;
         private bool _sleeper;
         private LifeStatus _status;
 
@@ -40,18 +45,24 @@
                     else
                     {
                         this.Victim = new Entity(d.victim.idMain.GetComponent<DeployableObject>());
+                        this._ent = new Entity(d.victim.idMain.GetComponent<DeployableObject>());
+                        this._entityvictim = true;
                     }
                     this._playervictim = false;
                 }
                 else if (d.victim.idMain is StructureComponent)
                 {
                     this.Victim = new Entity(d.victim.idMain.GetComponent<StructureComponent>());
+                    this._ent = new Entity(d.victim.idMain.GetComponent<StructureComponent>());
                     this._playervictim = false;
+                    this._entityvictim = true;
                 }
                 else if (d.victim.id is SpikeWall)
                 {
                     this._playerattacker = false;
                     this.Victim = new Entity(d.victim.idMain.GetComponent<DeployableObject>());
+                    this._ent = new Entity(d.victim.idMain.GetComponent<DeployableObject>());
+                    this._entityvictim = true;
                 }
                 else if (d.victim.client != null)
                 {
@@ -61,6 +72,7 @@
                 else if (d.victim.character != null)
                 {
                     this.Victim = new NPC(d.victim.character);
+                    this._npcvictim = true;
                     this._playervictim = false;
                 }
                 if (!(bool) d.attacker.id)
@@ -76,18 +88,21 @@
                 {
                     this._playerattacker = false;
                     this.Attacker = new Entity(d.attacker.idMain.GetComponent<DeployableObject>());
+                    this._entityattacker = true;
                     weaponName = d.attacker.id.ToString().Contains("Large") ? "Large Spike Wall" : "Spike Wall";
                 }
                 else if (d.attacker.id is SupplyCrate)
                 {
                     this._playerattacker = false;
                     this.Attacker = new Entity(d.attacker.idMain.gameObject);
+                    this._entityattacker = true;
                     weaponName = "Supply Crate";
                 }
                 else if (d.attacker.id is Metabolism && d.victim.id is Metabolism)
                 {
                     this.Attacker = !Fougerite.Server.Cache.ContainsKey(d.attacker.client.userID) ? Fougerite.Player.FindByPlayerClient(d.attacker.client) : Fougerite.Server.Cache[d.attacker.client.userID];
                     this._playerattacker = false;
+                    this._metabolismattacker = true;
                     this.Victim = this.Attacker;
                     ICollection<string> list = new List<string>();
                     Fougerite.Player vic = this.Victim as Fougerite.Player;
@@ -160,6 +175,7 @@
                 {
                     this.Attacker = new NPC(d.attacker.character);
                     this._playerattacker = false;
+                    this._npcattacker = true;
                     weaponName = string.Format("{0} Claw", (this.Attacker as NPC).Name);
                 }
                 this.WeaponName = weaponName;
@@ -331,11 +347,51 @@
             }       
         }
 
+        public bool VictimIsEntity
+        {
+            get
+            {
+                return this._entityvictim;
+            }
+        }
+
+        public bool VictimIsNPC
+        {
+            get
+            {
+                return this._npcvictim;
+            }
+        }
+
         public bool AttackerIsPlayer
         {
             get
             {
                 return this._playerattacker;
+            }
+        }
+
+        public bool AttackerIsEntity
+        {
+            get
+            {
+                return this._entityattacker;
+            }
+        }
+
+        public bool AttackerIsMetabolism
+        {
+            get
+            {
+                return this._metabolismattacker;
+            }
+        }
+
+        public bool AttackerIsNPC
+        {
+            get
+            {
+                return this._npcattacker;
             }
         }
     }

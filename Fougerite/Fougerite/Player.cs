@@ -146,7 +146,16 @@ namespace Fougerite
             if (this.IsOnline)
             {
                 Server.GetServer().RemovePlayer(uid);
-                this.ourPlayer.netUser.Kick(NetError.NoError, true);
+                SendCommand("net.disconnect");
+            }
+        }
+
+        public void ForceDisconnect(bool SendNotification = false)
+        {
+            if (this.IsOnline)
+            {
+                Server.GetServer().RemovePlayer(uid);
+                this.ourPlayer.netUser.Kick(NetError.Facepunch_Kick_RCON, SendNotification);
             }
         }
 
