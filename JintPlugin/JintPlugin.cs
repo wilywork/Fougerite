@@ -21,6 +21,9 @@ namespace JintModule
         public readonly Engine Engine;
         public readonly string Name;
         public readonly string Code;
+        public readonly string Author;
+        public readonly string Version;
+        public readonly string About;
         public readonly DirectoryInfo RootDirectory;
         public readonly Dictionary<string, TimedEvent> Timers;
         public readonly AdvancedTimer AdvancedTimers;
@@ -48,9 +51,16 @@ namespace JintModule
                 .SetValue("Web", new Web())
                 .SetValue("Plugin", this)
                 .SetValue("Data", Data.GetData())
+                .SetValue("PluginCollector", GlobalPluginCollector.GetPluginCollector())
                 //.SetValue("SQLite", new SQLite())
                 .Execute(code);
 
+            object author = GetGlobalObject("Author");
+            object about = GetGlobalObject("About");
+            object version = GetGlobalObject("Version");
+            Author = author == null ? "Unknown" : author.ToString();
+            About = about == null ? "" : about.ToString();
+            Version = version == null ? "1.0" : version.ToString();
             Logger.LogDebug(string.Format("{0} AllowClr for Assemblies: {1} {2} {3}", brktname,
                 typeof(UnityEngine.GameObject).Assembly.GetName().Name,
                 typeof(uLink.NetworkPlayer).Assembly.GetName().Name,
@@ -136,6 +146,11 @@ namespace JintModule
                 Logger.LogError(string.Format("{0} Error invoking function {1} in {2} plugin.", brktname, func, Name));
                 Logger.LogException(ex);
             }
+        }
+
+        public object GetGlobalObject(string identifier)
+        {
+            return Engine.GetValue(identifier);
         }
 
         public IEnumerable<FunctionDeclaration> GetSourceCodeGlobalFunctions()

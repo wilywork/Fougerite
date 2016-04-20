@@ -128,7 +128,7 @@ namespace JintModule
                 plugin.AdvancedTimers.KillTimers();
                 if (removeFromDict)
                     plugins.Remove(name);
-
+                GlobalPluginCollector.GetPluginCollector().RemovePlugin(name);
                 Logger.Log(string.Format("{0} {1} plugin was unloaded successfully.", brktname, name));
             } else {
                 Logger.LogError(string.Format("{0} Can't unload {1}. Plugin is not loaded.", brktname, name));
@@ -242,8 +242,12 @@ namespace JintModule
                 }
                 if (d) { plugin.CommandList.Clear(); }
                 plugins[name] = plugin;
-
-                Logger.Log(string.Format("{0} {1} plugin was loaded successfully.", brktname, name));
+                GlobalPluginCollector.GetPluginCollector().AddPlugin(name, plugin, "JavaScript2");
+                Logger.Log(string.Format("{0} {1} plugin by {2} V{3} was loaded successfully.", brktname, name, plugin.Author, plugin.Version));
+                if (!string.IsNullOrEmpty(plugin.About) && plugin.About != "undefined")
+                {
+                    Logger.LogError(string.Format("{0} Description: {1}", brktname, plugin.About));
+                }
             } catch (Exception ex) {
                 Logger.LogError(string.Format("{0} {1} plugin could not be loaded.", brktname, name));
                 Logger.LogException(ex);

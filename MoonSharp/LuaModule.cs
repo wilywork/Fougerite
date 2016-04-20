@@ -137,7 +137,12 @@ namespace MoonSharpModule
                 LuaPlugin plugin = new LuaPlugin(name, code, path);
                 InstallHooks(plugin);
                 plugins.Add(name, plugin);
-                Logger.Log("[MoonSharp] " + name + " plugin was loaded successfully.");
+                GlobalPluginCollector.GetPluginCollector().AddPlugin(name, plugin, "Lua");
+                Logger.Log("[MoonSharp] " + name + " plugin by " + plugin.Author + " V" + plugin.Version + " was loaded successfully.");
+                if (!string.IsNullOrEmpty(plugin.About))
+                {
+                    Logger.Log("[MoonSharp] Description: " + plugin.About);
+                }
             }
             catch (Exception ex)
             {
@@ -156,6 +161,7 @@ namespace MoonSharpModule
                 plugin.OnPluginShutdown();
                 plugin.KillTimers();
                 RemoveHooks(plugin);
+                GlobalPluginCollector.GetPluginCollector().RemovePlugin(name);
                 if (removeFromDict) plugins.Remove(name);
 
                 Logger.Log("[MoonSharp] " + name + " plugin was unloaded successfully.");

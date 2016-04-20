@@ -35,6 +35,14 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\bin\Assembly-CSharp.dll</HintPath>
     </Reference>
+    <Reference Include="Facepunch.HitBox, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\bin\Facepunch.HitBox.dll</HintPath>
+    </Reference>
+    <Reference Include="Facepunch.MeshBatch, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\bin\Facepunch.MeshBatch.dll</HintPath>
+    </Reference>
     <Reference Include="RustPP">
       <HintPath>..\bin\modules\RustPP\RustPP.dll</HintPath>
     </Reference>
@@ -57,6 +65,7 @@
     <Compile Include="Fougerite\Events\CraftingEvent.cs" />
     <Compile Include="Fougerite\Events\InventoryModEvent.cs" />
     <Compile Include="Fougerite\FInventory.cs" />
+    <Compile Include="Fougerite\GlobalPluginCollector.cs" />
     <Compile Include="Fougerite\RustPPExtension.cs" />
     <Compile Include="Fougerite\Sleeper.cs" />
     <Compile Include="Fougerite\Config.cs" />

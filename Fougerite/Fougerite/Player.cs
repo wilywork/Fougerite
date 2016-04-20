@@ -141,7 +141,7 @@ namespace Fougerite
             this.justDied = false;
         }
 
-        public void Disconnect()
+        public void TrySafeDisconnect()
         {
             if (this.IsOnline)
             {
@@ -150,7 +150,16 @@ namespace Fougerite
             }
         }
 
-        public void ForceDisconnect(bool SendNotification = false)
+        public void Disconnect()
+        {
+            if (this.IsOnline)
+            {
+                Server.GetServer().RemovePlayer(uid);
+                this.ourPlayer.netUser.Kick(NetError.Facepunch_Kick_RCON, false);
+            }
+        }
+
+        public void Disconnect(bool SendNotification)
         {
             if (this.IsOnline)
             {
@@ -973,11 +982,7 @@ namespace Fougerite
         {
             get
             {
-                if (this.IsOnline)
-                {
-                    return ((DateTime.UtcNow.Ticks - this.connectedAt)/0x2710L);
-                }
-                return 0L;
+                return ((DateTime.UtcNow.Ticks - this.connectedAt)/0x2710L);
             }
         }
 

@@ -98,6 +98,7 @@ namespace Fougerite
                             ModuleContainer Container = new ModuleContainer(PluginInstance);
                             Container.Plugin.ModuleFolder = Path.Combine(PublicFolder, Config.GetValue("Modules", DirInfo.Name).TrimStart(new char[]{'\\','/'}).Trim());
                             Modules.Add(Container);
+                            GlobalPluginCollector.GetPluginCollector().AddPlugin(Container.Plugin.Name, Container, "C#");
                             Logger.LogDebug("[Modules] Module added: " + FileInfo.Name);
                             break;
                         }

@@ -4,12 +4,14 @@ namespace Fougerite
     using System;
     using System.IO;
     using UnityEngine;
+    using System.Threading;
 
     public class Bootstrap : Facepunch.MonoBehaviour
     {
-        public const string Version = "1.3.9C";
+        public const string Version = "1.4.0";
         public static bool CR = false;
         public static bool BI = false;
+        public static readonly Thread CurrentThread = Thread.CurrentThread;
 
         public static void AttachBootstrap()
         {
@@ -17,7 +19,7 @@ namespace Fougerite
             {
                 Bootstrap bootstrap = new Bootstrap();
                 new GameObject(bootstrap.GetType().FullName).AddComponent(bootstrap.GetType());
-                Debug.Log(string.Format("<><[ Fougerite v{0} ]><>", Fougerite.Bootstrap.Version));
+                Debug.Log(string.Format("<><[ Fougerite v{0} ]><>", Version));
             }
             catch (Exception ex)
             {

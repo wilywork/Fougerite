@@ -220,8 +220,13 @@ namespace IronPythonModule
                 }
                 if (d) { plugin.CommandList.Clear(); }
 				plugins.Add(name, plugin);
+                GlobalPluginCollector.GetPluginCollector().AddPlugin(name, plugin, "Python");
 
-				Logger.Log("[IPModule] " + name + " plugin was loaded successfully.");
+                Logger.Log("[IPModule] " + name + " plugin by " + plugin.Author + " V" + plugin.Version + " was loaded successfully.");
+                if (!string.IsNullOrEmpty(plugin.About))
+                {
+                    Logger.Log("[IPModule] Description: " + plugin.About);
+                }
 			} catch (Exception ex) {
                 Logger.LogError("[IPModule] " + name + " plugin could not be loaded.");
                 Logger.LogException(ex);
@@ -237,8 +242,8 @@ namespace IronPythonModule
 				plugin.KillTimers();
 				RemoveHooks(plugin);
 				if (removeFromDict) plugins.Remove(name);
-
-				Logger.Log("[IPModule] " + name + " plugin was unloaded successfully.");
+                GlobalPluginCollector.GetPluginCollector().RemovePlugin(name);
+                Logger.Log("[IPModule] " + name + " plugin was unloaded successfully.");
 			} else {
 				Logger.LogError("[IPModule] Can't unload " + name + ". Plugin is not loaded.");
 				//throw new InvalidOperationException("[IPModule] Can't unload " + name + ". Plugin is not loaded.");

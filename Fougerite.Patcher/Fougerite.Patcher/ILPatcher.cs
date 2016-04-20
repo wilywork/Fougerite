@@ -288,6 +288,229 @@ namespace Fougerite.Patcher
                     met.SetPublic(true);
                 }
             }
+
+            TypeDefinition BulletWeaponDataBlock = rustAssembly.MainModule.GetType("BulletWeaponDataBlock");
+            BulletWeaponDataBlock.GetMethod("ConstructItem").SetPublic(true);
+            TypeDefinition ITEM_TYPE = BulletWeaponDataBlock.GetNestedType("ITEM_TYPE");
+            ITEM_TYPE.IsPublic = true;
+            ITEM_TYPE.IsSealed = false;
+            TypeDefinition IBulletWeaponItem = rustAssembly.MainModule.GetType("IBulletWeaponItem");
+            IBulletWeaponItem.GetProperty("cachedCasings").GetMethod.SetPublic(true);
+            IBulletWeaponItem.GetProperty("cachedCasings").SetMethod.SetPublic(true);
+
+            IBulletWeaponItem.GetProperty("clipAmmo").GetMethod.SetPublic(true);
+            IBulletWeaponItem.GetProperty("clipAmmo").SetMethod.SetPublic(true);
+
+            IBulletWeaponItem.GetProperty("clipType").GetMethod.SetPublic(true);
+            //IBulletWeaponItem.GetProperty("clipType").SetMethod.SetPublic(true);
+
+            IBulletWeaponItem.GetProperty("nextCasingsTime").GetMethod.SetPublic(true);
+            //IBulletWeaponItem.GetProperty("nextCasingsTime").SetMethod.SetPublic(true);
+
+            TypeDefinition IHeldItem = rustAssembly.MainModule.GetType("IHeldItem");
+
+            IHeldItem.GetProperty("canActivate").GetMethod.SetPublic(true);
+            //IHeldItem.GetProperty("canActivate").SetMethod.SetPublic(true);
+
+            IHeldItem.GetProperty("canDeactivate").GetMethod.SetPublic(true);
+            //IHeldItem.GetProperty("canDeactivate").SetMethod.SetPublic(true); 
+
+            IHeldItem.GetProperty("freeModSlots").GetMethod.SetPublic(true);
+            //IHeldItem.GetProperty("freeModSlots").SetMethod.SetPublic(true);
+
+            IHeldItem.GetProperty("itemMods").GetMethod.SetPublic(true);
+            //IHeldItem.GetProperty("itemMods").SetMethod.SetPublic(true);
+
+            IHeldItem.GetProperty("itemRepresentation").GetMethod.SetPublic(true);
+            IHeldItem.GetProperty("itemRepresentation").SetMethod.SetPublic(true);
+
+            IHeldItem.GetProperty("modFlags").GetMethod.SetPublic(true);
+            //IHeldItem.GetProperty("modFlags").SetMethod.SetPublic(true);
+
+            IHeldItem.GetProperty("totalModSlots").GetMethod.SetPublic(true);
+            //IHeldItem.GetProperty("totalModSlots").SetMethod.SetPublic(true);
+
+            IHeldItem.GetProperty("usedModSlots").GetMethod.SetPublic(true);
+            //IHeldItem.GetProperty("usedModSlots").SetMethod.SetPublic(true);
+
+            IHeldItem.GetProperty("viewModelInstance").GetMethod.SetPublic(true);
+            //IHeldItem.GetProperty("viewModelInstance").SetMethod.SetPublic(true);
+
+            IHeldItem.GetMethod("AddMod").SetPublic(true);
+            IHeldItem.GetMethod("FindMod").SetPublic(true);
+            IHeldItem.GetMethod("ServerFrame").SetPublic(true);
+            IHeldItem.GetMethod("SetTotalModSlotCount").SetPublic(true);
+            IHeldItem.GetMethod("SetUsedModSlotCount").SetPublic(true);
+
+            TypeDefinition IInventoryItem = rustAssembly.MainModule.GetType("IInventoryItem");
+
+            IInventoryItem.GetProperty("active").GetMethod.SetPublic(true);
+            //IInventoryItem.GetProperty("active").SetMethod.SetPublic(true);
+
+            IInventoryItem.GetProperty("character").GetMethod.SetPublic(true);
+            //IInventoryItem.GetProperty("character").SetMethod.SetPublic(true);
+
+            IInventoryItem.GetProperty("condition").GetMethod.SetPublic(true);
+            //IInventoryItem.GetProperty("condition").SetMethod.SetPublic(true);
+
+            IInventoryItem.GetProperty("controllable").GetMethod.SetPublic(true);
+            //IInventoryItem.GetProperty("controllable").SetMethod.SetPublic(true);
+
+            IInventoryItem.GetProperty("controller").GetMethod.SetPublic(true);
+            //IInventoryItem.GetProperty("controller").SetMethod.SetPublic(true);
+
+            IInventoryItem.GetProperty("datablock").GetMethod.SetPublic(true);
+            //IInventoryItem.GetProperty("datablock").SetMethod.SetPublic(true);
+
+            IInventoryItem.GetProperty("dirty").GetMethod.SetPublic(true);
+            //IInventoryItem.GetProperty("dirty").SetMethod.SetPublic(true);
+
+            IInventoryItem.GetProperty("doNotSave").GetMethod.SetPublic(true);
+            //IInventoryItem.GetProperty("doNotSave").SetMethod.SetPublic(true);
+
+            IInventoryItem.GetProperty("idMain").GetMethod.SetPublic(true);
+            //IInventoryItem.GetProperty("idMain").SetMethod.SetPublic(true);
+
+            IInventoryItem.GetProperty("inventory").GetMethod.SetPublic(true);
+            //IInventoryItem.GetProperty("inventory").SetMethod.SetPublic(true);
+
+            IInventoryItem.GetProperty("isInLocalInventory").GetMethod.SetPublic(true);
+            //IInventoryItem.GetProperty("isInLocalInventory").SetMethod.SetPublic(true);
+
+            IInventoryItem.GetProperty("lastUseTime").GetMethod.SetPublic(true);
+            IInventoryItem.GetProperty("lastUseTime").SetMethod.SetPublic(true);
+
+            IInventoryItem.GetProperty("maxcondition").GetMethod.SetPublic(true);
+            //IInventoryItem.GetProperty("maxcondition").SetMethod.SetPublic(true);
+
+            IInventoryItem.GetProperty("slot").GetMethod.SetPublic(true);
+            //IInventoryItem.GetProperty("slot").SetMethod.SetPublic(true);
+
+            IInventoryItem.GetProperty("toolTip").GetMethod.SetPublic(true);
+            //IInventoryItem.GetProperty("toolTip").SetMethod.SetPublic(true);
+
+            IInventoryItem.GetProperty("uses").GetMethod.SetPublic(true);
+            //IInventoryItem.GetProperty("uses").SetMethod.SetPublic(true);
+
+            IInventoryItem.GetMethod("AddUses").SetPublic(true);
+            IInventoryItem.GetMethod("Consume").SetPublic(true);
+            IInventoryItem.GetMethod("FireClientSideItemEvent").SetPublic(true);
+            IInventoryItem.GetMethod("GetConditionPercent").SetPublic(true);
+            IInventoryItem.GetMethod("IsBroken").SetPublic(true);
+            IInventoryItem.GetMethod("IsDamaged").SetPublic(true);
+            IInventoryItem.GetMethod("Load").SetPublic(true);
+            IInventoryItem.GetMethod("MarkDirty").SetPublic(true);
+            IInventoryItem.GetMethod("OnAddedTo").SetPublic(true);
+            IInventoryItem.GetMethod("OnBeltUse").SetPublic(true);
+            IInventoryItem.GetMethod("OnMenuOption").SetPublic(true);
+            IInventoryItem.GetMethod("OnMovedTo").SetPublic(true);
+            IInventoryItem.GetMethod("Save").SetPublic(true);
+            IInventoryItem.GetMethod("SetCondition").SetPublic(true);
+            IInventoryItem.GetMethod("SetMaxCondition").SetPublic(true);
+            IInventoryItem.GetMethod("SetUses").SetPublic(true);
+            IInventoryItem.GetMethod("TryCombine").SetPublic(true);
+            IInventoryItem.GetMethod("TryConditionLoss").SetPublic(true);
+            IInventoryItem.GetMethod("TryStack").SetPublic(true);
+
+            TypeDefinition IWeaponItem = rustAssembly.MainModule.GetType("IWeaponItem");
+
+            IWeaponItem.GetProperty("canAim").GetMethod.SetPublic(true);
+            //IWeaponItem.GetProperty("canAim").SetMethod.SetPublic(true);
+
+            IWeaponItem.GetProperty("canPrimaryAttack").GetMethod.SetPublic(true);
+            //IWeaponItem.GetProperty("canPrimaryAttack").SetMethod.SetPublic(true);
+
+            IWeaponItem.GetProperty("canSecondaryAttack").GetMethod.SetPublic(true);
+            //IWeaponItem.GetProperty("canSecondaryAttack").SetMethod.SetPublic(true);
+
+            IWeaponItem.GetProperty("deployed").GetMethod.SetPublic(true);
+            //IWeaponItem.GetProperty("deployed").SetMethod.SetPublic(true);
+
+            IWeaponItem.GetProperty("deployFinishedTime").GetMethod.SetPublic(true);
+            IWeaponItem.GetProperty("deployFinishedTime").SetMethod.SetPublic(true);
+
+            IWeaponItem.GetProperty("nextPrimaryAttackTime").GetMethod.SetPublic(true);
+            IWeaponItem.GetProperty("nextPrimaryAttackTime").SetMethod.SetPublic(true);
+
+            IWeaponItem.GetProperty("nextSecondaryAttackTime").GetMethod.SetPublic(true);
+            IWeaponItem.GetProperty("nextSecondaryAttackTime").SetMethod.SetPublic(true);
+
+            IWeaponItem.GetProperty("possibleReloadCount").GetMethod.SetPublic(true);
+            //IWeaponItem.GetProperty("possibleReloadCount").SetMethod.SetPublic(true);
+
+            IWeaponItem.GetMethod("PrimaryAttack").SetPublic(true);
+            IWeaponItem.GetMethod("Reload").SetPublic(true);
+            IWeaponItem.GetMethod("SecondaryAttack").SetPublic(true);
+            IWeaponItem.GetMethod("ValidatePrimaryMessageTime").SetPublic(true);
+
+
+            ITEM_TYPE.GetMethod("IBulletWeaponItem.get_cachedCasings").SetPublic(true);
+            ITEM_TYPE.GetMethod("IBulletWeaponItem.get_clipAmmo").SetPublic(true);
+            ITEM_TYPE.GetMethod("IBulletWeaponItem.get_clipType").SetPublic(true);
+            ITEM_TYPE.GetMethod("IBulletWeaponItem.get_nextCasingsTime").SetPublic(true);
+            ITEM_TYPE.GetMethod("IBulletWeaponItem.set_cachedCasings").SetPublic(true);
+            ITEM_TYPE.GetMethod("IBulletWeaponItem.set_clipAmmo").SetPublic(true);
+            ITEM_TYPE.GetMethod("IBulletWeaponItem.set_nextCasingsTime").SetPublic(true);
+            ITEM_TYPE.GetMethod("IHeldItem.AddMod").SetPublic(true);
+            ITEM_TYPE.GetMethod("IHeldItem.FindMod").SetPublic(true);
+            ITEM_TYPE.GetMethod("IHeldItem.get_canActivate").SetPublic(true);
+            ITEM_TYPE.GetMethod("IHeldItem.get_canDeactivate").SetPublic(true);
+            ITEM_TYPE.GetMethod("IHeldItem.get_freeModSlots").SetPublic(true);
+            ITEM_TYPE.GetMethod("IHeldItem.get_itemMods").SetPublic(true);
+            ITEM_TYPE.GetMethod("IHeldItem.get_itemRepresentation").SetPublic(true);
+            ITEM_TYPE.GetMethod("IHeldItem.get_modFlags").SetPublic(true);
+            ITEM_TYPE.GetMethod("IHeldItem.get_totalModSlots").SetPublic(true);
+            ITEM_TYPE.GetMethod("IHeldItem.get_usedModSlots").SetPublic(true);
+            ITEM_TYPE.GetMethod("IHeldItem.get_viewModelInstance").SetPublic(true);
+            ITEM_TYPE.GetMethod("IHeldItem.set_itemRepresentation").SetPublic(true);
+            ITEM_TYPE.GetMethod("IHeldItem.SetTotalModSlotCount").SetPublic(true);
+            ITEM_TYPE.GetMethod("IHeldItem.SetUsedModSlotCount").SetPublic(true);
+            ITEM_TYPE.GetMethod("IInventoryItem.AddUses").SetPublic(true);
+            ITEM_TYPE.GetMethod("IInventoryItem.Consume").SetPublic(true);
+            ITEM_TYPE.GetMethod("IInventoryItem.get_active").SetPublic(true);
+            ITEM_TYPE.GetMethod("IInventoryItem.get_character").SetPublic(true);
+            ITEM_TYPE.GetMethod("IInventoryItem.get_condition").SetPublic(true);
+            ITEM_TYPE.GetMethod("IInventoryItem.get_controllable").SetPublic(true);
+            ITEM_TYPE.GetMethod("IInventoryItem.get_controller").SetPublic(true);
+            ITEM_TYPE.GetMethod("IInventoryItem.get_dirty").SetPublic(true);
+            ITEM_TYPE.GetMethod("IInventoryItem.get_idMain").SetPublic(true);
+            ITEM_TYPE.GetMethod("IInventoryItem.get_inventory").SetPublic(true);
+            ITEM_TYPE.GetMethod("IInventoryItem.get_isInLocalInventory").SetPublic(true);
+            ITEM_TYPE.GetMethod("IInventoryItem.get_lastUseTime").SetPublic(true);
+            ITEM_TYPE.GetMethod("IInventoryItem.get_maxcondition").SetPublic(true);
+            ITEM_TYPE.GetMethod("IInventoryItem.get_slot").SetPublic(true);
+            ITEM_TYPE.GetMethod("IInventoryItem.get_uses").SetPublic(true);
+            ITEM_TYPE.GetMethod("IInventoryItem.GetConditionPercent").SetPublic(true);
+            ITEM_TYPE.GetMethod("IInventoryItem.IsBroken").SetPublic(true);
+            ITEM_TYPE.GetMethod("IInventoryItem.IsDamaged").SetPublic(true);
+            ITEM_TYPE.GetMethod("IInventoryItem.Load").SetPublic(true);
+            ITEM_TYPE.GetMethod("IInventoryItem.MarkDirty").SetPublic(true);
+            ITEM_TYPE.GetMethod("IInventoryItem.Save").SetPublic(true);
+            ITEM_TYPE.GetMethod("IInventoryItem.set_lastUseTime").SetPublic(true);
+            ITEM_TYPE.GetMethod("IInventoryItem.SetCondition").SetPublic(true);
+            ITEM_TYPE.GetMethod("IInventoryItem.SetMaxCondition").SetPublic(true);
+            ITEM_TYPE.GetMethod("IInventoryItem.SetUses").SetPublic(true);
+            ITEM_TYPE.GetMethod("IInventoryItem.TryConditionLoss").SetPublic(true);
+            ITEM_TYPE.GetMethod("IWeaponItem.get_canAim").SetPublic(true);
+            ITEM_TYPE.GetMethod("IWeaponItem.get_deployFinishedTime").SetPublic(true);
+            ITEM_TYPE.GetMethod("IWeaponItem.get_nextPrimaryAttackTime").SetPublic(true);
+            ITEM_TYPE.GetMethod("IWeaponItem.get_nextSecondaryAttackTime").SetPublic(true);
+            ITEM_TYPE.GetMethod("IWeaponItem.set_deployFinishedTime").SetPublic(true);
+            ITEM_TYPE.GetMethod("IWeaponItem.set_nextPrimaryAttackTime").SetPublic(true);
+            ITEM_TYPE.GetMethod("IWeaponItem.set_nextSecondaryAttackTime").SetPublic(true);
+            ITEM_TYPE.GetMethod("IWeaponItem.ValidatePrimaryMessageTime").SetPublic(true);
+            ITEM_TYPE.GetProperty("IInventoryItem.datablock").GetMethod.SetPublic(true);
+
+            TypeDefinition ItemModDataBlock = rustAssembly.MainModule.GetType("ItemModDataBlock");
+            ItemModDataBlock.GetMethod("ConstructItem").SetPublic(true);
+            ITEM_TYPE = ItemModDataBlock.GetNestedType("ITEM_TYPE");
+            ITEM_TYPE.IsPublic = true;
+            ITEM_TYPE.IsSealed = false;
+            TypeDefinition ItemDataBlock = rustAssembly.MainModule.GetType("ItemDataBlock");
+            ItemDataBlock.GetMethod("ConstructItem").SetPublic(true);
+            ITEM_TYPE = ItemDataBlock.GetNestedType("ITEM_TYPE");
+            ITEM_TYPE.IsPublic = true;
+            ITEM_TYPE.IsSealed = false;
             //TypeDefinition ServerManagement = rustAssembly.MainModule.GetType("ServerManagement");
             //MethodDefinition EraseCharactersForClient = ServerManagement.GetMethod("EraseCharactersForClient");
             //EraseCharactersForClient.SetPublic(true);

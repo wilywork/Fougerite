@@ -5,7 +5,7 @@ namespace Fougerite.Patcher
 {
     internal class Program
     {
-        public const string Version = "1.6.7";
+        public const string Version = "1.6.8";
 
         private static void Main(string[] args)
         {

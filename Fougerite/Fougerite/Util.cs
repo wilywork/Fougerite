@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Facepunch.MeshBatch;
 
 namespace Fougerite
 {
@@ -162,6 +163,100 @@ namespace Fougerite
         public float GetVector2sDistance(Vector2 v1, Vector2 v2)
         {
             return Vector2.Distance(v1, v2);
+        }
+
+        public Ray GetEyesRay(Fougerite.Player player)
+        {
+            if (player.Character == null)
+            {
+                return new Ray();
+            }
+            Vector3 position = player.Character.transform.position;
+            Vector3 direction = player.Character.eyesRay.direction;
+            position.y += player.Character.stateFlags.crouch ? 1f : 1.85f;
+            return new Ray(position, direction);
+        }
+
+        public string GetLastSaveFile()
+        {
+            FileInfo info = null;
+            string autoSavePath = ServerSaveManager.autoSavePath;
+            if (File.Exists(autoSavePath))
+            {
+                info = new FileInfo(autoSavePath);
+            }
+            if ((info == null) || (info.Length == 0L))
+            {
+                for (int i = 0; i < 20; i++)
+                {
+                    autoSavePath = ServerSaveManager.autoSavePath + ".old." + i;
+                    if (File.Exists(autoSavePath) && (new FileInfo(autoSavePath).Length > 0L))
+                    {
+                        return autoSavePath;
+                    }
+                }
+            }
+            return null;
+        }
+
+        public GameObject GetLineObject(Vector3 start, Vector3 end, out Vector3 point, int layerMask = -1)
+        {
+            RaycastHit hit;
+            bool flag;
+            MeshBatchInstance instance;
+            point = Vector3.zero;
+            if (!Facepunch.MeshBatch.MeshBatchPhysics.Linecast(start, end, out hit, layerMask, out flag, out instance))
+            {
+                return null;
+            }
+            IDMain main = flag ? instance.idMain : IDBase.GetMain(hit.collider);
+            point = hit.point;
+            return ((main != null) ? main.gameObject : hit.collider.gameObject);
+        }
+
+        public GameObject GetLookObject(Fougerite.Player player, int layerMask = -1)
+        {
+            if (player.Character == null)
+            {
+                return null;
+            }
+            Vector3 position = player.Character.transform.position;
+            Vector3 direction = player.Character.eyesRay.direction;
+            position.y += player.Character.stateFlags.crouch ? 1f : 1.85f;
+            return GetLookObject(new Ray(position, direction), 300f, -1);
+        }
+
+        public GameObject GetLookObject(Ray ray, float distance = 300f, int layerMask = -1)
+        {
+            Vector3 zero = Vector3.zero;
+            return GetLookObject(ray, out zero, distance, layerMask);
+        }
+
+        public GameObject GetLookObject(Ray ray, out Vector3 point, float distance = 300f, int layerMask = -1)
+        {
+            RaycastHit hit;
+            bool flag;
+            MeshBatchInstance instance;
+            point = Vector3.zero;
+            if (!Facepunch.MeshBatch.MeshBatchPhysics.Raycast(ray, out hit, distance, layerMask, out flag, out instance))
+            {
+                return null;
+            }
+            IDMain main = flag ? instance.idMain : IDBase.GetMain(hit.collider);
+            point = hit.point;
+            return ((main != null) ? main.gameObject : hit.collider.gameObject);
+        }
+
+        public Ray GetLookRay(Fougerite.Player player)
+        {
+            if (player.Character == null)
+            {
+                return new Ray();
+            }
+            Vector3 position = player.Character.transform.position;
+            Vector3 direction = player.Character.eyesRay.direction;
+            position.y += player.Character.stateFlags.crouch ? 0.85f : 1.65f;
+            return new Ray(position, direction);
         }
 
         public static Hashtable HashtableFromFile(string path)

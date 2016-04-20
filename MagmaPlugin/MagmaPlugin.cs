@@ -16,6 +16,9 @@ namespace MagmaModule
         public readonly JintEngine Engine;
         public readonly string Name;
         public readonly string Code;
+        public readonly string Author;
+        public readonly string Version;
+        public readonly string About;
         public readonly DirectoryInfo RootDirectory;
         public readonly AdvancedTimer AdvancedTimers;
         public readonly Dictionary<String, TimedEvent> Timers;
@@ -37,6 +40,12 @@ namespace MagmaModule
 
             InitGlobals();
             Engine.Run(code);
+            object author = GetGlobalObject("Author");
+            object about = GetGlobalObject("About");
+            object version = GetGlobalObject("Version");
+            Author = author == null ? "Unknown" : author.ToString();
+            About = about == null ? "" : about.ToString();
+            Version = version == null ? "1.0" : version.ToString();
         }
 
         public void InitGlobals()
@@ -49,6 +58,7 @@ namespace MagmaModule
             Engine.SetParameter("Time", this);
             Engine.SetParameter("World", Fougerite.World.GetWorld());
             Engine.SetParameter("Plugin", this);
+            Engine.SetParameter("PluginCollector", GlobalPluginCollector.GetPluginCollector());
             //Engine.SetParameter("SQLite", new Fougerite.SQLite());
         }
 
@@ -299,6 +309,11 @@ namespace MagmaModule
                 return new List<IniParser>();
 
             return Directory.GetFiles(path).Select(p => new IniParser(p)).ToList();
+        }
+
+        public object GetGlobalObject(string identifier)
+        {
+            return Engine.Run(string.Format("return {0};", identifier));
         }
 
         public void DeleteLog(string path)

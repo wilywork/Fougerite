@@ -16,6 +16,9 @@ namespace IronPythonModule {
 		public readonly string Name;
 		public readonly string Code;
 		public readonly object Class;
+	    public readonly string Author;
+	    public readonly string Version;
+	    public readonly string About;
 		public readonly DirectoryInfo RootDir;
 		public readonly ScriptEngine Engine;
 		public readonly ScriptScope Scope;
@@ -31,7 +34,7 @@ namespace IronPythonModule {
 			Name = name;
 			Code = code;
 			RootDir = path;
-			Timers = new Dictionary<string, IPTimedEvent>();
+            Timers = new Dictionary<string, IPTimedEvent>();
             CommandList = new List<string>();
 			ParallelTimers = new List<IPTimedEvent>();
 			Engine = IronPython.Hosting.Python.CreateEngine();
@@ -46,12 +49,19 @@ namespace IronPythonModule {
             Scope.SetVariable("Web", new Fougerite.Web());
 			Scope.SetVariable("Util", Util.GetUtil());
 			Scope.SetVariable("World", World.GetWorld());
+            Scope.SetVariable("PluginCollector", GlobalPluginCollector.GetPluginCollector());
             //Scope.SetVariable("JSON", new Fougerite.JSON());
             //Scope.SetVariable("SQLite", new Fougerite.SQLite());
 			Engine.Execute(code, Scope);
 			Class = Engine.Operations.Invoke(Scope.GetVariable(name));
 			Globals = Engine.Operations.GetMemberNames(Class);
-		}
+            object ath = GetGlobalObject("__author__");
+            object abt = GetGlobalObject("__about__");
+            object vr = GetGlobalObject("__version__");
+            Author = ath == null ? "Unknown" : ath.ToString();
+            About = abt == null ? "" : abt.ToString();
+            Version = vr == null ? "1.0" : vr.ToString();
+        }
 
 		public void Invoke(string func, params object[] obj) {
 			try
@@ -205,11 +215,23 @@ namespace IronPythonModule {
 			}
 		}
 
-		#endregion
+        public object GetGlobalObject(string identifier)
+        {
+            try
+            {
+                return Scope.GetVariable(identifier);
+            }
+            catch
+            {
+                return null;
+            }
+        }
 
-		#region inifiles
+        #endregion
 
-		public IniParser GetIni(string path) {
+        #region inifiles
+
+        public IniParser GetIni(string path) {
 			path = ValidateRelativePath(path + ".ini");
 			if (path == null)
 				return (IniParser)null;

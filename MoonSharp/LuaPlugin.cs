@@ -16,6 +16,9 @@ namespace MoonSharpModule
         public readonly string Name;
         public readonly string Code;
         public readonly object Class;
+        public readonly string Author;
+        public readonly string Version;
+        public readonly string About;
         public readonly DirectoryInfo RootDir;
         public readonly IList<string> Globals;
         public readonly Table Tables;
@@ -42,10 +45,14 @@ namespace MoonSharpModule
             script.Globals.Set("Data", UserData.Create(Fougerite.Data.GetData()));
             script.Globals.Set("Web", UserData.Create(new Fougerite.Web()));
             script.Globals.Set("World", UserData.Create(Fougerite.World.GetWorld()));
+            script.Globals.Set("PluginCollector", UserData.Create(GlobalPluginCollector.GetPluginCollector()));
             foreach (DynValue v in script.Globals.Keys)
             {
                 Globals.Add(v.ToString().Replace('"'.ToString(), ""));
             }
+            Author = string.IsNullOrEmpty(script.Globals.Get("Author").String) ? "Unknown" : script.Globals.Get("Author").String;
+            Version = string.IsNullOrEmpty(script.Globals.Get("Version").String) ? "1.0" : script.Globals.Get("Version").String;
+            About = script.Globals.Get("About").String;
             Tables = script.Globals;
         }
 
