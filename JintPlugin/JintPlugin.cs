@@ -280,6 +280,12 @@ namespace JintModule
                 case "On_VoiceChat":
                     Hooks.OnShowTalker += OnShowTalker;
                     break;
+                case "On_ItemPickup":
+                    Hooks.OnItemPickup += OnItemPickup;
+                    break;
+                case "On_FallDamage":
+                    Hooks.OnFallDamage -= OnFallDamage;
+                    break;
                 }
             }
         }
@@ -401,6 +407,12 @@ namespace JintModule
                     break;
                 case "On_VoiceChat":
                     Hooks.OnShowTalker -= OnShowTalker;
+                    break;
+                case "On_ItemPickup":
+                    Hooks.OnItemPickup -= OnItemPickup;
+                    break;
+                case "On_FallDamage":
+                    Hooks.OnFallDamage -= OnFallDamage;
                     break;
                 }
             }
@@ -817,6 +829,11 @@ namespace JintModule
             Invoke("On_ItemRemoved", e);
         }
 
+        public void OnFallDamage(FallDamageEvent e)
+        {
+            Invoke("On_FallDamage",  e);
+        }
+
         public void OnAirdrop(Vector3 v)
         {
             Invoke("On_Airdrop", v);
@@ -865,6 +882,11 @@ namespace JintModule
         public void OnShowTalker(uLink.NetworkPlayer np, Fougerite.Player player)
         {
             Invoke("On_VoiceChat", np, player);
+        }
+
+        public void OnItemPickup(ItemPickupEvent e)
+        {
+            Invoke("On_ItemPickup", e);
         }
 
         public void OnPluginShutdown()

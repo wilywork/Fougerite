@@ -55,6 +55,8 @@
         public static event PlayerMoveDelegate OnPlayerMove;
         public static event ResearchDelegate OnResearch;
         public static event ServerSavedDelegate OnServerSaved;
+        public static event ItemPickupDelegate OnItemPickup;
+        public static event FallDamageDelegate OnFallDamage;
 
         public static void BlueprintUse(IBlueprintItem item, BlueprintDataBlock bdb)
         {
@@ -77,7 +79,7 @@
                 if (!ae.Cancel)
                 {
                     PlayerInventory internalInventory = player.Inventory.InternalInventory as PlayerInventory;
-                    if (internalInventory.BindBlueprint(bdb))
+                    if (internalInventory != null && internalInventory.BindBlueprint(bdb))
                     {
                         int count = 1;
                         if (item.Consume(ref count))
@@ -165,6 +167,7 @@
                 {
                     Logger.LogError("ChatEvent Error: " + ex.ToString());
                 }
+                if (string.IsNullOrEmpty(chatstr.NewText) || chatstr.NewText.Length == 0) { return; }
 
                 string newchat = Facepunch.Utility.String.QuoteSafe(chatstr.NewText.Substring(1, chatstr.NewText.Length - 2)).Replace("\\\"", "" + '\u0022');
 
@@ -491,6 +494,38 @@
             return blocks.ToArray();
         }
 
+        public static void ItemPickup(Controllable controllable, IInventoryItem item, Inventory local, Inventory.AddExistingItemResult result)
+        {
+            ItemPickupEvent ipe = new ItemPickupEvent(controllable, item, local, result);
+            try
+            {
+                if (OnItemPickup != null)
+                {
+                    OnItemPickup(ipe);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("ItemPickupEvent Error: " + ex);
+            }
+        }
+
+        public static void FallDamage(FallDamage fd, float speed, float num, bool flag, bool flag2)
+        {
+            FallDamageEvent fde = new FallDamageEvent(fd, speed, num, flag, flag2);
+            try
+            {
+                if (OnFallDamage != null)
+                {
+                    OnFallDamage(fde);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("FallDamageEvent Error: " + ex);
+            }
+        }
+
         public static void NPCHurt(ref DamageEvent e)
         {
             HurtEvent he = new HurtEvent(ref e);
@@ -526,7 +561,7 @@
                 if (OnNPCKilled != null)
                     OnNPCKilled(de);
             }
-            catch (Exception ex) { Logger.LogDebug("NPCKilledEvent Error " + ex); }
+            catch (Exception ex) { Logger.LogError("NPCKilledEvent Error: " + ex); }
         }
 
         public static void ConnectHandler(NetUser user)
@@ -1399,6 +1434,12 @@
             OnServerSaved = delegate
             {
             };
+            OnItemPickup = delegate(ItemPickupEvent param0)
+            {
+            };
+            OnFallDamage = delegate(FallDamageEvent param0)
+            {
+            };
             /*OnAirdropCrateDropped = delegate (GameObject param0)
             {
             };*/
@@ -1515,6 +1556,9 @@
         public delegate void PlayerMoveDelegate(HumanController hc, Vector3 origin, int encoded, ushort stateFlags, uLink.NetworkMessageInfo info);
         public delegate void ResearchDelegate(ResearchEvent re);
         public delegate void ServerSavedDelegate();
+        public delegate void ItemPickupDelegate(ItemPickupEvent itemPickupEvent);
+        public delegate void FallDamageDelegate(FallDamageEvent fallDamageEvent);
+
         //public delegate void AirdropCrateDroppedDelegate(GameObject go);
     }
 }

@@ -25,7 +25,7 @@ namespace MoonSharpModule
         public override string Name { get { return "MoonSharp"; } }
         public override string Author { get { return "DreTaX"; } }
         public override string Description { get { return "Gives you LUA support"; } }
-        public override Version Version { get { return new Version("1.1.0.0"); } }
+        public override Version Version { get { return new Version("1.1.1.1"); } }
         private static LuaModule instance;
 
         public static void ConsoleReceived(ref ConsoleSystem.Arg arg, bool external)
@@ -269,6 +269,8 @@ namespace MoonSharpModule
                     case "On_Research": Hooks.OnResearch += new Hooks.ResearchDelegate(plugin.OnResearch); break;
                     case "On_ServerSaved": Hooks.OnServerSaved += new Hooks.ServerSavedDelegate(plugin.OnServerSaved); break;
                     case "On_VoiceChat": Hooks.OnShowTalker += new Hooks.ShowTalkerDelegate(plugin.OnShowTalker); break;
+                    case "On_ItemPickup": Hooks.OnItemPickup += new Hooks.ItemPickupDelegate(plugin.OnItemPickup); break;
+                    case "On_FallDamage": Hooks.OnFallDamage += new Hooks.FallDamageDelegate(plugin.OnFallDamage); break;
                     //TODO: Oxide Hook Names
                     /*case "Init": plugin.Invoke("Init", new object[0]); break;
                     //case "ModifyDamage": Hooks.OnDoorUse += new Hooks.DoorOpenHandlerDelegate(plugin); break;
@@ -341,6 +343,8 @@ namespace MoonSharpModule
                     case "On_Research": Hooks.OnResearch -= new Hooks.ResearchDelegate(plugin.OnResearch); break;
                     case "On_ServerSaved": Hooks.OnServerSaved -= new Hooks.ServerSavedDelegate(plugin.OnServerSaved); break;
                     case "On_VoiceChat": Hooks.OnShowTalker -= new Hooks.ShowTalkerDelegate(plugin.OnShowTalker); break;
+                    case "On_ItemPickup": Hooks.OnItemPickup -= new Hooks.ItemPickupDelegate(plugin.OnItemPickup); break;
+                    case "On_FallDamage": Hooks.OnFallDamage -= new Hooks.FallDamageDelegate(plugin.OnFallDamage); break;
                 }
             }
         }

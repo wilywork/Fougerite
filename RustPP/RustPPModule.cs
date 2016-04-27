@@ -25,7 +25,7 @@
         }
         public override Version Version
         {
-            get { return new Version("1.1.7.8"); }
+            get { return new Version("1.1.7.9"); }
         }
 
         public static string GetAbsoluteFilePath(string fileName)
@@ -90,6 +90,7 @@
             Fougerite.Hooks.OnShowTalker += ShowTalker;
             Fougerite.Hooks.OnChatRaw += ChatReceived;
             Fougerite.Hooks.OnChat += Chat;
+            Fougerite.Hooks.OnFallDamage += OnFallDamage;
             Server.GetServer().LookForRustPP();
         }
 
@@ -107,6 +108,7 @@
             Fougerite.Hooks.OnShowTalker -= ShowTalker;
             Fougerite.Hooks.OnChatRaw -= ChatReceived;
             Fougerite.Hooks.OnChat -= Chat;
+            Fougerite.Hooks.OnFallDamage -= OnFallDamage;
             TimedEvents.timer.Stop();
             Logger.LogDebug("DeInitialized RPP");
         }
@@ -214,8 +216,23 @@
         {
             if (Core.IsEnabled() && Core.muteList.Contains(p.UID))
             {
-                text.NewText = null;
+                text.NewText = "";
                 p.MessageFrom(Core.Name, "You are muted.");
+            }
+        }
+
+        void OnFallDamage(FallDamageEvent falldamageevent)
+        {
+            if (Core.IsEnabled())
+            {
+                if (falldamageevent.Player != null)
+                {
+                    GodModeCommand command = (GodModeCommand) ChatCommand.GetCommand("god");
+                    if (command.IsOn(falldamageevent.Player.UID))
+                    {
+                        falldamageevent.Cancel();
+                    }
+                }
             }
         }
 

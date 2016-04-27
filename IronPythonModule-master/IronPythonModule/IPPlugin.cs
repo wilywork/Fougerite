@@ -457,6 +457,16 @@ namespace IronPythonModule {
             this.Invoke("On_ItemRemoved", new object[] { e });
         }
 
+        public void OnItemPickup(ItemPickupEvent e)
+        {
+            this.Invoke("On_ItemPickup", new object[] { e });
+        }
+
+        public void OnFallDamage(FallDamageEvent e)
+        {
+            this.Invoke("On_FallDamage", new object[] { e });
+        }
+
         public void OnAirdrop(Vector3 v)
         {
             this.Invoke("On_Airdrop", new object[] { v });

@@ -73,17 +73,18 @@ namespace Fougerite.Patcher
             TypeDefinition Class45 = ulink.MainModule.GetType("Class45");
             //TypeDefinition Class1 = ulink.MainModule.GetType("Class1");
             //MethodDefinition method_61 = Class1.GetMethod("method_61");
-            MethodDefinition method_22 = Class56.GetMethod("method_22");
-            MethodDefinition method_25 = Class56.GetMethod("method_25");
             MethodDefinition method_36 = Class56.GetMethod("method_36");
             //MethodDefinition method_44 = Class56.GetMethod("method_44");
             MethodDefinition method_20 = Class56.GetMethod("method_20");
+            MethodDefinition method_25 = Class56.GetMethod("method_25");
+            MethodDefinition method_22 = Class56.GetMethod("method_22");
             MethodDefinition method_435 = Class52.GetMethod("method_435");
             MethodDefinition vmethod_3 = Class52.GetMethod("vmethod_3");
             MethodDefinition method_250 = Class48.GetMethod("method_250");
             MethodDefinition method_252 = Class48.GetMethod("method_252");
             MethodDefinition method_269 = Class48.GetMethod("method_269");
             MethodDefinition method_299 = Class48.GetMethod("method_299");
+            MethodDefinition method_249 = Class48.GetMethod("method_249");
             MethodDefinition method_4 = Class45.GetMethod("method_4");
             //MethodDefinition method_124 = Class46.GetMethod("method_124");
             MethodDefinition update = type.GetMethod("LateUpdate");
@@ -100,18 +101,13 @@ namespace Fougerite.Patcher
             TypeDefinition Network = ulink.MainModule.GetType("uLink.Network");
             IEnumerable<MethodDefinition> CloseConnections = Network.GetMethods();
             MethodDefinition logex = logger.GetMethod("LogException");
-
-            TypeDefinition NClass48 = ulink.MainModule.GetType("Class48");
-            var Nmethod_249 = NClass48.GetMethod("method_249");
-            var Nmethod_250 = NClass48.GetMethod("method_250");
             
-            WrapMethod(Nmethod_249, logex, ulink, false);
-            WrapMethod(Nmethod_250, logex, ulink, false);
+            WrapMethod(method_249, logex, ulink, false);
 
             WrapMethod(update, logex, ulink, false);
-            WrapMethod(method_22, logex, ulink, false);
-            WrapMethod(method_25, logex, ulink, false);
             WrapMethod(method_36, logex, ulink, false);
+            WrapMethod(method_25, logex, ulink, false);
+            WrapMethod(method_22, logex, ulink, false); 
 
             WrapMethod(vmethod_3, logex, ulink, false);
             WrapMethod(method_250, logex, ulink, false);
@@ -543,6 +539,39 @@ namespace Fougerite.Patcher
             MethodDefinition logex = logger.GetMethod("LogException");
 
             WrapMethod(RecieveNetwork, logex, rustAssembly, false);
+        }
+
+        private void ItemPickupHook()
+        {
+            TypeDefinition ItemPickup = rustAssembly.MainModule.GetType("ItemPickup");
+            MethodDefinition PlayerUse = ItemPickup.GetMethod("PlayerUse");
+            MethodDefinition method = hooksClass.GetMethod("ItemPickup");
+
+            ILProcessor iLProcessor = PlayerUse.Body.GetILProcessor();
+            int Position = PlayerUse.Body.Instructions.Count - 26;
+            iLProcessor.InsertBefore(PlayerUse.Body.Instructions[Position],
+                Instruction.Create(OpCodes.Callvirt, this.rustAssembly.MainModule.Import(method)));
+            iLProcessor.InsertBefore(PlayerUse.Body.Instructions[Position], Instruction.Create(OpCodes.Ldloc_3));
+            iLProcessor.InsertBefore(PlayerUse.Body.Instructions[Position], Instruction.Create(OpCodes.Ldloc_1));
+            iLProcessor.InsertBefore(PlayerUse.Body.Instructions[Position], Instruction.Create(OpCodes.Ldloc_2));
+            iLProcessor.InsertBefore(PlayerUse.Body.Instructions[Position], Instruction.Create(OpCodes.Ldarg_1));
+        }
+
+        private void FallDamageHook()
+        {
+            TypeDefinition FallDamage = rustAssembly.MainModule.GetType("FallDamage");
+            MethodDefinition FallImpact = FallDamage.GetMethod("FallImpact");
+            MethodDefinition method = hooksClass.GetMethod("FallDamage");
+
+            ILProcessor iLProcessor = FallImpact.Body.GetILProcessor();
+            int Position = FallImpact.Body.Instructions.Count - 1;
+            iLProcessor.InsertBefore(FallImpact.Body.Instructions[Position],
+                Instruction.Create(OpCodes.Callvirt, this.rustAssembly.MainModule.Import(method)));
+            iLProcessor.InsertBefore(FallImpact.Body.Instructions[Position], Instruction.Create(OpCodes.Ldloc_2));
+            iLProcessor.InsertBefore(FallImpact.Body.Instructions[Position], Instruction.Create(OpCodes.Ldloc_1));
+            iLProcessor.InsertBefore(FallImpact.Body.Instructions[Position], Instruction.Create(OpCodes.Ldloc_0));
+            iLProcessor.InsertBefore(FallImpact.Body.Instructions[Position], Instruction.Create(OpCodes.Ldarg_1));
+            iLProcessor.InsertBefore(FallImpact.Body.Instructions[Position], Instruction.Create(OpCodes.Ldarg_0));
         }
 
         private void HumanControllerPatch()
@@ -1230,6 +1259,8 @@ namespace Fougerite.Patcher
                     this.ConditionDebug();
                     this.NetcullPatch();
                     this.PatchFacePunch();
+                    this.ItemPickupHook();
+                    this.FallDamageHook();
                     //this.RayCastPatch();
                 }
                 catch (Exception ex)

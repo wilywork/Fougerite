@@ -261,6 +261,16 @@ namespace MoonSharpModule
             this.Invoke("On_ItemRemoved", new object[] { e });
         }
 
+        public void OnItemPickup(ItemPickupEvent e)
+        {
+            this.Invoke("On_ItemPickup", new object[] { e });
+        }
+
+        public void OnFallDamage(FallDamageEvent e)
+        {
+            this.Invoke("On_FallDamage", new object[] { e });
+        }
+
         /*public void OnItemRemovedOxide(InventoryModEvent e)
         {
             this.Invoke("OnItemRemoved", new object[] { e.Inventory, e.Slot, e.Item });

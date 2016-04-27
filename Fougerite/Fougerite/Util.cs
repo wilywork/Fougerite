@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Threading;
 using Facepunch.MeshBatch;
 
 namespace Fougerite
@@ -17,6 +18,15 @@ namespace Fougerite
     {
         private Dictionary<string, System.Type> typeCache = new Dictionary<string, System.Type>();
         private static Util util;
+
+        /*internal static Action<object> mydelegate = new Action<object>(delegate (object param)
+        {
+            Logger.LogError("Param: " + param.ToString());
+            Logger.LogError("Same? " + Thread.CurrentThread.ManagedThreadId + "- " + Bootstrap.CurrentThread.ManagedThreadId);
+            var player = (Player)param;
+            player.Disconnect();
+        });*/
+
         public static readonly string[] UStackable = new string[]
         {
             "Spike Wall", "Large Spike Wall", "Wood Gate",

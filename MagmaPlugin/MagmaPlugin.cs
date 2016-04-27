@@ -149,6 +149,8 @@ namespace MagmaModule
                     case "On_ServerSaved": Hooks.OnServerSaved += OnServerSaved; break;
                     case "On_AllPluginsLoaded": MagmaPluginModule.OnAllLoaded += OnAllLoaded; break;
                     case "On_VoiceChat": Hooks.OnShowTalker += OnShowTalker; break;
+                    case "On_ItemPickup": Hooks.OnItemPickup += OnItemPickup; break;
+                    case "On_FallDamage": Hooks.OnFallDamage += OnFallDamage; break;
                 }
             }
         }
@@ -205,6 +207,8 @@ namespace MagmaModule
                     case "On_ServerSaved": Hooks.OnServerSaved -= OnServerSaved; break;
                     case "On_AllPluginsLoaded": MagmaPluginModule.OnAllLoaded -= OnAllLoaded; break;
                     case "On_VoiceChat": Hooks.OnShowTalker -= OnShowTalker; break;
+                    case "On_ItemPickup": Hooks.OnItemPickup -= OnItemPickup; break;
+                    case "On_FallDamage": Hooks.OnFallDamage -= OnFallDamage; break;
                 }
             }
         }
@@ -590,6 +594,16 @@ namespace MagmaModule
         public void OnItemRemoved(InventoryModEvent e)
         {
             Invoke("On_ItemRemoved", e);
+        }
+
+        public void OnItemPickup(ItemPickupEvent e)
+        {
+            Invoke("On_ItemPickup", e);
+        }
+
+        public void OnFallDamage(FallDamageEvent e)
+        {
+            Invoke("On_FallDamage", e);
         }
 
         public void OnAirdrop(Vector3 v)

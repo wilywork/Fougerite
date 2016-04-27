@@ -315,6 +315,8 @@ namespace IronPythonModule
                 case "On_Research": Hooks.OnResearch += new Hooks.ResearchDelegate(plugin.OnResearch); break;
                 case "On_ServerSaved": Hooks.OnServerSaved += new Hooks.ServerSavedDelegate(plugin.OnServerSaved); break;
                 case "On_VoiceChat": Hooks.OnShowTalker += new Hooks.ShowTalkerDelegate(plugin.OnShowTalker); break;
+                case "On_ItemPickup": Hooks.OnItemPickup += new Hooks.ItemPickupDelegate(plugin.OnItemPickup); break;
+                case "On_FallDamage": Hooks.OnFallDamage += new Hooks.FallDamageDelegate(plugin.OnFallDamage); break;
                 }
 			}
 		}
@@ -361,6 +363,8 @@ namespace IronPythonModule
                 case "On_Research": Hooks.OnResearch -= new Hooks.ResearchDelegate(plugin.OnResearch); break;
                 case "On_ServerSaved": Hooks.OnServerSaved -= new Hooks.ServerSavedDelegate(plugin.OnServerSaved); break;
                 case "On_VoiceChat": Hooks.OnShowTalker -= new Hooks.ShowTalkerDelegate(plugin.OnShowTalker); break;
+                case "On_ItemPickup": Hooks.OnItemPickup -= new Hooks.ItemPickupDelegate(plugin.OnItemPickup); break;
+                case "On_FallDamage": Hooks.OnFallDamage -= new Hooks.FallDamageDelegate(plugin.OnFallDamage); break;
                 }
 			}
 		}

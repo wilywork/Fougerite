@@ -59,6 +59,8 @@
       <HintPath>..\References\System.Core.dll</HintPath>
     </Reference>
     <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="Fougerite\Events\FallDamageEvent.cs" />
+    <Compile Include="Fougerite\Events\ItemPickupEvent.cs" />
     <Compile Include="Fougerite\Events\PlayerApprovalEvent.cs" />
     <Compile Include="Fougerite\Events\ResearchEvent.cs" />
     <Compile Include="Fougerite\Events\SteamDenyEvent.cs" />
