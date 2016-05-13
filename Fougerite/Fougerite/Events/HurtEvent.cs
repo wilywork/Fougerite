@@ -20,8 +20,8 @@
         private readonly bool _entityattacker = false;
         private readonly bool _metabolismattacker = false;
         private readonly bool _npcattacker = false;
-        private bool _sleeper;
-        private LifeStatus _status;
+        private readonly bool _sleeper;
+        private readonly LifeStatus _status;
 
         public HurtEvent(ref DamageEvent d)
         {

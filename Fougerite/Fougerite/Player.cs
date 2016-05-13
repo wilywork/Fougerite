@@ -142,26 +142,19 @@ namespace Fougerite
             this.justDied = false;
         }
 
-        public void TrySafeDisconnect()
-        {
-            if (this.IsOnline)
-            {
-                Server.GetServer().RemovePlayer(uid);
-                SendCommand("net.disconnect");
-            }
-        }
-
         public void Disconnect()
         {
             if (this.IsOnline)
             {
-                /*Logger.LogError("Same? " + Thread.CurrentThread.ManagedThreadId + "- " +  Bootstrap.CurrentThread.ManagedThreadId);
+                //Logger.LogError("Same? " + Thread.CurrentThread.ManagedThreadId + " - " +  Bootstrap.CurrentThread.ManagedThreadId);
                 if (Thread.CurrentThread.ManagedThreadId != Bootstrap.CurrentThread.ManagedThreadId)
                 {
-                    Logger.LogError("Nope, invoking");
-                    Util.mydelegate.Invoke(this);
+                    //Logger.LogError("Nope, invoking");
+                    Loom.QueueOnMainThread(() => {
+                        Disconnect();
+                    });
                     return;
-                }*/
+                }
                 Server.GetServer().RemovePlayer(uid);
                 this.ourPlayer.netUser.Kick(NetError.Facepunch_Kick_RCON, false);
             }

@@ -58,7 +58,14 @@ namespace Fougerite.Events
         {
             if (_player.IsOnline)
             {
-                _fd.ClearInjury();
+                if (BrokenLegs)
+                {
+                    _fd.ClearInjury();
+                }
+                if (Bleeding)
+                {
+                    _player.HumanBodyTakeDmg.SetBleedingLevel(0f);
+                }
             }
         }
     }

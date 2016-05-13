@@ -433,7 +433,7 @@
                 if (he.Entity.IsStructure() && !he.IsDecay)
                 {
                     StructureComponent component = entity as StructureComponent;
-                    if ((component.IsType(StructureComponent.StructureComponentType.Ceiling) || component.IsType(StructureComponent.StructureComponentType.Foundation)) || component.IsType(StructureComponent.StructureComponentType.Pillar))
+                    if (component != null && ((component.IsType(StructureComponent.StructureComponentType.Ceiling) || component.IsType(StructureComponent.StructureComponentType.Foundation)) || component.IsType(StructureComponent.StructureComponentType.Pillar)))
                         he.DamageAmount = 0f;
                 }
                 TakeDamage takeDamage = he.Entity.GetTakeDamage();
@@ -1188,7 +1188,7 @@
                     }
                     else
                     {
-                        if (DataStore.GetInstance().Get("Ips", ip).ToString() == "1")
+                        if (DataStore.GetInstance().Get("Ips", ip).ToString() != name)
                         {
                             DataStore.GetInstance().Add("Ips", ip, name);
                         }
@@ -1201,7 +1201,7 @@
                     }
                     else
                     {
-                        if (DataStore.GetInstance().Get("Ids", uid.ToString()).ToString() == "1")
+                        if (DataStore.GetInstance().Get("Ids", uid.ToString()).ToString() != name)
                         {
                             DataStore.GetInstance().Add("Ids", uid.ToString(), name);
                         }

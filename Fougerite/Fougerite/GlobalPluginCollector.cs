@@ -7,8 +7,8 @@ namespace Fougerite
 {
     public class GlobalPluginCollector
     {
-        private Dictionary<string, object> AllPlugins;
-        private Dictionary<string, string> Types;
+        private readonly Dictionary<string, object> AllPlugins;
+        private readonly Dictionary<string, string> Types;
         private static GlobalPluginCollector pcollector;
 
         public GlobalPluginCollector()

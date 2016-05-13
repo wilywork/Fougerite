@@ -3,13 +3,13 @@ namespace Fougerite.Events
 {
     public class CraftingEvent
     {
-        private CraftingInventory _inv;
-        private BlueprintDataBlock _block;
-        private int _amount;
-        private ulong _startTime;
-        private Fougerite.Player _player;
-        private bool _legit = true;
-        private NetUser _user;
+        private readonly CraftingInventory _inv;
+        private readonly BlueprintDataBlock _block;
+        private readonly int _amount;
+        private readonly ulong _startTime;
+        private readonly Fougerite.Player _player;
+        private readonly bool _legit = true;
+        private readonly NetUser _user;
 
         public CraftingEvent(CraftingInventory inv, BlueprintDataBlock blueprint, int amount, ulong startTime)
         {

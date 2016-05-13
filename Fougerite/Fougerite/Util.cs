@@ -19,14 +19,6 @@ namespace Fougerite
         private Dictionary<string, System.Type> typeCache = new Dictionary<string, System.Type>();
         private static Util util;
 
-        /*internal static Action<object> mydelegate = new Action<object>(delegate (object param)
-        {
-            Logger.LogError("Param: " + param.ToString());
-            Logger.LogError("Same? " + Thread.CurrentThread.ManagedThreadId + "- " + Bootstrap.CurrentThread.ManagedThreadId);
-            var player = (Player)param;
-            player.Disconnect();
-        });*/
-
         public static readonly string[] UStackable = new string[]
         {
             "Spike Wall", "Large Spike Wall", "Wood Gate",
@@ -705,6 +697,47 @@ namespace Fougerite
         public ulong TimeInMillis
         {
             get { return NetCull.timeInMillis; }
+        }
+
+        public double TimeEpoch
+        {
+            get
+            {
+                TimeSpan t = DateTime.UtcNow - new DateTime(1970, 1, 1);
+                return t.TotalSeconds;
+            }
+        }
+
+        public int MainThreadID
+        {
+            get
+            {
+                return Bootstrap.CurrentThread.ManagedThreadId;
+            }
+        }
+
+        public Thread MainThread
+        {
+            get
+            {
+                return Bootstrap.CurrentThread;
+            }
+        }
+
+        public Thread CurrentWorkingThread
+        {
+            get
+            {
+                return Thread.CurrentThread;
+            }
+        }
+
+        public int CurrentWorkingThreadID
+        {
+            get
+            {
+                return Thread.CurrentThread.ManagedThreadId;
+            }
         }
     }
 }

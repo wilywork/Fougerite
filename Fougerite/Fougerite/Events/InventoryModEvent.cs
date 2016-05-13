@@ -5,13 +5,13 @@ namespace Fougerite.Events
 {
     public class InventoryModEvent
     {
-        private Inventory _inventory;
-        private int _slot;
-        private IInventoryItem _item;
-        private Fougerite.Player _player = null;
-        private NetUser _netuser = null;
-        private uLink.NetworkPlayer _netplayer;
-        private string _etype;
+        private readonly Inventory _inventory;
+        private readonly int _slot;
+        private readonly IInventoryItem _item;
+        private readonly Fougerite.Player _player = null;
+        private readonly NetUser _netuser = null;
+        private readonly uLink.NetworkPlayer _netplayer;
+        private readonly string _etype;
         private Timer _delayer = null;
 
         public InventoryModEvent(Inventory inventory, int slot, IInventoryItem item, string type)

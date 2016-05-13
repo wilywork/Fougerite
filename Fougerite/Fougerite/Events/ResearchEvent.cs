@@ -4,8 +4,8 @@ namespace Fougerite.Events
 {
     public class ResearchEvent
     {
-        private IInventoryItem _item;
-        private Fougerite.Player _player;
+        private readonly IInventoryItem _item;
+        private readonly Fougerite.Player _player;
 
         public ResearchEvent(IInventoryItem item)
         {
