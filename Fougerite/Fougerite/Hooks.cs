@@ -1311,6 +1311,40 @@
             }
         }
 
+        public static void RPCFix(Class48 c48, Class5 class5_0, uLink.NetworkPlayer networkPlayer_1)
+        {
+            Class56 class2 = c48.method_270(networkPlayer_1);
+            if (class2 != null)
+            {
+                c48.method_277(class5_0, class2);
+            }
+            else
+            {
+                Fougerite.Player player = Fougerite.Player.FindByNetworkPlayer(class5_0.networkPlayer_1);
+                if (player != null)
+                {
+                    Logger.LogWarning("[Fougerite uLink] Detected RPC Failing Player: " + player.Name + "-" +
+                                      player.SteamID + " Trying to kick...");
+                    if (player.IsOnline)
+                    {
+                        player.Disconnect(false);
+                        Logger.LogWarning("[Fougerite uLink] Should be kicked!");
+                    }
+                    else
+                    {
+                        Logger.LogWarning("[Fougerite uLink] Server says It's offline. Not touching.");
+                    }
+                }
+                else
+                {
+                    Logger.LogDebug("===Fougerite uLink===");
+                    Logger.LogDebug("Detected RPC Failing Player, but couldn't find It.");
+                    Logger.LogDebug("Private RPC (internal RPC " + class5_0.enum0_0 + ")" + " was not sent because a connection to " + class5_0.networkPlayer_1 + " was not found!");
+                }
+                //NetworkLog.Error<string, string, uLink.NetworkPlayer, string>(NetworkLogFlags.BadMessage | NetworkLogFlags.RPC, "Private RPC ", (class5_0.method_11() ? class5_0.string_0 : ("(internal RPC " + class5_0.enum0_0 + ")")) + " was not sent because a connection to ", class5_0.networkPlayer_1, " was not found!");
+            }
+        }
+
         public static void ResetHooks()
         {
             OnPluginInit = delegate

@@ -218,6 +218,25 @@ namespace Fougerite
             }
         }
 
+        public Fougerite.Player FindByNetworkPlayer(uLink.NetworkPlayer np)
+        {
+            foreach (var x in Fougerite.Server.GetServer().Players)
+            {
+                if (x.PlayerClient.netPlayer == null) continue;
+                if (x.PlayerClient.netPlayer == np) return x;
+            }
+            return null;
+        }
+
+        public Fougerite.Player FindByPlayerClient(PlayerClient pc)
+        {
+            foreach (var x in Fougerite.Server.GetServer().Players)
+            {
+                if (x.PlayerClient == pc) return x;
+            }
+            return null;
+        }
+
         public Fougerite.Player FindPlayer(string search)
         {
             if (search.StartsWith("7656119"))

@@ -66,6 +66,7 @@ namespace Fougerite.Patcher
         {
             AssemblyDefinition ulink = AssemblyDefinition.ReadAssembly("uLink.dll");
             TypeDefinition type = ulink.MainModule.GetType("uLink.InternalHelper");
+            TypeDefinition Class5 = ulink.MainModule.GetType("Class5");
             TypeDefinition Class56 = ulink.MainModule.GetType("Class56");
             TypeDefinition Class52 = ulink.MainModule.GetType("Class52");
             TypeDefinition Class48 = ulink.MainModule.GetType("Class48");
@@ -85,18 +86,35 @@ namespace Fougerite.Patcher
             MethodDefinition method_269 = Class48.GetMethod("method_269");
             MethodDefinition method_299 = Class48.GetMethod("method_299");
             MethodDefinition method_249 = Class48.GetMethod("method_249");
+            MethodDefinition method_275 = Class48.GetMethod("method_275");
+            MethodDefinition method_277 = Class48.GetMethod("method_277");
+            MethodDefinition method_270 = Class48.GetMethod("method_270");
             MethodDefinition method_4 = Class45.GetMethod("method_4");
             //MethodDefinition method_124 = Class46.GetMethod("method_124");
             MethodDefinition update = type.GetMethod("LateUpdate");
             TypeDefinition logger = fougeriteAssembly.MainModule.GetType("Fougerite.Logger");
 
+            method_277.IsPublic = true;
+            method_270.IsPublic = true;
+            Class5.IsPublic = true;
+            Class48.IsPublic = true;
+            Class56.IsPublic = true;
+
             MethodDefinition method = hooksClass.GetMethod("HandleuLinkDisconnect");
+            MethodDefinition method2 = hooksClass.GetMethod("RPCFix");
             ILProcessor iLProcessor = method_435.Body.GetILProcessor();
             iLProcessor.Body.Instructions.Clear();
             iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
             iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
             iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, ulink.MainModule.Import(method)));
             iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+
+            method_275.Body.Instructions.Clear();
+            method_275.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            method_275.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            method_275.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
+            method_275.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, ulink.MainModule.Import(method2)));
+            method_275.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
 
             TypeDefinition Network = ulink.MainModule.GetType("uLink.Network");
             IEnumerable<MethodDefinition> CloseConnections = Network.GetMethods();

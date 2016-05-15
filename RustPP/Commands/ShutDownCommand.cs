@@ -64,15 +64,17 @@ namespace RustPP.Commands
             if (Time >= ShutdownTime)
             {
                 _timer.Dispose();
-                Fougerite.Server.GetServer().BroadcastFrom(Core.Name, "Saving Server...");
-                AvatarSaveProc.SaveAll();
-                ServerSaveManager.AutoSave();
-                Helper.CreateSaves();
-                Fougerite.Server.GetServer().BroadcastFrom(Core.Name, "Saved Server Data!");
-                Fougerite.Server.GetServer().BroadcastFrom(Core.Name, "Server shutdown in 5 seconds!");
-                _timer2 = new Timer(5000);
-                _timer2.Elapsed += Trigger2;
-                _timer2.Start();
+                Loom.QueueOnMainThread(() => {
+                    Fougerite.Server.GetServer().BroadcastFrom(Core.Name, "Saving Server...");
+                    AvatarSaveProc.SaveAll();
+                    ServerSaveManager.AutoSave();
+                    Helper.CreateSaves();
+                    Fougerite.Server.GetServer().BroadcastFrom(Core.Name, "Saved Server Data!");
+                    Fougerite.Server.GetServer().BroadcastFrom(Core.Name, "Server shutdown in 5 seconds!");
+                    _timer2 = new Timer(5000);
+                    _timer2.Elapsed += Trigger2;
+                    _timer2.Start();
+                });
             }
             else
             {
@@ -84,7 +86,10 @@ namespace RustPP.Commands
         {
             Fougerite.Server.GetServer().BroadcastFrom(Core.Name, "Server Shutdown NOW!");
             _timer2.Dispose();
-            Process.GetCurrentProcess().Kill();
+            Loom.QueueOnMainThread(() => {
+                UnityEngine.Application.Quit();
+                //Process.GetCurrentProcess().Kill();
+            });
         }
     }
 }

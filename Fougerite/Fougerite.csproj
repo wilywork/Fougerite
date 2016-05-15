@@ -51,7 +51,7 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="uLink, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\References\uLink.dll</HintPath>
+      <HintPath>..\bin\uLink.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine">
       <HintPath>..\References\UnityEngine.dll</HintPath>

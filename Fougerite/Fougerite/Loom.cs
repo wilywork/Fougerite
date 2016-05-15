@@ -10,11 +10,12 @@ namespace Fougerite
 {
     public class Loom : MonoBehaviour
     {
-        public static int maxThreads = 10;
-        static int numThreads;
-
+        public static int maxThreads = 25;
         private static Loom _current;
-        private int _count;
+        //private int _count;
+        internal static int numThreads;
+        internal static bool initialized;
+
         public static Loom Current
         {
             get
@@ -30,13 +31,10 @@ namespace Fougerite
             initialized = true;
         }
 
-        static bool initialized;
-
         static void Initialize()
         {
             if (!initialized)
             {
-
                 if (!Application.isPlaying)
                     return;
                 initialized = true;
@@ -52,29 +50,37 @@ namespace Fougerite
             public float time;
             public Action action;
         }
-        private List<DelayedQueueItem> _delayed = new List<DelayedQueueItem>();
 
+        private List<DelayedQueueItem> _delayed = new List<DelayedQueueItem>();
         List<DelayedQueueItem> _currentDelayed = new List<DelayedQueueItem>();
 
         public static void QueueOnMainThread(Action action)
         {
             QueueOnMainThread(action, 0f);
         }
+
         public static void QueueOnMainThread(Action action, float time)
         {
-            if (time != 0)
+            try
             {
-                lock (Current._delayed)
+                if (time != 0)
                 {
-                    Current._delayed.Add(new DelayedQueueItem { time = Time.time + time, action = action });
+                    lock (Current._delayed)
+                    {
+                        Current._delayed.Add(new DelayedQueueItem {time = Time.time + time, action = action});
+                    }
+                }
+                else
+                {
+                    lock (Current._actions)
+                    {
+                        Current._actions.Add(action);
+                    }
                 }
             }
-            else
+            catch (Exception ex)
             {
-                lock (Current._actions)
-                {
-                    Current._actions.Add(action);
-                }
+                Logger.LogError("[Fougerite Loom Error] " + ex);
             }
         }
 

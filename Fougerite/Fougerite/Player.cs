@@ -150,9 +150,7 @@ namespace Fougerite
                 if (Thread.CurrentThread.ManagedThreadId != Bootstrap.CurrentThread.ManagedThreadId)
                 {
                     //Logger.LogError("Nope, invoking");
-                    Loom.QueueOnMainThread(() => {
-                        Disconnect();
-                    });
+                    Loom.QueueOnMainThread(this.Disconnect);
                     return;
                 }
                 Server.GetServer().RemovePlayer(uid);
