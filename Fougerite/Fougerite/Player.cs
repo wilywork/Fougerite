@@ -157,7 +157,7 @@ namespace Fougerite
                     return;
                 }
                 Server.GetServer().RemovePlayer(uid);
-                this.ourPlayer.netUser.Kick(NetError.Facepunch_Kick_RCON, false);
+                this.ourPlayer.netUser.Kick(NetError.Facepunch_Kick_RCON, SendNotification);
             }
         }
 
