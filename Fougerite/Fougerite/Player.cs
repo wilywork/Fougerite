@@ -142,38 +142,22 @@ namespace Fougerite
             this.justDied = false;
         }
 
-        public void Disconnect()
+        public void Disconnect(bool SendNotification = true)
         {
             if (this.IsOnline)
             {
-                try
+                //Logger.LogError("Same? " + Thread.CurrentThread.ManagedThreadId + " - " +  Bootstrap.CurrentThread.ManagedThreadId);
+                if (Thread.CurrentThread.ManagedThreadId != Util.GetUtil().MainThreadID)
                 {
-                    //Logger.LogError("Same? " + Thread.CurrentThread.ManagedThreadId + " - " +  Bootstrap.CurrentThread.ManagedThreadId);
-                    if (Thread.CurrentThread.ManagedThreadId != Util.GetUtil().MainThreadID)
+                    //Logger.LogError("Nope, invoking");
+                    Loom.QueueOnMainThread(() =>
                     {
-                        //Logger.LogError("Nope, invoking");
-                        Loom.QueueOnMainThread(this.Disconnect);
-                        return;
-                    }
-                    Server.GetServer().RemovePlayer(uid);
-                    this.ourPlayer.netUser.Kick(NetError.Facepunch_Kick_RCON, false);
+                        this.Disconnect(SendNotification);
+                    });
+                    return;
                 }
-                catch (Exception ex)
-                {
-                    Logger.LogError("Error for Taryn " + ex );
-                    Logger.LogError("Error for Taryn " + uid);
-                    Logger.LogError("Error for Taryn " + Thread.CurrentThread.ManagedThreadId);
-                    Logger.LogError("Error for Taryn " + Util.GetUtil().MainThreadID);
-                }
-            }
-        }
-
-        public void Disconnect(bool SendNotification)
-        {
-            if (this.IsOnline)
-            {
                 Server.GetServer().RemovePlayer(uid);
-                this.ourPlayer.netUser.Kick(NetError.Facepunch_Kick_RCON, SendNotification);
+                this.ourPlayer.netUser.Kick(NetError.Facepunch_Kick_RCON, false);
             }
         }
 
