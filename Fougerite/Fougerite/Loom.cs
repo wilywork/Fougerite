@@ -80,7 +80,7 @@ namespace Fougerite
             }
             catch (Exception ex)
             {
-                Logger.LogError("[Fougerite Loom Error] " + ex);
+                Logger.LogError("[Fougerite Loom Error] " + ex + " - " + Time.time + " - " + time + " - " + action + " - " + Current._actions + " - " + Current._delayed);
             }
         }
 

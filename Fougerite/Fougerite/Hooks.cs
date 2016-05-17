@@ -57,6 +57,7 @@
         public static event ServerSavedDelegate OnServerSaved;
         public static event ItemPickupDelegate OnItemPickup;
         public static event FallDamageDelegate OnFallDamage;
+        internal static bool IsShuttingDown = false;
 
         public static void BlueprintUse(IBlueprintItem item, BlueprintDataBlock bdb)
         {
@@ -306,6 +307,21 @@
             }
             else if (OnConsoleReceived != null)
             {
+                string clss = a.Class.ToLower();
+                string func = a.Function.ToLower();
+                string data;
+                if (!string.IsNullOrEmpty(func))
+                {
+                    data = clss + "." + func;
+                }
+                else
+                {
+                    data = clss;
+                }
+                if (Server.GetServer().ConsoleCommandCancelList.Contains(data))
+                {
+                    return false;
+                }
                 try
                 {
                     OnConsoleReceived(ref a, external);
@@ -581,7 +597,7 @@
             }
             ulong uid = user.userID;
 
-            Fougerite.Server server = Fougerite.Server.GetServer();
+            Fougerite.Server srv = Fougerite.Server.GetServer();
             Fougerite.Player player = new Fougerite.Player(user.playerClient);
             if (!Fougerite.Server.Cache.ContainsKey(uid))
             {
@@ -592,15 +608,15 @@
                 Fougerite.Server.Cache[uid] = player;
             }
 
-            if (server.ContainsPlayer(uid))
+            if (srv.ContainsPlayer(uid))
             {
                 Logger.LogError(string.Format("[PlayerConnect] Server.Players already contains {0} {1}", player.Name, player.SteamID));
                 connected = user.connected;
                 return connected;
             }
-            server.AddPlayer(uid, player);
+            srv.AddPlayer(uid, player);
             //server.Players.Add(player);
-
+            Rust.Steam.Server.Steam_UpdateServer(server.maxplayers, srv.Players.Count, server.hostname, server.map, "modded, fougerite");
             try 
             {
                 if (OnPlayerConnected != null)
@@ -647,6 +663,7 @@
             //if (Fougerite.Server.GetServer().Players.Contains(player)) { Fougerite.Server.GetServer().Players.Remove(player); }
             //player.PlayerClient.netUser.Dispose();
             Fougerite.Server.Cache[uid] = player;
+            Rust.Steam.Server.Steam_UpdateServer(server.maxplayers, Fougerite.Server.GetServer().Players.Count, server.hostname, server.map, "modded, fougerite");
             try
             {
                 if (OnPlayerDisconnected != null)
@@ -1098,11 +1115,11 @@
                 }
                 else
                 {
-                    Logger.LogWarning("[uLink Error] Array was not GameObject?!");
+                    Logger.LogWarning("[uLink Failure] Array was not GameObject?!");
                 }
                 if (objArray == null)
                 {
-                    Logger.LogWarning("Something bad happened during the disconnection... Report this.");
+                    Logger.LogWarning("[uLink Failure] Something bad happened during the disconnection... Report this.");
                     return;
                 }
                 if (NetworkPlayer is uLink.NetworkPlayer)
@@ -1320,9 +1337,11 @@
             }
             else
             {
+                if (IsShuttingDown) { return; }
                 Fougerite.Player player = Fougerite.Player.FindByNetworkPlayer(class5_0.networkPlayer_1);
                 if (player != null)
                 {
+                    Logger.LogDebug("===Fougerite uLink===");
                     Logger.LogWarning("[Fougerite uLink] Detected RPC Failing Player: " + player.Name + "-" +
                                       player.SteamID + " Trying to kick...");
                     if (player.IsOnline)
@@ -1338,8 +1357,35 @@
                 else
                 {
                     Logger.LogDebug("===Fougerite uLink===");
-                    Logger.LogDebug("Detected RPC Failing Player, but couldn't find It.");
-                    Logger.LogDebug("Private RPC (internal RPC " + class5_0.enum0_0 + ")" + " was not sent because a connection to " + class5_0.networkPlayer_1 + " was not found!");
+                    Logger.LogDebug("Detected RPC Failing Player, but couldn't find It. Trying second method...");
+                    NetUser user = networkPlayer_1.GetLocalData() as NetUser;
+                    if (user != null)
+                    {
+                        if (Fougerite.Server.Cache.ContainsKey(user.userID))
+                        {
+                            player = Fougerite.Server.Cache[user.userID];
+                            if (player != null)
+                            {
+                                Logger.LogWarning("[Fougerite uLink] Detected RPC Failing Player: " + player.Name + "-" +
+                                                  player.SteamID + " Trying to kick...");
+                                if (player.IsOnline)
+                                {
+                                    player.Disconnect(false);
+                                    Logger.LogWarning("[Fougerite uLink] Should be kicked!");
+                                    return; // Return to avoid the RPC Logging
+                                }
+                                else
+                                {
+                                    Logger.LogWarning("[Fougerite uLink] Server says It's offline. Not touching.");
+                                }
+                            }
+                        }
+                        else
+                        {
+                            Logger.LogDebug("[Fougerite uLink] Not existing in cache...");
+                        }
+                    }
+                    Logger.LogDebug("[Fougerite uLink] Private RPC (internal RPC " + class5_0.enum0_0 + ")" + " was not sent because a connection to " + class5_0.networkPlayer_1 + " was not found!");
                 }
                 //NetworkLog.Error<string, string, uLink.NetworkPlayer, string>(NetworkLogFlags.BadMessage | NetworkLogFlags.RPC, "Private RPC ", (class5_0.method_11() ? class5_0.string_0 : ("(internal RPC " + class5_0.enum0_0 + ")")) + " was not sent because a connection to ", class5_0.networkPlayer_1, " was not found!");
             }
@@ -1485,6 +1531,7 @@
 
         public static void ServerShutdown()
         {
+            IsShuttingDown = true;
             try
             {
                 if (OnServerShutdown != null)

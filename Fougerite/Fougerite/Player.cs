@@ -146,15 +146,25 @@ namespace Fougerite
         {
             if (this.IsOnline)
             {
-                //Logger.LogError("Same? " + Thread.CurrentThread.ManagedThreadId + " - " +  Bootstrap.CurrentThread.ManagedThreadId);
-                if (Thread.CurrentThread.ManagedThreadId != Bootstrap.CurrentThread.ManagedThreadId)
+                try
                 {
-                    //Logger.LogError("Nope, invoking");
-                    Loom.QueueOnMainThread(this.Disconnect);
-                    return;
+                    //Logger.LogError("Same? " + Thread.CurrentThread.ManagedThreadId + " - " +  Bootstrap.CurrentThread.ManagedThreadId);
+                    if (Thread.CurrentThread.ManagedThreadId != Util.GetUtil().MainThreadID)
+                    {
+                        //Logger.LogError("Nope, invoking");
+                        Loom.QueueOnMainThread(this.Disconnect);
+                        return;
+                    }
+                    Server.GetServer().RemovePlayer(uid);
+                    this.ourPlayer.netUser.Kick(NetError.Facepunch_Kick_RCON, false);
                 }
-                Server.GetServer().RemovePlayer(uid);
-                this.ourPlayer.netUser.Kick(NetError.Facepunch_Kick_RCON, false);
+                catch (Exception ex)
+                {
+                    Logger.LogError("Error for Taryn " + ex );
+                    Logger.LogError("Error for Taryn " + uid);
+                    Logger.LogError("Error for Taryn " + Thread.CurrentThread.ManagedThreadId);
+                    Logger.LogError("Error for Taryn " + Util.GetUtil().MainThreadID);
+                }
             }
         }
 

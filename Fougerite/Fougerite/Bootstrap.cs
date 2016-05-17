@@ -11,7 +11,7 @@ namespace Fougerite
         public const string Version = "1.4.3";
         public static bool CR = false;
         public static bool BI = false;
-        public static readonly Thread CurrentThread = Thread.CurrentThread;
+        internal static readonly Thread CurrentThread = Thread.CurrentThread;
 
         public static void AttachBootstrap()
         {

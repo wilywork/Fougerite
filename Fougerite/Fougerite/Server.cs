@@ -18,6 +18,7 @@ namespace Fougerite
         public static IDictionary<ulong, Fougerite.Player> Cache = new Dictionary<ulong, Fougerite.Player>();
         public static IEnumerable<string> ForceCallForCommands = new List<string>();
         private readonly string path = Path.Combine(Util.GetRootFolder(), Path.Combine("Save", "GlobalBanList.ini"));
+        private readonly List<string> _ConsoleCommandCancelList = new List<string>();
 
 
         public void LookForRustPP()
@@ -360,6 +361,32 @@ namespace Fougerite
         internal bool ContainsPlayer(ulong id)
         {
             return this.players.ContainsKey(id);
+        }
+
+        public void RestrictConsoleCommand(string cmd)
+        {
+            if (!ConsoleCommandCancelList.Contains(cmd))
+            {
+                ConsoleCommandCancelList.Add(cmd);
+            }
+        }
+
+        public void UnRestrictConsoleCommand(string cmd)
+        {
+            if (ConsoleCommandCancelList.Contains(cmd))
+            {
+                ConsoleCommandCancelList.Remove(cmd);
+            }
+        }
+
+        public void CleanRestrictedConsoleCommands()
+        {
+            ConsoleCommandCancelList.Clear();
+        }
+
+        public List<string> ConsoleCommandCancelList
+        {
+            get { return this._ConsoleCommandCancelList; }
         }
 
         internal Dictionary<ulong, Player> DPlayers

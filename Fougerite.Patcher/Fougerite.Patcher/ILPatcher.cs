@@ -303,6 +303,17 @@ namespace Fougerite.Patcher
                 }
             }
 
+            TypeDefinition SleepingAvatar = rustAssembly.MainModule.GetType("SleepingAvatar");
+            var methods = SleepingAvatar.Methods;
+            foreach (var x in methods)
+            {
+                if (!x.IsPublic && x.Name == "Close")
+                {
+                    x.SetPublic(true);
+                    break;
+                }
+            }
+
             TypeDefinition BulletWeaponDataBlock = rustAssembly.MainModule.GetType("BulletWeaponDataBlock");
             BulletWeaponDataBlock.GetMethod("ConstructItem").SetPublic(true);
             TypeDefinition ITEM_TYPE = BulletWeaponDataBlock.GetNestedType("ITEM_TYPE");
