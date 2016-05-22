@@ -8,7 +8,7 @@ namespace Fougerite
 
     public class Bootstrap : Facepunch.MonoBehaviour
     {
-        public const string Version = "1.4.3";
+        public const string Version = "1.4.4";
         public static bool CR = false;
         public static bool BI = false;
         internal static readonly Thread CurrentThread = Thread.CurrentThread;
@@ -72,7 +72,6 @@ namespace Fougerite
 
             Rust.Steam.Server.SetModded();
             Rust.Steam.Server.Official = false;
-            Logger.Log(Application.unityVersion);
 
             if (ApplyOptions()) {
                 ModuleManager.LoadModules();

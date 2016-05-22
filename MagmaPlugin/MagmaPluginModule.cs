@@ -223,7 +223,7 @@ namespace MagmaModule
                 Logger.Log(string.Format("{0} {1} plugin was unloaded successfully.", brktname, name));
             } else {
                 Logger.LogError(string.Format("{0} Can't unload {1}. Plugin is not loaded.", brktname, name));
-                throw new InvalidOperationException(string.Format("{0} Can't unload {1}. Plugin is not loaded.", brktname, name));
+                //throw new InvalidOperationException(string.Format("{0} Can't unload {1}. Plugin is not loaded.", brktname, name));
             }
         }
 

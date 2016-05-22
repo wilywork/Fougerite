@@ -137,7 +137,7 @@
         }
 
         [Serializable]
-        private class Friend
+        public class Friend
         {
             private string _displayName;
             private ulong _userID;

@@ -152,6 +152,7 @@ namespace MagmaModule
                     case "On_VoiceChat": Hooks.OnShowTalker += OnShowTalker; break;
                     case "On_ItemPickup": Hooks.OnItemPickup += OnItemPickup; break;
                     case "On_FallDamage": Hooks.OnFallDamage += OnFallDamage; break;
+                    case "On_LootUse": Hooks.OnLootUse += OnLootUse; break;
                 }
             }
         }
@@ -210,6 +211,7 @@ namespace MagmaModule
                     case "On_VoiceChat": Hooks.OnShowTalker -= OnShowTalker; break;
                     case "On_ItemPickup": Hooks.OnItemPickup -= OnItemPickup; break;
                     case "On_FallDamage": Hooks.OnFallDamage -= OnFallDamage; break;
+                    case "On_LootUse": Hooks.OnLootUse -= OnLootUse; break;
                 }
             }
         }
@@ -660,6 +662,11 @@ namespace MagmaModule
         public void OnPluginShutdown()
         {
             Invoke("On_PluginShutdown");
+        }
+
+        public void OnLootUse(LootStartEvent le)
+        {
+            Invoke("On_LootUse", le);
         }
 
         public void OnTimerCB(string name)

@@ -498,6 +498,11 @@ namespace IronPythonModule {
             this.Invoke("On_VoiceChat", new object[] { np, player });
         }
 
+        public void OnLootUse(LootStartEvent le)
+        {
+            this.Invoke("On_LootUse", new object[] { le });
+        }
+
         /*public void OnTimerCB(IPTimedEvent evt) {
 			if (Globals.Contains(evt.Name + "Callback")) {
 				Invoke(evt.Name + "Callback", evt);
@@ -521,7 +526,7 @@ namespace IronPythonModule {
                     Fougerite.Logger.LogError("[IronPython] Error in plugin " + Name + ":");
                     Fougerite.Logger.LogError(Engine.GetService<ExceptionOperations>().FormatException(ex));
                 }
-	        }
+            }
 	    }
 
 	    #endregion

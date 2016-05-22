@@ -356,6 +356,14 @@ namespace Fougerite
             }
         }
 
+        public ulong UOwnerID
+        {
+            get
+            {
+                return this._ownerid;
+            }
+        }
+
         public string CreatorID
         {
             get

@@ -1,4 +1,6 @@
-﻿namespace Fougerite
+﻿using System.Timers;
+
+namespace Fougerite
 {
     using uLink;
     using Fougerite.Events;
@@ -57,6 +59,7 @@
         public static event ServerSavedDelegate OnServerSaved;
         public static event ItemPickupDelegate OnItemPickup;
         public static event FallDamageDelegate OnFallDamage;
+        public static event LootEnterDelegate OnLootUse;
         internal static bool IsShuttingDown = false;
 
         public static void BlueprintUse(IBlueprintItem item, BlueprintDataBlock bdb)
@@ -1161,9 +1164,9 @@
                     }
                 }
             }
-            catch (Exception ex)
+            catch //(Exception ex)
             {
-                Logger.LogError("[uLink Error] Full Exception: " + ex);
+                //Logger.LogError("[uLink Error] Full Exception: " + ex);
             }
         }
 
@@ -1328,6 +1331,80 @@
             }
         }
 
+        public static void SetLooter(LootableObject lo, uLink.NetworkPlayer ply)
+        {
+            lo.occupierText = null;
+            if (ply == uLink.NetworkPlayer.unassigned)
+            {
+                lo.ClearLooter();
+            }
+            else
+            {
+                if (ply == NetCull.player)
+                {
+                    if (!lo.thisClientIsInWindow)
+                    {
+                        try
+                        {
+                            lo._currentlyUsingPlayer = ply;
+                            RPOS.OpenLootWindow(lo);
+                            lo.thisClientIsInWindow = true;
+                        }
+                        catch (Exception exception)
+                        {
+                            Debug.LogError(exception, lo);
+                            NetCull.RPC((UnityEngine.MonoBehaviour)lo, "StopLooting", uLink.RPCMode.Server);
+                            lo.thisClientIsInWindow = false;
+                            ply = uLink.NetworkPlayer.unassigned;
+                        }
+                    }
+                }
+                else if ((lo._currentlyUsingPlayer == NetCull.player) && (NetCull.player != uLink.NetworkPlayer.unassigned))
+                {
+                    lo.ClearLooter();
+                }
+                lo._currentlyUsingPlayer = ply;
+            }
+
+        }
+
+        public static void OnUseEnter(LootableObject lo, Useable use)
+        {
+            var ulinkuser = uLink.NetworkView.Get((UnityEngine.MonoBehaviour) use.user).owner;
+            NetUser user = ulinkuser.GetLocalData() as NetUser;
+            if (user != null)
+            {
+                if (Fougerite.Server.Cache.ContainsKey(user.userID))
+                {
+                    Fougerite.Player pl = Fougerite.Server.Cache[user.userID];
+                    LootStartEvent lt = new LootStartEvent(lo, pl, use, ulinkuser);
+                    try
+                    {
+                        if (OnLootUse != null)
+                        {
+                            OnLootUse(lt);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError("LootStartEvent Error: " + ex);
+                    }
+                    
+                    if (lt.IsCancelled)
+                    {
+                        return;
+                    }
+                }
+            }
+            lo._useable = use;
+            lo._currentlyUsingPlayer = ulinkuser;
+            lo._inventory.AddNetListener(lo._currentlyUsingPlayer);
+            lo.SendCurrentLooter();
+            lo.CancelInvokes();
+            lo.InvokeRepeating("RadialCheck", 0f, 10f);
+
+        }
+
         public static void RPCFix(Class48 c48, Class5 class5_0, uLink.NetworkPlayer networkPlayer_1)
         {
             Class56 class2 = c48.method_270(networkPlayer_1);
@@ -1390,6 +1467,65 @@
                 //NetworkLog.Error<string, string, uLink.NetworkPlayer, string>(NetworkLogFlags.BadMessage | NetworkLogFlags.RPC, "Private RPC ", (class5_0.method_11() ? class5_0.string_0 : ("(internal RPC " + class5_0.enum0_0 + ")")) + " was not sent because a connection to ", class5_0.networkPlayer_1, " was not found!");
             }
         }
+
+        /*public static bool EjectHandler(Useable ue)
+        {
+            UseExitReason manual;
+            Useable.EnsureServer();
+            if (((int)ue.callState) != 0)
+            {
+                if (((int)ue.callState) != 4)
+                {
+                    //Debug.LogWarning("Some how Eject got called from a call stack originating with " + ue.callState + " fix your script to not do this.", ue);
+                    //return false;
+                }
+                manual = UseExitReason.Manual;
+            }
+            else
+            {
+                manual = !ue.inDestroy ? (!ue.inKillCallback ? UseExitReason.Forced : UseExitReason.Killed) : UseExitReason.Destroy;
+            }
+            if (ue._user != null)
+            {
+                try
+                {
+                    if (ue.implementation != null)
+                    {
+                        var usea = ue.implementation as IUseable;
+                        try
+                        {
+                            ue.callState = FunctionCallState.Eject;
+                            if (usea != null) usea.OnUseExit(ue, manual);
+                        }
+                        finally
+                        {
+                            try
+                            {
+                                ue.InvokeUseExitCallback();
+                            }
+                            finally
+                            {
+                                ue.callState = FunctionCallState.None;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        /*Debug.LogError(
+                            "The IUseable has been destroyed with a user on it. IUseable should ALWAYS call UseableUtility.OnDestroy within the script's OnDestroy message first thing! " 
+                            + ue.gameObject, ue);
+                    }
+                    return true;
+                }
+                finally
+                {
+                    ue.UnlatchUse();
+                    ue._user = null;
+                }
+            }
+            return false;
+
+        }*/
 
         public static void ResetHooks()
         {
@@ -1520,6 +1656,9 @@
             OnFallDamage = delegate(FallDamageEvent param0)
             {
             };
+            OnLootUse = delegate (LootStartEvent param0)
+            {
+            };
             /*OnAirdropCrateDropped = delegate (GameObject param0)
             {
             };*/
@@ -1639,6 +1778,7 @@
         public delegate void ServerSavedDelegate();
         public delegate void ItemPickupDelegate(ItemPickupEvent itemPickupEvent);
         public delegate void FallDamageDelegate(FallDamageEvent fallDamageEvent);
+        public delegate void LootEnterDelegate(LootStartEvent lootStartEvent);
 
         //public delegate void AirdropCrateDroppedDelegate(GameObject go);
     }

@@ -302,6 +302,11 @@ namespace MoonSharpModule
             Invoke("On_PluginShutdown", new object[0]);
         }
 
+        public void OnLootUse(LootStartEvent le)
+        {
+            Invoke("On_LootUse", new object[] { le });
+        }
+
         public void OnTimerCB(MoonSharpTE evt)
         {
             if (Globals.Contains(evt.Name + "Callback"))

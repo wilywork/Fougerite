@@ -20,10 +20,10 @@ namespace RustPP.Commands
                 if (ChatArguments[0] == "urgent")
                 {
                     Fougerite.Server.GetServer().BroadcastFrom(Core.Name, "Server Shutdown NOW!");
-                    Process.GetCurrentProcess().Kill();
-                    return;
+                    UnityEngine.Application.Quit();
+                    //Process.GetCurrentProcess().Kill();
                 }
-                if (ChatArguments[0] == "safeurgent")
+                else if (ChatArguments[0] == "safeurgent")
                 {
                     Fougerite.Server.GetServer().BroadcastFrom(Core.Name, "Saving Server...");
                     AvatarSaveProc.SaveAll();
@@ -34,8 +34,12 @@ namespace RustPP.Commands
                     _timer = new Timer(TriggerTime * 1000);
                     _timer.Elapsed += Trigger;
                     _timer.Start();
-                    return;
                 }
+                else if (ChatArguments[0] == "kill")
+                {
+                    Process.GetCurrentProcess().Kill();
+                }
+                return;
             }
             StartShutdown();
         }
@@ -64,17 +68,15 @@ namespace RustPP.Commands
             if (Time >= ShutdownTime)
             {
                 _timer.Dispose();
-                Loom.QueueOnMainThread(() => {
-                    Fougerite.Server.GetServer().BroadcastFrom(Core.Name, "Saving Server...");
-                    AvatarSaveProc.SaveAll();
-                    ServerSaveManager.AutoSave();
-                    Helper.CreateSaves();
-                    Fougerite.Server.GetServer().BroadcastFrom(Core.Name, "Saved Server Data!");
-                    Fougerite.Server.GetServer().BroadcastFrom(Core.Name, "Server shutdown in 5 seconds!");
-                    _timer2 = new Timer(5000);
-                    _timer2.Elapsed += Trigger2;
-                    _timer2.Start();
-                });
+                Fougerite.Server.GetServer().BroadcastFrom(Core.Name, "Saving Server...");
+                AvatarSaveProc.SaveAll();
+                ServerSaveManager.AutoSave();
+                Helper.CreateSaves();
+                Fougerite.Server.GetServer().BroadcastFrom(Core.Name, "Saved Server Data!");
+                Fougerite.Server.GetServer().BroadcastFrom(Core.Name, "Server shutdown in 5 seconds!");
+                _timer2 = new Timer(5000);
+                _timer2.Elapsed += Trigger2;
+                _timer2.Start();
             }
             else
             {
@@ -86,10 +88,8 @@ namespace RustPP.Commands
         {
             Fougerite.Server.GetServer().BroadcastFrom(Core.Name, "Server Shutdown NOW!");
             _timer2.Dispose();
-            Loom.QueueOnMainThread(() => {
-                UnityEngine.Application.Quit();
-                //Process.GetCurrentProcess().Kill();
-            });
+            UnityEngine.Application.Quit();
+            //Process.GetCurrentProcess().Kill();
         }
     }
 }

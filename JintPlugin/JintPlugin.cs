@@ -285,7 +285,10 @@ namespace JintModule
                     Hooks.OnItemPickup += OnItemPickup;
                     break;
                 case "On_FallDamage":
-                    Hooks.OnFallDamage -= OnFallDamage;
+                    Hooks.OnFallDamage += OnFallDamage;
+                    break;
+                case "On_LootUse":
+                    Hooks.OnLootUse += OnLootUse;
                     break;
                 }
             }
@@ -414,6 +417,9 @@ namespace JintModule
                     break;
                 case "On_FallDamage":
                     Hooks.OnFallDamage -= OnFallDamage;
+                    break;
+                case "On_LootUse":
+                    Hooks.OnLootUse -= OnLootUse;
                     break;
                 }
             }
@@ -888,6 +894,11 @@ namespace JintModule
         public void OnItemPickup(ItemPickupEvent e)
         {
             Invoke("On_ItemPickup", e);
+        }
+
+        public void OnLootUse(LootStartEvent le)
+        {
+            Invoke("On_LootUse", le);
         }
 
         public void OnPluginShutdown()

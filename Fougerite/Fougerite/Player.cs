@@ -142,6 +142,11 @@ namespace Fougerite
             this.justDied = false;
         }
 
+        public void Disconnect()
+        {
+            Disconnect(true);
+        }
+
         public void Disconnect(bool SendNotification = true)
         {
             if (this.IsOnline)
@@ -157,7 +162,7 @@ namespace Fougerite
                     return;
                 }
                 Server.GetServer().RemovePlayer(uid);
-                this.ourPlayer.netUser.Kick(NetError.Facepunch_Kick_RCON, SendNotification);
+                this.ourPlayer.netUser.Kick(NetError.Facepunch_Kick_RCON, false);
             }
         }
 
@@ -1091,6 +1096,101 @@ namespace Fougerite
                             where this.UID == (f.GetComponent<DeployableObject>() as DeployableObject).ownerID
                             select f;
                 return QueryToEntity<FireBarrel>(query);
+            }
+        }
+
+        public bool IsOnGround
+        {
+            get
+            {
+                Vector3 lastPosition = Location;
+                bool cachedBoolean;
+                RaycastHit cachedRaycast;
+                Facepunch.MeshBatch.MeshBatchInstance cachedhitInstance;
+
+                if (lastPosition == Vector3.zero) return true;
+                if (!Facepunch.MeshBatch.MeshBatchPhysics.Raycast(lastPosition + new Vector3(0f, -1.15f, 0f), new Vector3(0f, -1f, 0f),
+                        out cachedRaycast, out cachedBoolean, out cachedhitInstance))
+                {
+                    return true;
+                }
+                if (cachedhitInstance == null)
+                {
+                    return true;
+                }
+                if (string.IsNullOrEmpty(cachedhitInstance.graphicalModel.ToString()))
+                {
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        public bool IsOnDeployable
+        {
+            get
+            {
+                Vector3 lastPosition = Location;
+                bool cachedBoolean;
+                RaycastHit cachedRaycast;
+                Facepunch.MeshBatch.MeshBatchInstance cachedhitInstance;
+                DeployableObject cachedDeployable;
+                if (lastPosition == Vector3.zero) return false;
+                if (!Facepunch.MeshBatch.MeshBatchPhysics.Raycast(lastPosition + new Vector3(0f, -1.15f, 0f), 
+                    new Vector3(0f, -1f, 0f), out cachedRaycast, out cachedBoolean, out cachedhitInstance))
+                {
+                    return false;
+                }
+                if (cachedhitInstance == null)
+                {
+                    cachedDeployable = cachedRaycast.collider.GetComponent<DeployableObject>();
+                    if (cachedDeployable != null)
+                    {
+                        return true;
+                    }
+                    return false;
+                }
+                if (string.IsNullOrEmpty(cachedhitInstance.graphicalModel.ToString()))
+                {
+                    return false;
+                }
+                return false;
+            }
+        }
+
+        public bool IsInShelter
+        {
+            get
+            {
+                Vector3 lastPosition = Location;
+                bool cachedBoolean;
+                RaycastHit cachedRaycast;
+                Facepunch.MeshBatch.MeshBatchInstance cachedhitInstance;
+                if (lastPosition == Vector3.zero) return false;
+                if (!Facepunch.MeshBatch.MeshBatchPhysics.Raycast(lastPosition + new Vector3(0f, -1.15f, 0f), new Vector3(0f, -1f, 0f), 
+                    out cachedRaycast, out cachedBoolean, out cachedhitInstance))
+                {
+                    return false;
+                }
+                if (cachedhitInstance == null)
+                {
+                    var cachedsack = "Wood_Shelter(Clone)";
+                    var cachedLootableObject = cachedRaycast.collider.gameObject.name;
+                    if (cachedLootableObject == cachedsack)
+                    {
+                        return true;
+                    }
+                    return false;
+                }
+                var cachedsack2 = "Wood_Shelter(Clone)";
+                if (cachedhitInstance.graphicalModel.ToString() == cachedsack2)
+                    return true;
+                if (cachedhitInstance.graphicalModel.ToString().Contains(cachedsack2)) return true;
+                if (string.IsNullOrEmpty(cachedhitInstance.graphicalModel.ToString()))
+                {
+                    return false;
+                }
+                return false;
             }
         }
     }

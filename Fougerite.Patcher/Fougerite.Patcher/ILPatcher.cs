@@ -235,6 +235,52 @@ namespace Fougerite.Patcher
             rustAssembly.Write("Assembly-CSharp.dll");
         }
 
+        private void LooterPatch()
+        {
+            TypeDefinition type = rustAssembly.MainModule.GetType("LootableObject");
+            MethodDefinition ClearLooter = type.GetMethod("ClearLooter");
+            ClearLooter.SetPublic(true);
+            type.GetField("_currentlyUsingPlayer").SetPublic(true);
+            type.GetField("thisClientIsInWindow").SetPublic(true);
+            type.GetField("occupierText").SetPublic(true);
+            type.GetField("_useable").SetPublic(true);
+            type.GetMethod("SendCurrentLooter").SetPublic(true);
+            type.GetMethod("DestroyInExit").SetPublic(true);
+            type.GetMethod("StopLooting").SetPublic(true);
+
+            MethodDefinition SetLooter = type.GetMethod("SetLooter");
+            MethodDefinition method = hooksClass.GetMethod("SetLooter");
+            ILProcessor iLProcessor = SetLooter.Body.GetILProcessor();
+            iLProcessor.Body.Instructions.Clear();
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, this.rustAssembly.MainModule.Import(method)));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+
+            MethodDefinition OnUseEnter = type.GetMethod("OnUseEnter");
+            MethodDefinition method2 = hooksClass.GetMethod("OnUseEnter");
+            ILProcessor iLProcessor2 = OnUseEnter.Body.GetILProcessor();
+            iLProcessor2.Body.Instructions.Clear();
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, this.rustAssembly.MainModule.Import(method2)));
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+        }
+
+        private void UseablePatch()
+        {
+            TypeDefinition Useable = rustAssembly.MainModule.GetType("Useable");
+            Useable.GetMethod("Refresh").SetPublic(true);
+            Useable.GetMethod("OnDestroy").SetPublic(true);
+            Useable.GetMethod("Update").SetPublic(true);
+            Useable.GetMethod("RunUpdate").SetPublic(true);
+            Useable.GetMethod("LatchUse").SetPublic(true);
+            Useable.GetMethod("Reset").SetPublic(true);
+            Useable.GetField("canUse").SetPublic(true);
+            Useable.GetField("_user").SetPublic(true);
+            Useable.GetField("canUpdate").SetPublic(true);
+        }
+
         private void ResearchPatch()
         {
             TypeDefinition type = rustAssembly.MainModule.GetType("ResearchToolItem`1");
@@ -1290,6 +1336,8 @@ namespace Fougerite.Patcher
                     this.PatchFacePunch();
                     this.ItemPickupHook();
                     this.FallDamageHook();
+                    this.LooterPatch();
+                    this.UseablePatch();
                     //this.RayCastPatch();
                 }
                 catch (Exception ex)
