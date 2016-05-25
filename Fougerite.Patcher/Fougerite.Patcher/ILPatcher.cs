@@ -1166,13 +1166,22 @@ namespace Fougerite.Patcher
         private void ServerSavePatch()
         {
             TypeDefinition type = rustAssembly.MainModule.GetType("ServerSaveManager");
-            MethodDefinition orig = type.GetMethod("Save");
+            rustAssembly.MainModule.GetType("save").IsPublic = true;
             MethodDefinition method = hooksClass.GetMethod("ServerSaved");
 
-            this.CloneMethod(orig);
-            ILProcessor iLProcessor = orig.Body.GetILProcessor();
-            int i = orig.Body.Instructions.Count - 1;
-            iLProcessor.InsertBefore(orig.Body.Instructions[i], Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(method)));
+            type.GetField("_loadedOnce").SetPublic(true);
+            type.GetField("_loading").SetPublic(true);
+            type.GetMethod("DateTimeFileString").SetPublic(true);
+            type.GetMethod("Get").SetPublic(true);
+            type.GetMethod("DoSave").SetPublic(true);
+            type.GetMethod("DateTimeFileString").SetPublic(true);
+
+            MethodDefinition AutoSave = type.GetMethod("AutoSave");
+
+            ILProcessor iLProcessor = AutoSave.Body.GetILProcessor();
+            iLProcessor.Body.Instructions.Clear();
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, this.rustAssembly.MainModule.Import(method)));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
         }
 
         private void PlayerKilledPatch()

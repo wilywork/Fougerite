@@ -45,6 +45,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\bin\Facepunch.MeshBatch.dll</HintPath>
     </Reference>
+    <Reference Include="Google.ProtocolBuffers.Serialization, Version=2.4.1.521, Culture=neutral, PublicKeyToken=55f7125234beb589, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>F:\adt\RustLegacyServer\rust_server_Data\Managed\Google.ProtocolBuffers.Serialization.dll</HintPath>
+    </Reference>
     <Reference Include="RustPP">
       <HintPath>..\bin\modules\RustPP\RustPP.dll</HintPath>
     </Reference>

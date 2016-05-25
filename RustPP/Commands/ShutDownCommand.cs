@@ -88,7 +88,8 @@ namespace RustPP.Commands
         {
             Fougerite.Server.GetServer().BroadcastFrom(Core.Name, "Server Shutdown NOW!");
             _timer2.Dispose();
-            UnityEngine.Application.Quit();
+            Loom.QueueOnMainThread(UnityEngine.Application.Quit);
+            //UnityEngine.Application.Quit();
             //Process.GetCurrentProcess().Kill();
         }
     }

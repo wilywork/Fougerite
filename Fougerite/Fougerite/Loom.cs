@@ -10,11 +10,11 @@ namespace Fougerite
 {
     public class Loom : MonoBehaviour
     {
-        public static int maxThreads = 25;
+        public static int maxThreads = 50;
         private static Loom _current;
         //private int _count;
         internal static int numThreads;
-        internal static bool initialized;
+        internal static bool initialized = false;
 
         public static Loom Current
         {
@@ -36,7 +36,10 @@ namespace Fougerite
             if (!initialized)
             {
                 if (!Application.isPlaying)
+                {
+                    Logger.LogWarning("[Fougerit Loom] Server Is still loading, but a plugin already accessed Loom!");
                     return;
+                }
                 initialized = true;
                 var g = new GameObject("Loom");
                 _current = g.AddComponent<Loom>();
