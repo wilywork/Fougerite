@@ -19,12 +19,14 @@ namespace RustPP.Commands
             {
                 if (ChatArguments[0] == "urgent")
                 {
+                    Fougerite.Hooks.IsShuttingDown = true;
                     Fougerite.Server.GetServer().BroadcastFrom(Core.Name, "Server Shutdown NOW!");
-                    UnityEngine.Application.Quit();
-                    //Process.GetCurrentProcess().Kill();
+                    //UnityEngine.Application.Quit();
+                    Process.GetCurrentProcess().Kill();
                 }
                 else if (ChatArguments[0] == "safeurgent")
                 {
+                    Fougerite.Hooks.IsShuttingDown = true;
                     Fougerite.Server.GetServer().BroadcastFrom(Core.Name, "Saving Server...");
                     AvatarSaveProc.SaveAll();
                     ServerSaveManager.AutoSave();
@@ -34,10 +36,6 @@ namespace RustPP.Commands
                     _timer = new Timer(TriggerTime * 1000);
                     _timer.Elapsed += Trigger;
                     _timer.Start();
-                }
-                else if (ChatArguments[0] == "kill")
-                {
-                    Process.GetCurrentProcess().Kill();
                 }
                 return;
             }
@@ -56,6 +54,7 @@ namespace RustPP.Commands
                 Logger.LogError("[RustPP] Failed to execute shutdown! Invalid config options!");
                 return;
             }
+            Fougerite.Hooks.IsShuttingDown = true;
             Fougerite.Server.GetServer().BroadcastFrom(Core.Name, "Server is shutting down in " + ShutdownTime + " seconds.");
             _timer = new Timer(TriggerTime * 1000);
             _timer.Elapsed += Trigger;
@@ -88,9 +87,9 @@ namespace RustPP.Commands
         {
             Fougerite.Server.GetServer().BroadcastFrom(Core.Name, "Server Shutdown NOW!");
             _timer2.Dispose();
-            Loom.QueueOnMainThread(UnityEngine.Application.Quit);
+            //Loom.QueueOnMainThread(UnityEngine.Application.Quit);
             //UnityEngine.Application.Quit();
-            //Process.GetCurrentProcess().Kill();
+            Process.GetCurrentProcess().Kill();
         }
     }
 }

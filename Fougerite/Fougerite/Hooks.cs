@@ -66,7 +66,7 @@ namespace Fougerite
         public static event ItemPickupDelegate OnItemPickup;
         public static event FallDamageDelegate OnFallDamage;
         public static event LootEnterDelegate OnLootUse;
-        internal static bool IsShuttingDown = false;
+        public static bool IsShuttingDown = false;
 
         public static void BlueprintUse(IBlueprintItem item, BlueprintDataBlock bdb)
         {
@@ -996,10 +996,8 @@ namespace Fougerite
         {
             if (ServerSaveManager._loading)
             {
-                Logger.LogError("1");
                 return false;
             }
-            DataStore.GetInstance().Save();
             string path = ServerSaveManager.autoSavePath;
             try
             {
@@ -1012,9 +1010,9 @@ namespace Fougerite
             {
                 Logger.LogError("ServerSavedEvent Error: " + ex);
             }
+            DataStore.GetInstance().Save();
             if (IsShuttingDown)
             {
-                Logger.LogError("12");
                 SaveAll(path);
                 return true;
             }
@@ -1316,7 +1314,7 @@ namespace Fougerite
                 {
                     if (!srv.IsBannedIP(ip))
                     {
-                        srv.BanPlayerIP(ip, name, "IP is not banned", "Console");
+                        srv.BanPlayerIP(ip, name, "IP is not banned-" + uid.ToString(), "Console");
                         Logger.LogDebug("[FougeriteBan] Detected banned ID, but IP is not banned: "
                                         + name + " - " + ip + " - " + uid);
                     }
@@ -1329,7 +1327,7 @@ namespace Fougerite
                     }
                     if (!srv.IsBannedID(uid.ToString()))
                     {
-                        srv.BanPlayerID(uid.ToString(), name, "ID is not banned", "Console");
+                        srv.BanPlayerID(uid.ToString(), name, "ID is not banned-" + ip, "Console");
                         Logger.LogDebug("[FougeriteBan] Detected banned IP, but ID is not banned: "
                             + name + " - " + ip + " - " + uid);
                     }
@@ -1707,6 +1705,7 @@ namespace Fougerite
         public static void ServerShutdown()
         {
             IsShuttingDown = true;
+            ServerSaveManager.AutoSave();
             try
             {
                 if (OnServerShutdown != null)
@@ -1716,7 +1715,6 @@ namespace Fougerite
             {
                 Logger.LogError("ServerShutdownEvent Error: " + ex.ToString());
             }
-
         }
 
         public static void ServerStarted()

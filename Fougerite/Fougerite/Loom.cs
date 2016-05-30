@@ -37,7 +37,7 @@ namespace Fougerite
             {
                 if (!Application.isPlaying)
                 {
-                    Logger.LogWarning("[Fougerit Loom] Server Is still loading, but a plugin already accessed Loom!");
+                    Logger.LogWarning("[Fougerite Loom] Server Is still loading, but a plugin already accessed Loom!");
                     return;
                 }
                 initialized = true;
