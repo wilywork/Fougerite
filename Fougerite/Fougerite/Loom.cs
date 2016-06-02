@@ -12,7 +12,6 @@ namespace Fougerite
     {
         public static int maxThreads = 50;
         private static Loom _current;
-        //private int _count;
         internal static int numThreads;
         internal static bool initialized = false;
 
@@ -21,13 +20,18 @@ namespace Fougerite
             get
             {
                 Initialize();
+                if (_current == null)
+                {
+                    var g = new GameObject("Loom");
+                    _current = g.AddComponent<Loom>();
+                }
                 return _current;
             }
         }
 
         public void Awake()
         {
-            _current = this;
+            //_current = this;
             initialized = true;
         }
 
@@ -44,7 +48,6 @@ namespace Fougerite
                 var g = new GameObject("Loom");
                 _current = g.AddComponent<Loom>();
             }
-
         }
 
         private List<Action> _actions = new List<Action>();
@@ -70,7 +73,7 @@ namespace Fougerite
                 {
                     lock (Current._delayed)
                     {
-                        Current._delayed.Add(new DelayedQueueItem {time = Time.time + time, action = action});
+                        Current._delayed.Add(new DelayedQueueItem { time = Time.time + time, action = action });
                     }
                 }
                 else
@@ -85,6 +88,13 @@ namespace Fougerite
             {
                 Logger.LogError("[Fougerite Loom Error] " + ex + " - " + Time.time + " - " + time + " - " + action + " - " + Current._actions + " - " + Current._delayed);
             }
+        }
+
+        public static void ExecuteInBiggerStackThread(Action action)
+        {
+            Thread bigStackThread = new Thread(() => action(), 1024 * 1024);
+            bigStackThread.Start();
+            bigStackThread.Join();
         }
 
         public static Thread RunAsync(Action a)
@@ -120,7 +130,6 @@ namespace Fougerite
         {
             if (_current == this)
             {
-
                 _current = null;
             }
         }
