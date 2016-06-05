@@ -625,8 +625,9 @@ namespace Fougerite
             }
             srv.AddPlayer(uid, player);
             //server.Players.Add(player);
-            Rust.Steam.Server.Steam_UpdateServer(server.maxplayers, srv.Players.Count, server.hostname, server.map, "modded, fougerite");
-            try 
+            Rust.Steam.Server.Steam_UpdateServer(server.maxplayers, srv.Players.Count, server.hostname, server.map, "rust,modded,fougerite");
+
+            try
             {
                 if (OnPlayerConnected != null)
                 {
@@ -1058,7 +1059,16 @@ namespace Fougerite
                 {
                     WorldSave.Builder builder = recycler.OpenBuilder();
                     timestamp2 = SystemTimestamp.Restart;
-                    ServerSaveManager.Get(false).DoSave(ref builder);
+                    if (IsShuttingDown)
+                    {
+                        ServerSaveManager.Get(false).DoSave(ref builder);
+                    }
+                    else
+                    {
+                        Loom.QueueOnMainThread(() => {
+                            ServerSaveManager.Get(false).DoSave(ref builder);
+                        });
+                    }
                     timestamp2.Stop();
                     timestamp3 = SystemTimestamp.Restart;
                     fsave = builder.Build();
@@ -1705,7 +1715,7 @@ namespace Fougerite
         public static void ServerShutdown()
         {
             IsShuttingDown = true;
-            ServerSaveManager.AutoSave();
+            //ServerSaveManager.AutoSave();
             try
             {
                 if (OnServerShutdown != null)
