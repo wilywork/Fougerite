@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Timers;
 using Facepunch.Clocks.Counters;
@@ -191,11 +192,29 @@ namespace Fougerite
                     return;
                 }
                 string[] ns = Util.GetUtil().SplitInParts(newchat, 100).ToArray();
+                var arr = Regex.Matches(newchat, @"\[/?color\b.*?\]")
+                        .Cast<Match>()
+                        .Select(m => m.Value)
+                        .ToArray();
+                int i = 0;
+                if (arr.Length == 0)
+                {
+                    arr = new[] {""};
+                }
                 foreach (var x in ns)
                 {
                     Fougerite.Data.GetData().chat_history.Add(x);
                     Fougerite.Data.GetData().chat_history_username.Add(quotedName);
-                    ConsoleNetworker.Broadcast("chat.add " + quotedName + " " + x);
+                    
+                    if (i == 1)
+                    {
+                        ConsoleNetworker.Broadcast("chat.add " + quotedName + " " + '"' + arr[arr.Length - 1] + x);
+                    }
+                    else
+                    {
+                        ConsoleNetworker.Broadcast("chat.add " + quotedName + " " + x + '"');
+                    }
+                    i++;
                 }
             }
         }
@@ -1059,16 +1078,7 @@ namespace Fougerite
                 {
                     WorldSave.Builder builder = recycler.OpenBuilder();
                     timestamp2 = SystemTimestamp.Restart;
-                    if (IsShuttingDown)
-                    {
-                        ServerSaveManager.Get(false).DoSave(ref builder);
-                    }
-                    else
-                    {
-                        Loom.QueueOnMainThread(() => {
-                            ServerSaveManager.Get(false).DoSave(ref builder);
-                        });
-                    }
+                    ServerSaveManager.Get(false).DoSave(ref builder);
                     timestamp2.Stop();
                     timestamp3 = SystemTimestamp.Restart;
                     fsave = builder.Build();
@@ -1494,6 +1504,12 @@ namespace Fougerite
         {
             var ulinkuser = uLink.NetworkView.Get((UnityEngine.MonoBehaviour) use.user).owner;
             NetUser user = ulinkuser.GetLocalData() as NetUser;
+            lo._useable = use;
+            lo._currentlyUsingPlayer = ulinkuser;
+            lo._inventory.AddNetListener(lo._currentlyUsingPlayer);
+            lo.SendCurrentLooter();
+            lo.CancelInvokes();
+            lo.InvokeRepeating("RadialCheck", 0f, 10f);
             if (user != null)
             {
                 if (Fougerite.Server.Cache.ContainsKey(user.userID))
@@ -1512,19 +1528,12 @@ namespace Fougerite
                         Logger.LogError("LootStartEvent Error: " + ex);
                     }
                     
-                    if (lt.IsCancelled)
+                    /*if (lt.IsCancelled)
                     {
                         return;
-                    }
+                    }*/
                 }
             }
-            lo._useable = use;
-            lo._currentlyUsingPlayer = ulinkuser;
-            lo._inventory.AddNetListener(lo._currentlyUsingPlayer);
-            lo.SendCurrentLooter();
-            lo.CancelInvokes();
-            lo.InvokeRepeating("RadialCheck", 0f, 10f);
-
         }
 
         public static void RPCFix(Class48 c48, Class5 class5_0, uLink.NetworkPlayer networkPlayer_1)

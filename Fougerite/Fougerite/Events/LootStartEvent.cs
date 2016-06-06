@@ -54,16 +54,16 @@ namespace Fougerite.Events
             {
                 _cancel = true;
                 if (_delayer != null) return;
-                _lo._useable = _ue;
+                /*_lo._useable = _ue;
                 _lo._currentlyUsingPlayer = _np;
                 _lo._inventory.AddNetListener(_lo._currentlyUsingPlayer);
                 _lo.SendCurrentLooter();
                 _lo.CancelInvokes();
-                _lo.InvokeRepeating("RadialCheck", 0f, 10f);
+                _lo.InvokeRepeating("RadialCheck", 0f, 10f);*/
                 _originaloc = _lo.transform.position;
-                _lo.transform.position = new Vector3(_originaloc.x + 10f, _originaloc.y, _originaloc.z + 10f);
+                _lo.transform.position = new Vector3(_originaloc.x + 5.5f, _originaloc.y, _originaloc.z + 5.5f);
                 // Timer is required, Useable.Eject doesn't allow us to work properly so we will hax with locations
-                _delayer = new Timer(200);
+                _delayer = new Timer(100);
                 _delayer.Elapsed += LootCancelTimer;
                 _delayer.Start();
             }

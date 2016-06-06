@@ -280,9 +280,31 @@ namespace Fougerite
                     this.SendCommand("chat.add " + Facepunch.Utility.String.QuoteSafe(Fougerite.Server.GetServer().server_message_name) + " " + Facepunch.Utility.String.QuoteSafe(arg));
                 }
                 else
-                { 
+                {
+                    var arr = Regex.Matches(arg, @"\[/?color\b.*?\]")
+                        .Cast<Match>()
+                        .Select(m => m.Value)
+                        .ToArray();
+                    string lastcolor = "";
+                    if (arr.Length > 0)
+                    {
+                        lastcolor = arr[arr.Length - 1];
+                    }
+                    int i = 0;
                     foreach (var x in Util.GetUtil().SplitInParts(arg, 100))
-                        this.SendCommand("chat.add " + Facepunch.Utility.String.QuoteSafe(Fougerite.Server.GetServer().server_message_name) + " " + Facepunch.Utility.String.QuoteSafe(x));
+                    {
+                        if (i == 1)
+                        {
+                            this.SendCommand("chat.add " + Facepunch.Utility.String.QuoteSafe(Fougerite.Server.GetServer().server_message_name) + " " + Facepunch.Utility.String.QuoteSafe(lastcolor + x));
+                        }
+                        else
+                        {
+                            this.SendCommand("chat.add " + Facepunch.Utility.String.QuoteSafe(Fougerite.Server.GetServer().server_message_name) + " " + Facepunch.Utility.String.QuoteSafe(x));
+                        }
+                        i++;
+                    }
+                    //foreach (var x in Util.GetUtil().SplitInParts(arg, 100))
+                    //    this.SendCommand("chat.add " + lastcolor + Facepunch.Utility.String.QuoteSafe(Fougerite.Server.GetServer().server_message_name) + " " + Facepunch.Utility.String.QuoteSafe(x));
                 }
             }
         }
@@ -299,9 +321,29 @@ namespace Fougerite
                     this.SendCommand("chat.add " + Facepunch.Utility.String.QuoteSafe(playername) + " " + Facepunch.Utility.String.QuoteSafe(arg));
                 }
                 else
-                { 
+                {
+                    var arr = Regex.Matches(arg, @"\[/?color\b.*?\]")
+                        .Cast<Match>()
+                        .Select(m => m.Value)
+                        .ToArray();
+                    string lastcolor = "";
+                    if (arr.Length > 0)
+                    {
+                        lastcolor = arr[arr.Length - 1];
+                    }
+                    int i = 0;
                     foreach (var x in Util.GetUtil().SplitInParts(arg, 100))
-                        this.SendCommand("chat.add " + Facepunch.Utility.String.QuoteSafe(playername) + " " + Facepunch.Utility.String.QuoteSafe(x));
+                    {
+                        if (i == 1)
+                        {
+                            this.SendCommand("chat.add " + Facepunch.Utility.String.QuoteSafe(playername) + " " + Facepunch.Utility.String.QuoteSafe(lastcolor + x));
+                        }
+                        else
+                        {
+                            this.SendCommand("chat.add " + Facepunch.Utility.String.QuoteSafe(playername) + " " + Facepunch.Utility.String.QuoteSafe(x));
+                        }
+                        i++;
+                    }
                 }
             }
         }
