@@ -367,7 +367,7 @@ namespace Fougerite
                     BinaryFormatter formatter = new BinaryFormatter();
                     formatter.Serialize(stream, storage);
                 }
-                Logger.LogDebug("[DataStore] Saved!");
+                Logger.Log("[DataStore] Saved!");
             }
             catch (Exception ex)
             {

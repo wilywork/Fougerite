@@ -1168,6 +1168,15 @@ namespace Fougerite
             }
         }
 
+        public bool IsNearStructure
+        {
+            get
+            {
+                var x = Physics.OverlapSphere(Location, 3.5f);
+                return x.Any(hit => hit.collider.gameObject.name.Contains("__MESHBATCH_PHYSICAL_OUTPUT"));
+            }
+        }
+
         public bool IsOnDeployable
         {
             get

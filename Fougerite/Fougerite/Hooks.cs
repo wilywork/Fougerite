@@ -1555,15 +1555,15 @@ namespace Fougerite
                         Fougerite.Player player = Fougerite.Server.Cache[user.userID];
                         if (player != null)
                         {
-                            Logger.LogWarning("[Fougerite uLink] Detected RPC Failing Player: " + player.Name + "-" +
+                            Logger.LogDebug("[Fougerite uLink] Detected RPC Failing Player: " + player.Name + "-" +
                                               player.SteamID + " Trying to kick...");
                             if (player.IsOnline)
                             {
                                 player.Disconnect(false);
-                                Logger.LogWarning("[Fougerite uLink] Should be kicked!");
+                                Logger.LogDebug("[Fougerite uLink] Should be kicked!");
                                 return; // Return to avoid the RPC Logging
                             }
-                            Logger.LogWarning("[Fougerite uLink] Server says It's offline. Not touching.");
+                            Logger.LogDebug("[Fougerite uLink] Server says It's offline. Not touching.");
                         }
                     }
                     else
@@ -1724,6 +1724,7 @@ namespace Fougerite
         public static void ServerShutdown()
         {
             IsShuttingDown = true;
+            DataStore.GetInstance().Save();
             //ServerSaveManager.AutoSave();
             try
             {
