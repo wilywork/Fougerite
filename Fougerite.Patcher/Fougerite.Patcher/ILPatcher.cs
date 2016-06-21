@@ -365,6 +365,11 @@ namespace Fougerite.Patcher
             TypeDefinition ITEM_TYPE = BulletWeaponDataBlock.GetNestedType("ITEM_TYPE");
             ITEM_TYPE.IsPublic = true;
             ITEM_TYPE.IsSealed = false;
+            foreach (var x in ITEM_TYPE.GetMethods())
+            {
+                ITEM_TYPE.GetMethod(x.Name).SetPublic(true);
+            }
+
             TypeDefinition IBulletWeaponItem = rustAssembly.MainModule.GetType("IBulletWeaponItem");
             IBulletWeaponItem.GetProperty("cachedCasings").GetMethod.SetPublic(true);
             IBulletWeaponItem.GetProperty("cachedCasings").SetMethod.SetPublic(true);
@@ -1231,6 +1236,39 @@ namespace Fougerite.Patcher
             WrapMethod(CloseConnection, logex, rustAssembly, false);
         }
 
+        private void ShootPatch()
+        {
+            TypeDefinition BulletWeaponDataBlock = rustAssembly.MainModule.GetType("BulletWeaponDataBlock");
+            MethodDefinition DoAction1 = BulletWeaponDataBlock.GetMethod("DoAction1");
+
+            MethodDefinition method = hooksClass.GetMethod("ShootEvent");
+            Logger.Log(DoAction1.Body.Instructions.Count.ToString());
+            int i = DoAction1.Body.Instructions.Count - 60;
+            ILProcessor iLProcessor = DoAction1.Body.GetILProcessor();
+            iLProcessor.InsertBefore(DoAction1.Body.Instructions[i], Instruction.Create(OpCodes.Call, this.rustAssembly.MainModule.Import(method)));
+            iLProcessor.InsertBefore(DoAction1.Body.Instructions[i], Instruction.Create(OpCodes.Ldloc_S, DoAction1.Body.Variables[10]));
+            iLProcessor.InsertBefore(DoAction1.Body.Instructions[i], Instruction.Create(OpCodes.Ldarg_3));
+            iLProcessor.InsertBefore(DoAction1.Body.Instructions[i], Instruction.Create(OpCodes.Ldarg_2));
+            iLProcessor.InsertBefore(DoAction1.Body.Instructions[i], Instruction.Create(OpCodes.Ldloc_0));
+            iLProcessor.InsertBefore(DoAction1.Body.Instructions[i], Instruction.Create(OpCodes.Ldarg_0));
+        }
+
+        private void BowShootPatch()
+        {
+            TypeDefinition BowWeaponDataBlock = rustAssembly.MainModule.GetType("BowWeaponDataBlock");
+            MethodDefinition DoAction1 = BowWeaponDataBlock.GetMethod("DoAction1");
+
+            MethodDefinition method = hooksClass.GetMethod("BowShootEvent");
+
+            int i = DoAction1.Body.Instructions.Count - 1;
+            ILProcessor iLProcessor = DoAction1.Body.GetILProcessor();
+            iLProcessor.InsertBefore(DoAction1.Body.Instructions[i], Instruction.Create(OpCodes.Call, this.rustAssembly.MainModule.Import(method)));
+            iLProcessor.InsertBefore(DoAction1.Body.Instructions[i], Instruction.Create(OpCodes.Ldloc_0));
+            iLProcessor.InsertBefore(DoAction1.Body.Instructions[i], Instruction.Create(OpCodes.Ldarg_3));
+            iLProcessor.InsertBefore(DoAction1.Body.Instructions[i], Instruction.Create(OpCodes.Ldarg_2));
+            iLProcessor.InsertBefore(DoAction1.Body.Instructions[i], Instruction.Create(OpCodes.Ldarg_0));
+        }
+
         public bool FirstPass()
         {
             try
@@ -1347,6 +1385,8 @@ namespace Fougerite.Patcher
                     this.FallDamageHook();
                     this.LooterPatch();
                     this.UseablePatch();
+                    this.ShootPatch();
+                    this.BowShootPatch();
                     //this.RayCastPatch();
                 }
                 catch (Exception ex)

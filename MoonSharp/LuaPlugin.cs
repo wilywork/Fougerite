@@ -57,25 +57,23 @@ namespace MoonSharpModule
             Tables = script.Globals;
         }
 
-        public void Invoke(string func, params object[] obj)
+        public object Invoke(string func, params object[] obj)
         {
             try
             {
                 DynValue luaFactFunction = script.Globals.Get(func);
                 if (luaFactFunction != null)
                 {
-                    script.Call(luaFactFunction, obj);
+                    return script.Call(luaFactFunction, obj);
                 }
-                else
-                {
-                    Fougerite.Logger.LogError("[MoonSharp] Function: " + func + " not found in plugin: " + Name);
-                }
+                Fougerite.Logger.LogDebug("[MoonSharp] Function: " + func + " not found in plugin: " + Name);
             }
             catch (Exception ex)
             {
                 Fougerite.Logger.LogError("[MoonSharp] Error in plugin " + Name + ":");
                 Fougerite.Logger.LogError("[MoonSharp] Invoke failed: " + ex.ToString());
             }
+            return null;
         }
 
         public void OnTablesLoaded(Dictionary<string, LootSpawnList> tables)

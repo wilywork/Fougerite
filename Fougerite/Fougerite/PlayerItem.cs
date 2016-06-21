@@ -142,7 +142,7 @@ namespace Fougerite
                     _IsWeapon = false;
                     return;
                 }
-                
+                //Weapon.ConstructItem().;
             }
 
             public bool IsWeapon

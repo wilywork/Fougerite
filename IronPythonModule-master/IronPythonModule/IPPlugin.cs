@@ -64,17 +64,21 @@ namespace IronPythonModule {
             Version = vr == null ? "1.0" : vr.ToString();
         }
 
-		public void Invoke(string func, params object[] obj) {
+		public object Invoke(string func, params object[] obj)
+        {
 			try
             {
-				if (Globals.Contains(func))
-					Engine.Operations.InvokeMember(Class, func, obj);
-				else
-					Fougerite.Logger.LogDebug("[IronPython] Function: " + func + " not found in plugin: " + Name);
-			} catch (Exception ex) {
+                if (Globals.Contains(func))
+                {
+                    return Engine.Operations.InvokeMember(Class, func, obj);
+                }
+                Fougerite.Logger.LogDebug("[IronPython] Function: " + func + " not found in plugin: " + Name);
+			}
+            catch (Exception ex) {
                 Fougerite.Logger.LogError("[IronPython] Error in plugin " + Name + ":");
 				Fougerite.Logger.LogError(Engine.GetService<ExceptionOperations>().FormatException(ex));
 			}
+		    return null;
 		}
 
 		#region file operations

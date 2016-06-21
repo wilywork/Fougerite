@@ -275,8 +275,10 @@ namespace Fougerite
         {
             if (this.datastore.Count != 0)
             {
+                Logger.Log("[DataStore] Saving...");
                 Util.HashtableToFile(this.datastore, PATH);
                 Util.GetUtil().ConsoleLog("Fougerite DataStore Saved", false);
+                Logger.Log("[DataStore] Saved!");
             }
         }
 

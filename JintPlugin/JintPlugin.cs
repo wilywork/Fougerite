@@ -59,9 +59,9 @@ namespace JintModule
             object author = GetGlobalObject("Author");
             object about = GetGlobalObject("About");
             object version = GetGlobalObject("Version");
-            Author = author == null ? "Unknown" : author.ToString();
-            About = about == null ? "" : about.ToString();
-            Version = version == null ? "1.0" : version.ToString();
+            Author = author == null || author == "undefined" ? "Unknown" : author.ToString();
+            About = about == null || about == "undefined" ? "" : about.ToString();
+            Version = version == null || version == "undefined" ? "1.0" : version.ToString();
             Logger.LogDebug(string.Format("{0} AllowClr for Assemblies: {1} {2} {3}", brktname,
                 typeof(UnityEngine.GameObject).Assembly.GetName().Name,
                 typeof(uLink.NetworkPlayer).Assembly.GetName().Name,
@@ -135,18 +135,19 @@ namespace JintModule
             return Directory.GetFiles(path).Select(p => new IniParser(p)).ToList();
         }
 
-        internal void Invoke(string func, params object[] obj)
+        public object Invoke(string func, params object[] obj)
         {
             try
             {
                 if (FunctionNames.Contains(func))
                 { 
-                    Engine.Invoke(func, obj);
+                    return Engine.Invoke(func, obj);
                 }
             } catch (Exception ex) {
                 Logger.LogError(string.Format("{0} Error invoking function {1} in {2} plugin.", brktname, func, Name));
                 Logger.LogException(ex);
             }
+            return null;
         }
 
         public object GetGlobalObject(string identifier)

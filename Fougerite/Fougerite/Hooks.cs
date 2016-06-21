@@ -67,6 +67,8 @@ namespace Fougerite
         public static event ItemPickupDelegate OnItemPickup;
         public static event FallDamageDelegate OnFallDamage;
         public static event LootEnterDelegate OnLootUse;
+        public static event ShootEventDelegate OnShoot;
+        public static event BowShootEventDelegate OnBowShoot;
         public static bool IsShuttingDown = false;
 
         public static void BlueprintUse(IBlueprintItem item, BlueprintDataBlock bdb)
@@ -1012,12 +1014,45 @@ namespace Fougerite
             }
         }
 
+        public static void ShootEvent(BulletWeaponDataBlock db, GameObject obj2, ItemRepresentation rep, ref uLink.NetworkMessageInfo info, IBulletWeaponItem bwi)
+        {
+            try
+            {
+                if (OnShoot != null)
+                {
+                    ShootEvent se = new ShootEvent(db, obj2, rep, info, bwi);
+                    OnShoot(se);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("ShootEvent Error: " + ex);
+            }
+        }
+
+        public static void BowShootEvent(BowWeaponDataBlock db, ItemRepresentation rep, ref uLink.NetworkMessageInfo info, IBowWeaponItem bwi)
+        {
+            try
+            {
+                if (OnBowShoot != null)
+                {
+                    BowShootEvent se = new BowShootEvent(db, rep, info, bwi);
+                    OnBowShoot(se);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("BowShootEvent Error: " + ex);
+            }
+        }
+
         public static bool ServerSaved()
         {
             if (ServerSaveManager._loading)
             {
                 return false;
             }
+            DataStore.GetInstance().Save();
             string path = ServerSaveManager.autoSavePath;
             try
             {
@@ -1030,7 +1065,6 @@ namespace Fougerite
             {
                 Logger.LogError("ServerSavedEvent Error: " + ex);
             }
-            DataStore.GetInstance().Save();
             if (IsShuttingDown)
             {
                 SaveAll(path);
@@ -1712,6 +1746,12 @@ namespace Fougerite
             OnLootUse = delegate (LootStartEvent param0)
             {
             };
+            OnShoot = delegate (ShootEvent param0)
+            {
+            };
+            OnBowShoot = delegate (BowShootEvent param0)
+            {
+            };
             /*OnAirdropCrateDropped = delegate (GameObject param0)
             {
             };*/
@@ -1833,6 +1873,8 @@ namespace Fougerite
         public delegate void ItemPickupDelegate(ItemPickupEvent itemPickupEvent);
         public delegate void FallDamageDelegate(FallDamageEvent fallDamageEvent);
         public delegate void LootEnterDelegate(LootStartEvent lootStartEvent);
+        public delegate void ShootEventDelegate(ShootEvent shootEvent);
+        public delegate void BowShootEventDelegate(BowShootEvent bowshootEvent);
 
         //public delegate void AirdropCrateDroppedDelegate(GameObject go);
     }

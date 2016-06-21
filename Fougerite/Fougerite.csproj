@@ -31,7 +31,9 @@
   </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
+    <Compile Include="Fougerite\Events\BowShootEvent.cs" />
     <Compile Include="Fougerite\Events\LootStartEvent.cs" />
+    <Compile Include="Fougerite\Events\ShootEvent.cs" />
     <Compile Include="Fougerite\Loom.cs" />
     <Compile Include="Fougerite\ShutdownCatcher.cs" />
     <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">

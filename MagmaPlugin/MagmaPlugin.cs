@@ -43,9 +43,9 @@ namespace MagmaModule
             object author = GetGlobalObject("Author");
             object about = GetGlobalObject("About");
             object version = GetGlobalObject("Version");
-            Author = author == null ? "Unknown" : author.ToString();
-            About = about == null ? "" : about.ToString();
-            Version = version == null ? "1.0" : version.ToString();
+            Author = author == null || author == "undefined" ? "Unknown" : author.ToString();
+            About = about == null || about == "undefined" ? "" : about.ToString();
+            Version = version == null || version == "undefined" ? "1.0" : version.ToString();
         }
 
         public void InitGlobals()
@@ -63,13 +63,13 @@ namespace MagmaModule
             //Engine.SetParameter("SQLite", new Fougerite.SQLite());
         }
 
-        internal void Invoke(string func, params object[] obj)
+        public object Invoke(string func, params object[] obj)
         {
             try
             {
                 if (FunctionNames.Contains(func))
                 {
-                    Engine.CallFunction(func, obj);
+                    return Engine.CallFunction(func, obj);
                 }
             }
             catch (Exception ex)
@@ -77,6 +77,7 @@ namespace MagmaModule
                 Logger.LogError(string.Format("{0} Error invoking function {1} in {2} plugin.", brktname, func, Name));
                 Logger.LogException(ex);
             }
+            return null;
         }
 
         public IEnumerable<FunctionDeclarationStatement> GetSourceCodeGlobalFunctions()
