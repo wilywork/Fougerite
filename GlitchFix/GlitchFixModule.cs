@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.Reflection;
+
 namespace GlitchFix
 {
     using Fougerite;
@@ -21,6 +24,7 @@ namespace GlitchFix
         private Vector3 Vector3Down = new Vector3(0f, -1f, 0f);
         private Vector3 Vector3Up = new Vector3(0f, 1f, 0f);
         private int terrainLayer;
+        //private FieldInfo Weight;
 
         public override string Name
         {
@@ -39,7 +43,7 @@ namespace GlitchFix
 
         public override Version Version
         {
-            get { return new Version("1.4.6");}
+            get { return new Version("1.4.7");}
         }
 
         public override uint Order
@@ -58,6 +62,7 @@ namespace GlitchFix
             RockGlitchKill = Config.GetBoolSetting("Settings", "RockGlitchKill");
             CheckForRampLoot = Config.GetBoolSetting("Settings", "CheckForRampLoot");
             BarricadePillar = Config.GetBoolSetting("Settings", "BarricadePillarGlitchDetection");
+            //Weight = typeof(StructureMaster).GetField("_weightOnMe", (BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic));
             terrainLayer = UnityEngine.LayerMask.GetMask(new string[] { "Static", "Terrain" });
             if (enabled)
             {
@@ -123,47 +128,55 @@ namespace GlitchFix
                     {
                         string name = Entity.Name;
                         var location = Entity.Location;
-                        if (Ramp && Entity.Name.Contains("Ramp"))
+                        if (Ramp)
                         {
-                            StructureComponent[] structurelist =
-                                UnityEngine.Object.FindObjectsOfType(typeof (StructureComponent)) as
-                                    StructureComponent[];
-                            if (structurelist != null &&
-                                structurelist.Where(
-                                    structure =>
-                                        structure.name.Contains("Ramp") &&
-                                        Entity.InstanceID != structure.GetInstanceID())
-                                    .Any(
-                                        structure =>
-                                            (int)
-                                                Math.Round(Vector3.Distance(location,
-                                                    structure.gameObject.transform.position)) == 0))
+                            RaycastHit cachedRaycast;
+                            bool cachedBoolean;
+                            Facepunch.MeshBatch.MeshBatchInstance cachedhitInstance;
+                            if (Facepunch.MeshBatch.MeshBatchPhysics.Raycast(Entity.Location + new Vector3(0f, 0.1f, 0f), Vector3Down, out cachedRaycast, out cachedBoolean, out cachedhitInstance))
                             {
-                                Entity.Destroy();
-                                if (GiveBack && actualplacer.IsOnline)
+                                if (cachedhitInstance != null)
                                 {
-                                    switch (name)
+                                    var cachedComponent = cachedhitInstance.physicalColliderReferenceOnly.GetComponent<StructureComponent>();
+                                    if (cachedComponent.type == StructureComponent.StructureComponentType.Foundation || cachedComponent.type == StructureComponent.StructureComponentType.Ceiling)
                                     {
-                                        case "WoodFoundation":
-                                            name = "Wood Foundation";
-                                            break;
-                                        case "MetalFoundation":
-                                            name = "Metal Foundation";
-                                            break;
-                                        case "WoodRamp":
-                                            name = "Wood Ramp";
-                                            break;
-                                        case "MetalRamp":
-                                            name = "Metal Ramp";
-                                            break;
-                                        case "WoodPillar":
-                                            name = "Wood Pillar";
-                                            break;
-                                        case "MetalPillar":
-                                            name = "Metal Pillar";
-                                            break;
+                                        var weight = cachedComponent._master._weightOnMe;
+                                        int ramps = 0;
+                                        if (weight != null && weight.ContainsKey(cachedComponent))
+                                        {
+                                            ramps += weight[cachedComponent].Count(structure => structure.type == StructureComponent.StructureComponentType.Ramp);
+                                        }
+                                        if (ramps > 1)
+                                        {
+                                            Entity.Destroy();
+                                            if (GiveBack && actualplacer.IsOnline)
+                                            {
+                                                switch (name)
+                                                {
+                                                    case "WoodFoundation":
+                                                        name = "Wood Foundation";
+                                                        break;
+                                                    case "MetalFoundation":
+                                                        name = "Metal Foundation";
+                                                        break;
+                                                    case "WoodRamp":
+                                                        name = "Wood Ramp";
+                                                        break;
+                                                    case "MetalRamp":
+                                                        name = "Metal Ramp";
+                                                        break;
+                                                    case "WoodPillar":
+                                                        name = "Wood Pillar";
+                                                        break;
+                                                    case "MetalPillar":
+                                                        name = "Metal Pillar";
+                                                        break;
+                                                }
+                                                actualplacer.Inventory.AddItem(name, 1);
+                                            }
+                                            return;
+                                        }
                                     }
-                                    actualplacer.Inventory.AddItem(name, 1);
                                 }
                             }
                         }

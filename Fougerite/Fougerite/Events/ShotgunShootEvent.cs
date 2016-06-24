@@ -5,30 +5,30 @@ using System.Text;
 
 namespace Fougerite.Events
 {
-    public class BowShootEvent
+    public class ShotgunShootEvent
     {
-        private readonly BowWeaponDataBlock _bw;
+        private readonly ShotgunDataBlock _bw;
         private readonly Fougerite.Player _player;
         private readonly ItemRepresentation _ir;
         private readonly uLink.NetworkMessageInfo _unmi;
-        private readonly IBowWeaponItem _ibw;
+        private readonly IBulletWeaponItem _ibw;
 
-        public BowShootEvent(BowWeaponDataBlock bw, ItemRepresentation ir, uLink.NetworkMessageInfo ui, IBowWeaponItem ibw)
+        public ShotgunShootEvent(ShotgunDataBlock bw, ItemRepresentation ir, uLink.NetworkMessageInfo ui, IBulletWeaponItem ibw)
         {
             TakeDamage local = ibw.inventory.GetLocal<TakeDamage>();
             _player = Fougerite.Server.Cache[local.GetComponent<Character>().netUser.userID];
             _bw = bw;
-            _ibw = ibw;
             _ir = ir;
+            _ibw = ibw;
             _unmi = ui;
         }
 
-        public void RemoveArrow()
+        public void SetPellets(int pellets)
         {
-            IBowWeaponItem.RemoveArrowInFlight();
+            _bw.numPellets = pellets;
         }
 
-        public IBowWeaponItem IBowWeaponItem
+        public IBulletWeaponItem IBulletWeaponItem
         {
             get { return this._ibw; }
         }
@@ -38,7 +38,7 @@ namespace Fougerite.Events
             get { return this._player; }
         }
 
-        public BowWeaponDataBlock BowWeaponDataBlock
+        public ShotgunDataBlock ShotgunDataBlock
         {
             get { return this._bw; }
         }

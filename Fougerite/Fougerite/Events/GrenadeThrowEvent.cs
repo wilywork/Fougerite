@@ -5,30 +5,27 @@ using System.Text;
 
 namespace Fougerite.Events
 {
-    public class BowShootEvent
+    public class GrenadeThrowEvent
     {
-        private readonly BowWeaponDataBlock _bw;
+        private readonly HandGrenadeDataBlock _bw;
         private readonly Fougerite.Player _player;
+        private readonly UnityEngine.GameObject _go;
         private readonly ItemRepresentation _ir;
         private readonly uLink.NetworkMessageInfo _unmi;
-        private readonly IBowWeaponItem _ibw;
+        private readonly IHandGrenadeItem _ibw;
 
-        public BowShootEvent(BowWeaponDataBlock bw, ItemRepresentation ir, uLink.NetworkMessageInfo ui, IBowWeaponItem ibw)
+        public GrenadeThrowEvent(HandGrenadeDataBlock bw, UnityEngine.GameObject go, ItemRepresentation ir, uLink.NetworkMessageInfo ui, IHandGrenadeItem ibw)
         {
             TakeDamage local = ibw.inventory.GetLocal<TakeDamage>();
             _player = Fougerite.Server.Cache[local.GetComponent<Character>().netUser.userID];
             _bw = bw;
-            _ibw = ibw;
+            _go = go;
             _ir = ir;
+            _ibw = ibw;
             _unmi = ui;
         }
 
-        public void RemoveArrow()
-        {
-            IBowWeaponItem.RemoveArrowInFlight();
-        }
-
-        public IBowWeaponItem IBowWeaponItem
+        public IHandGrenadeItem IHandGrenadeItem
         {
             get { return this._ibw; }
         }
@@ -38,9 +35,14 @@ namespace Fougerite.Events
             get { return this._player; }
         }
 
-        public BowWeaponDataBlock BowWeaponDataBlock
+        public HandGrenadeDataBlock HandGrenadeDataBlock
         {
             get { return this._bw; }
+        }
+
+        public UnityEngine.GameObject GameObject
+        {
+            get { return this._go; }
         }
 
         public ItemRepresentation ItemRepresentation

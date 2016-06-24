@@ -46,8 +46,13 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
-      <HintPath>..\References\Assembly-CSharp.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>..\bin\Assembly-CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Facepunch.HitBox">
+      <HintPath>..\References\Facepunch.HitBox.dll</HintPath>
+    </Reference>
+    <Reference Include="Facepunch.MeshBatch">
+      <HintPath>..\References\Facepunch.MeshBatch.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="UnityEngine">

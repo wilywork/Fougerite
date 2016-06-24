@@ -68,7 +68,9 @@ namespace Fougerite
         public static event FallDamageDelegate OnFallDamage;
         public static event LootEnterDelegate OnLootUse;
         public static event ShootEventDelegate OnShoot;
+        public static event ShotgunShootEventDelegate OnShotgunShoot;
         public static event BowShootEventDelegate OnBowShoot;
+        public static event GrenadeThrowEventDelegate OnGrenadeThrow;
         public static bool IsShuttingDown = false;
 
         public static void BlueprintUse(IBlueprintItem item, BlueprintDataBlock bdb)
@@ -1046,6 +1048,88 @@ namespace Fougerite
             }
         }
 
+        public static void ShotgunShootEvent(ShotgunDataBlock shotgunDataBlock, uLink.BitStream stream, ItemRepresentation rep, ref uLink.NetworkMessageInfo info)
+        {
+            NetCull.VerifyRPC(ref info, false);
+            IBulletWeaponItem found = null;
+            if (rep.Item(out found) && (found.uses > 0))
+            {
+                TakeDamage local = found.inventory.GetLocal<TakeDamage>();
+                if (((local == null) || !local.dead) && found.ValidatePrimaryMessageTime(info.timestamp))
+                {
+                    try
+                    {
+                        if (OnShotgunShoot != null)
+                        {
+                            ShotgunShootEvent se = new ShotgunShootEvent(shotgunDataBlock, rep, info, found);
+                            OnShotgunShoot(se);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError("ShotgunShootEvent Error: " + ex);
+                    }
+                    int count = 1;
+                    found.Consume(ref count);
+                    found.itemRepresentation.ActionStream(1, uLink.RPCMode.AllExceptOwner, stream);
+                    //float bulletRange = shotgunDataBlock.GetBulletRange(rep);
+                    for (int i = 0; i < shotgunDataBlock.numPellets; i++)
+                    {
+                        GameObject obj2;
+                        NetEntityID yid;
+                        IDRemoteBodyPart part;
+                        bool flag;
+                        bool flag2;
+                        bool flag3;
+                        BodyPart part2;
+                        Vector3 vector;
+                        Vector3 vector2;
+                        Transform transform;
+                        shotgunDataBlock.ReadHitInfo(stream, out obj2, out flag, out flag2, out part2, out part, out yid, out transform, out vector, out vector2, out flag3);
+                        if (obj2 != null)
+                        {
+                            shotgunDataBlock.ApplyDamage(obj2, transform, flag3, vector, part2, rep);
+                        }
+                    }
+                    found.TryConditionLoss(0.5f, 0.02f);
+                }
+            }
+        }
+
+        public static void GrenadeEvent(HandGrenadeDataBlock hgd, uLink.BitStream stream, ItemRepresentation rep, ref uLink.NetworkMessageInfo info)
+        {
+            IHandGrenadeItem item;
+            NetCull.VerifyRPC(ref info, false);
+            if (rep.Item<IHandGrenadeItem>(out item) && item.ValidatePrimaryMessageTime(info.timestamp))
+            {
+                rep.ActionStream(1, uLink.RPCMode.AllExceptOwner, stream);
+                Vector3 origin = stream.ReadVector3();
+                Vector3 forward = stream.ReadVector3();
+                GameObject obj2 = hgd.ThrowItem(rep, origin, forward);
+                if (obj2 != null)
+                {
+                    obj2.rigidbody.AddTorque((Vector3)(new Vector3(UnityEngine.Random.Range((float)-1f, (float)1f), UnityEngine.Random.Range((float)-1f, (float)1f), UnityEngine.Random.Range((float)-1f, (float)1f)) * 10f));
+                    try
+                    {
+                        if (OnGrenadeThrow != null)
+                        {
+                            GrenadeThrowEvent se = new GrenadeThrowEvent(hgd, obj2, rep, info, item);
+                            OnGrenadeThrow(se);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError("GrenadeThrowEvent Error: " + ex);
+                    }
+                }
+                int count = 1;
+                if (item.Consume(ref count))
+                {
+                    item.inventory.RemoveItem(item.slot);
+                }
+            }
+        }
+
         public static bool ServerSaved()
         {
             if (ServerSaveManager._loading)
@@ -1752,6 +1836,12 @@ namespace Fougerite
             OnBowShoot = delegate (BowShootEvent param0)
             {
             };
+            OnShotgunShoot = delegate (ShotgunShootEvent param0)
+            {
+            };
+            OnGrenadeThrow = delegate (GrenadeThrowEvent param0)
+            {
+            };
             /*OnAirdropCrateDropped = delegate (GameObject param0)
             {
             };*/
@@ -1874,7 +1964,9 @@ namespace Fougerite
         public delegate void FallDamageDelegate(FallDamageEvent fallDamageEvent);
         public delegate void LootEnterDelegate(LootStartEvent lootStartEvent);
         public delegate void ShootEventDelegate(ShootEvent shootEvent);
+        public delegate void ShotgunShootEventDelegate(ShotgunShootEvent shootEvent);
         public delegate void BowShootEventDelegate(BowShootEvent bowshootEvent);
+        public delegate void GrenadeThrowEventDelegate(GrenadeThrowEvent grenadeThrowEvent);
 
         //public delegate void AirdropCrateDroppedDelegate(GameObject go);
     }

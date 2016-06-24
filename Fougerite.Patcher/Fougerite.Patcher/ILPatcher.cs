@@ -330,6 +330,7 @@ namespace Fougerite.Patcher
 
             TypeDefinition StructureMaster = rustAssembly.MainModule.GetType("StructureMaster");
             StructureMaster.GetField("_structureComponents").SetPublic(true);
+            StructureMaster.GetField("_weightOnMe").SetPublic(true);
 
             TypeDefinition InventoryHolder = rustAssembly.MainModule.GetType("InventoryHolder");
             InventoryHolder.GetField("isPlayerInventory").SetPublic(true);
@@ -1242,7 +1243,6 @@ namespace Fougerite.Patcher
             MethodDefinition DoAction1 = BulletWeaponDataBlock.GetMethod("DoAction1");
 
             MethodDefinition method = hooksClass.GetMethod("ShootEvent");
-            Logger.Log(DoAction1.Body.Instructions.Count.ToString());
             int i = DoAction1.Body.Instructions.Count - 60;
             ILProcessor iLProcessor = DoAction1.Body.GetILProcessor();
             iLProcessor.InsertBefore(DoAction1.Body.Instructions[i], Instruction.Create(OpCodes.Call, this.rustAssembly.MainModule.Import(method)));
@@ -1267,6 +1267,42 @@ namespace Fougerite.Patcher
             iLProcessor.InsertBefore(DoAction1.Body.Instructions[i], Instruction.Create(OpCodes.Ldarg_3));
             iLProcessor.InsertBefore(DoAction1.Body.Instructions[i], Instruction.Create(OpCodes.Ldarg_2));
             iLProcessor.InsertBefore(DoAction1.Body.Instructions[i], Instruction.Create(OpCodes.Ldarg_0));
+        }
+
+        private void ShotgunShootPatch()
+        {
+            TypeDefinition ShotgunDataBlock = rustAssembly.MainModule.GetType("ShotgunDataBlock");
+            MethodDefinition DoAction1 = ShotgunDataBlock.GetMethod("DoAction1");
+            rustAssembly.MainModule.GetType("BulletWeaponDataBlock").GetMethod("ReadHitInfo").SetPublic(true);
+            rustAssembly.MainModule.GetType("BulletWeaponDataBlock").GetMethod("ApplyDamage").SetPublic(true);
+
+            MethodDefinition method = hooksClass.GetMethod("ShotgunShootEvent");
+
+            ILProcessor iLProcessor = DoAction1.Body.GetILProcessor();
+            iLProcessor.Body.Instructions.Clear();
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_3));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(method)));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+        }
+
+        private void GrenadePatch()
+        {
+            TypeDefinition HandGrenadeDataBlock = rustAssembly.MainModule.GetType("HandGrenadeDataBlock");
+            MethodDefinition DoAction1 = HandGrenadeDataBlock.GetMethod("DoAction1");
+
+            MethodDefinition method = hooksClass.GetMethod("GrenadeEvent");
+
+            ILProcessor iLProcessor = DoAction1.Body.GetILProcessor();
+            iLProcessor.Body.Instructions.Clear();
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_3));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(method)));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
         }
 
         public bool FirstPass()
@@ -1387,7 +1423,8 @@ namespace Fougerite.Patcher
                     this.UseablePatch();
                     this.ShootPatch();
                     this.BowShootPatch();
-                    //this.RayCastPatch();
+                    this.ShotgunShootPatch();
+                    this.GrenadePatch();
                 }
                 catch (Exception ex)
                 {

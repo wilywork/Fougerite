@@ -17,7 +17,7 @@ namespace Fougerite.Events
         public ShootEvent(BulletWeaponDataBlock bw, UnityEngine.GameObject go, ItemRepresentation ir, uLink.NetworkMessageInfo ui, IBulletWeaponItem ibw)
         {
             TakeDamage local = ibw.inventory.GetLocal<TakeDamage>();
-            this._player = Fougerite.Server.Cache[local.GetComponent<Character>().netUser.userID];
+            _player = Fougerite.Server.Cache[local.GetComponent<Character>().netUser.userID];
             _bw = bw;
             _go = go;
             _ir = ir;
