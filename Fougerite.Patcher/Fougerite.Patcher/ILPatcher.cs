@@ -1305,6 +1305,19 @@ namespace Fougerite.Patcher
             iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
         }
 
+        /*private void CCMotorPatch()
+        {
+            TypeDefinition CCMotor = rustAssembly.MainModule.GetType("CCMotor");
+            MethodDefinition ApplyGravityAndJumping = CCMotor.GetMethod("ApplyGravityAndJumping");
+
+            MethodDefinition method = hooksClass.GetMethod("Jump");
+
+            int i = 0;
+            ILProcessor iLProcessor = ApplyGravityAndJumping.Body.GetILProcessor();
+            iLProcessor.InsertBefore(ApplyGravityAndJumping.Body.Instructions[i], Instruction.Create(OpCodes.Call, this.rustAssembly.MainModule.Import(method)));
+            iLProcessor.InsertBefore(ApplyGravityAndJumping.Body.Instructions[i], Instruction.Create(OpCodes.Ldarg_0));
+        }*/
+
         public bool FirstPass()
         {
             try

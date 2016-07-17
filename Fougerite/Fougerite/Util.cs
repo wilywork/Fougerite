@@ -16,7 +16,7 @@ namespace Fougerite
 
     public class Util
     {
-        private Dictionary<string, System.Type> typeCache = new Dictionary<string, System.Type>();
+        private readonly Dictionary<string, System.Type> typeCache = new Dictionary<string, System.Type>();
         private static Util util;
 
         public static readonly string[] UStackable = new string[]
@@ -33,6 +33,36 @@ namespace Fougerite
             "Cloth Boots", "Leather Boots", "Rad Suit Boots", "Kevlar Boots", "Invisible Boots",
             "Blood Draw Kit", "Supply Signal", "Research Kit 1", "Uber Hatchet", "Uber Hunting Bow"
         };
+
+        public enum PlayerActions
+        {
+            Standing = 4096,
+            Moving = 4160,
+            AimMoving = 4164,
+            AimMovingShooting = 4172,
+            Jumping = 4112,
+            Running = 4162,
+            RunJump = 4176,
+            ESC = 128,
+            TAB = 4224,
+            Aiming = 4100,
+            Shooting = 4104,
+            MoveShoot = 4168,
+            AimShoot = 4108,
+            RightClickWhileReload = 4352,
+            RightClickWhileGunTake = 4353,
+            RightClickWhileGunTakeMove = 4416,
+            Crouch = 4097,
+            CrouchAim = 4101,
+            CrouchMoveShoot = 4169,
+            CrouchAimMove = 4165,
+            CrouchAimMoveShoot = 4173,
+            CrouchShoot = 4105,
+            CrouchAimShoot = 4109
+        }
+
+        [DllImport("kernel32")]
+        public extern static ulong GetTickCount64();
 
         public void ConsoleLog(string str, [Optional, DefaultParameterValue(false)] bool adminOnly)
         {

@@ -73,6 +73,10 @@ namespace Fougerite
         public static event GrenadeThrowEventDelegate OnGrenadeThrow;
         public static bool IsShuttingDown = false;
 
+        /*
+         * Player actions sent by PlayerMove event.
+         */
+
         public static void BlueprintUse(IBlueprintItem item, BlueprintDataBlock bdb)
         {
             //Fougerite.Player player = Fougerite.Player.FindByPlayerClient(item.controllable.playerClient);
@@ -972,10 +976,10 @@ namespace Fougerite
         public static void CraftingEvent(CraftingInventory inv, BlueprintDataBlock blueprint, int amount, ulong startTime)
         {
             try
-            { 
+            {
+                CraftingEvent e = new CraftingEvent(inv, blueprint, amount, startTime);
                 if (OnCrafting != null)
                 {
-                    CraftingEvent e = new CraftingEvent(inv, blueprint, amount, startTime);
                     OnCrafting(e);
                 }
             }
@@ -1525,7 +1529,9 @@ namespace Fougerite
         public static void ClientMove(HumanController hc, Vector3 origin, int encoded, ushort stateFlags, uLink.NetworkMessageInfo info)
         {
             if (info.sender != hc.networkView.owner)
+            {
                 return;
+            }
             if (float.IsNaN(origin.x) || float.IsInfinity(origin.x) ||
                 float.IsNaN(origin.y) || float.IsInfinity(origin.y) ||
                 float.IsNaN(origin.z) || float.IsInfinity(origin.z))
@@ -1552,11 +1558,13 @@ namespace Fougerite
                 player.Disconnect();
                 return;
             }
+            var data = stateFlags = (ushort)(stateFlags & -24577);
+            Util.PlayerActions action = ((Util.PlayerActions)data);
             try
             {
                 if (OnPlayerMove != null)
                 {
-                    OnPlayerMove(hc, origin, encoded, stateFlags, info);
+                    OnPlayerMove(hc, origin, encoded, stateFlags, info, action);
                 }
             }
             catch (Exception ex)
@@ -1812,7 +1820,7 @@ namespace Fougerite
             OnPlayerApproval = delegate(PlayerApprovalEvent param0)
             {
             };
-            OnPlayerMove = delegate(HumanController param0, Vector3 param1, int param2, ushort param3, uLink.NetworkMessageInfo param4)
+            OnPlayerMove = delegate(HumanController param0, Vector3 param1, int param2, ushort param3, uLink.NetworkMessageInfo param4, Util.PlayerActions param5)
             {
             };
             OnResearch = delegate(ResearchEvent param0)
@@ -1957,7 +1965,7 @@ namespace Fougerite
         public delegate void AirdropDelegate(Vector3 v);
         public delegate void SteamDenyDelegate(SteamDenyEvent sde);
         public delegate void PlayerApprovalDelegate(PlayerApprovalEvent e);
-        public delegate void PlayerMoveDelegate(HumanController hc, Vector3 origin, int encoded, ushort stateFlags, uLink.NetworkMessageInfo info);
+        public delegate void PlayerMoveDelegate(HumanController hc, Vector3 origin, int encoded, ushort stateFlags, uLink.NetworkMessageInfo info, Util.PlayerActions action);
         public delegate void ResearchDelegate(ResearchEvent re);
         public delegate void ServerSavedDelegate();
         public delegate void ItemPickupDelegate(ItemPickupEvent itemPickupEvent);

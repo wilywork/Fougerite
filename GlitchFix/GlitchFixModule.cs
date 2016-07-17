@@ -128,12 +128,12 @@ namespace GlitchFix
                     {
                         string name = Entity.Name;
                         var location = Entity.Location;
-                        if (Ramp)
+                        if (Ramp && name.Contains("Ramp"))
                         {
                             RaycastHit cachedRaycast;
                             bool cachedBoolean;
                             Facepunch.MeshBatch.MeshBatchInstance cachedhitInstance;
-                            if (Facepunch.MeshBatch.MeshBatchPhysics.Raycast(Entity.Location + new Vector3(0f, 0.1f, 0f), Vector3Down, out cachedRaycast, out cachedBoolean, out cachedhitInstance))
+                            if (Facepunch.MeshBatch.MeshBatchPhysics.Raycast(location + new Vector3(0f, 0.1f, 0f), Vector3Down, out cachedRaycast, out cachedBoolean, out cachedhitInstance))
                             {
                                 if (cachedhitInstance != null)
                                 {
@@ -184,24 +184,24 @@ namespace GlitchFix
                         {
                             bool isdoor = false;
                             float d = 4.5f;
-                            if (Entity.Name.Contains("Pillar"))
+                            if (name.Contains("Pillar"))
                             {
                                 d = 0.40f;
                             }
-                            else if (Entity.Name.Contains("Door"))
+                            else if (name.Contains("Door"))
                             {
                                 isdoor = true;
                                 d = 0.40f;
                             }
-                            else if (Entity.Name.ToLower().Contains("smallstash"))
+                            else if (name.ToLower().Contains("smallstash"))
                             {
                                 d = 0.40f;
                             }
-                            else if (Entity.Name.Contains("Foundation"))
+                            else if (name.Contains("Foundation"))
                             {
                                 d = 4.5f;
                             }
-                            else if (Entity.Name.Contains("Ramp"))
+                            else if (name.Contains("Ramp"))
                             {
                                 if (!CheckForRampLoot)
                                 {
@@ -253,9 +253,9 @@ namespace GlitchFix
                         }
                         if (BarricadePillar)
                         {
-                            if (Entity.Name.Contains("Pillar"))
+                            if (name.Contains("Pillar"))
                             {
-                                if (Physics.OverlapSphere(Entity.Location, 0.34f).Where(collider => collider.GetComponent<DeployableObject>() != null).Any(collider => collider.GetComponent<DeployableObject>().name.Contains("Barricade_Fence")))
+                                if (Physics.OverlapSphere(location, 0.34f).Where(collider => collider.GetComponent<DeployableObject>() != null).Any(collider => collider.GetComponent<DeployableObject>().name.Contains("Barricade_Fence")))
                                 {
                                     actualplacer.Message("Pillar Barricade glitching is not allowed!");
                                     Entity.Destroy();
