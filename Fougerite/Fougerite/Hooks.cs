@@ -73,10 +73,6 @@ namespace Fougerite
         public static event GrenadeThrowEventDelegate OnGrenadeThrow;
         public static bool IsShuttingDown = false;
 
-        /*
-         * Player actions sent by PlayerMove event.
-         */
-
         public static void BlueprintUse(IBlueprintItem item, BlueprintDataBlock bdb)
         {
             //Fougerite.Player player = Fougerite.Player.FindByPlayerClient(item.controllable.playerClient);

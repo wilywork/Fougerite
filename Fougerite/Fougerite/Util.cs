@@ -19,6 +19,9 @@ namespace Fougerite
         private readonly Dictionary<string, System.Type> typeCache = new Dictionary<string, System.Type>();
         private static Util util;
 
+        /*
+         * All UnStackable Items
+         */
         public static readonly string[] UStackable = new string[]
         {
             "Spike Wall", "Large Spike Wall", "Wood Gate",
@@ -34,6 +37,9 @@ namespace Fougerite
             "Blood Draw Kit", "Supply Signal", "Research Kit 1", "Uber Hatchet", "Uber Hunting Bow"
         };
 
+        /*
+         * Player actions sent by PlayerMove event.
+         */
         public enum PlayerActions
         {
             Standing = 4096,
