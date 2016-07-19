@@ -1702,6 +1702,17 @@ namespace Fougerite
             }
         }
 
+        public static void RPCCatch(object obj)
+        {
+            var info = obj as uLink.NetworkMessageInfo;
+            if (info == null) { return;}
+            if (info.sender == uLink.NetworkPlayer.server) { return;}
+            var netuser = info.sender.localData as NetUser;
+            if (netuser == null) { return;}
+            Logger.LogWarning("[Fougerite uLink] RPC Message from " + netuser.displayName + "-" + netuser.userID + " triggered an exception. Kicking...");
+            if (netuser.connected) { netuser.Kick(NetError.Facepunch_Kick_Violation, true);}
+        }
+
         public static void ResetHooks()
         {
             OnPluginInit = delegate

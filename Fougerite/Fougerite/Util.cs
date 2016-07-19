@@ -49,6 +49,7 @@ namespace Fougerite
             Jumping = 4112,
             Running = 4162,
             RunJump = 4176,
+            JumpChat = 144, // Possible Flyhack
             ESC = 128,
             TAB = 4224,
             Aiming = 4100,

@@ -70,6 +70,8 @@ namespace Fougerite.Patcher
             TypeDefinition Class56 = ulink.MainModule.GetType("Class56");
             TypeDefinition Class52 = ulink.MainModule.GetType("Class52");
             TypeDefinition Class48 = ulink.MainModule.GetType("Class48");
+            TypeDefinition Struct10 = ulink.MainModule.GetType("Struct10");
+            TypeDefinition Struct6 = ulink.MainModule.GetType("Struct6");
             //TypeDefinition Class46 = ulink.MainModule.GetType("Class46");
             TypeDefinition Class45 = ulink.MainModule.GetType("Class45");
             //TypeDefinition Class1 = ulink.MainModule.GetType("Class1");
@@ -90,6 +92,17 @@ namespace Fougerite.Patcher
             MethodDefinition method_277 = Class48.GetMethod("method_277");
             MethodDefinition method_270 = Class48.GetMethod("method_270");
             MethodDefinition method_4 = Class45.GetMethod("method_4");
+
+            Struct6.IsPublic = true;
+            Struct10.IsPublic = true;
+            MethodDefinition structmethod_0 = Struct10.GetMethod("method_0");
+            MethodDefinition RPCCatch = hooksClass.GetMethod("RPCCatch");
+            int si = structmethod_0.Body.Instructions.Count - 46;
+            ILProcessor siiLProcessor = structmethod_0.Body.GetILProcessor();
+            siiLProcessor.InsertBefore(structmethod_0.Body.Instructions[si],
+                Instruction.Create(OpCodes.Callvirt, ulink.MainModule.Import(RPCCatch)));
+            siiLProcessor.InsertBefore(structmethod_0.Body.Instructions[si], Instruction.Create(OpCodes.Ldarg_3));
+
             //MethodDefinition method_124 = Class46.GetMethod("method_124");
             MethodDefinition update = type.GetMethod("LateUpdate");
             TypeDefinition logger = fougeriteAssembly.MainModule.GetType("Fougerite.Logger");
