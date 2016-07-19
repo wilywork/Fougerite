@@ -101,7 +101,7 @@ namespace Fougerite.Patcher
             ILProcessor siiLProcessor = structmethod_0.Body.GetILProcessor();
             siiLProcessor.InsertBefore(structmethod_0.Body.Instructions[si],
                 Instruction.Create(OpCodes.Callvirt, ulink.MainModule.Import(RPCCatch)));
-            siiLProcessor.InsertBefore(structmethod_0.Body.Instructions[si], Instruction.Create(OpCodes.Ldarg_3));
+            siiLProcessor.InsertBefore(structmethod_0.Body.Instructions[si], Instruction.Create(OpCodes.Ldarg_2));
 
             //MethodDefinition method_124 = Class46.GetMethod("method_124");
             MethodDefinition update = type.GetMethod("LateUpdate");
