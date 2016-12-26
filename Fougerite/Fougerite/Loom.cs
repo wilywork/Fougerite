@@ -93,8 +93,9 @@ namespace Fougerite
         public static void ExecuteInBiggerStackThread(Action action)
         {
             Thread bigStackThread = new Thread(() => action(), 1024 * 1024);
+            bigStackThread.IsBackground = true;
             bigStackThread.Start();
-            bigStackThread.Join();
+            //bigStackThread.Join();
         }
 
         public static Thread RunAsync(Action a)

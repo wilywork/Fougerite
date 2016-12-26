@@ -13,11 +13,13 @@ namespace Fougerite
         }
 
         private static string LogsFolder = Path.Combine(Config.GetPublicFolder(), "Logs");
+        private static StreamWriter SpeedLogWriter;
         private static Writer LogWriter;
         private static Writer ChatWriter;
         private static bool showDebug = false;
         private static bool showErrors = false;
         private static bool showException = false;
+        internal static bool showSpeed = false;
 
         public static void Init()
         {
@@ -26,6 +28,7 @@ namespace Fougerite
                 showDebug = Config.GetBoolValue("Logging", "debug");
                 showErrors = Config.GetBoolValue("Logging", "error");
                 showException = Config.GetBoolValue("Logging", "exception");
+                showSpeed = Config.GetBoolValue("Logging", "speed");
             }
             catch (Exception ex)
             {
@@ -35,7 +38,7 @@ namespace Fougerite
             try
             {
                 Directory.CreateDirectory(LogsFolder);
-
+                if (!File.Exists(Path.Combine(LogsFolder, "HookSpeed.log"))) { File.Create(Path.Combine(LogsFolder, "HookSpeed.log")).Dispose(); }
                 LogWriterInit();
                 ChatWriterInit();
             }
@@ -118,6 +121,16 @@ namespace Fougerite
             Debug.Log(Message, Context);
             Message = "[Console] " + Message;
             WriteLog(Message);
+        }
+
+        public static void LogSpeed(string Message)
+        {
+            if (!showSpeed) { return;}
+            Message = "[Hook Speed] " + Message;
+            Message = "[" + DateTime.Now + "] " + Message;
+            SpeedLogWriter = new System.IO.StreamWriter(Path.Combine(LogsFolder, "HookSpeed.log"), true);
+            SpeedLogWriter.WriteLine(Message);
+            SpeedLogWriter.Close();
         }
 
         public static void LogWarning(string Message, UnityEngine.Object Context = null)

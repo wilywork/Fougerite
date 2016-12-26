@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Timers;
@@ -75,6 +76,12 @@ namespace Fougerite
 
         public static void BlueprintUse(IBlueprintItem item, BlueprintDataBlock bdb)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             //Fougerite.Player player = Fougerite.Player.FindByPlayerClient(item.controllable.playerClient);
             Fougerite.Player player = Fougerite.Server.Cache[item.controllable.playerClient.userID];
             if (player != null)
@@ -109,18 +116,30 @@ namespace Fougerite
                     }
                 }
             }
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("BluePrintEvent Speed: " + sw.Elapsed.Seconds + " secs");
         }
 
         public static void ChatReceived(ref ConsoleSystem.Arg arg)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             if (!chat.enabled) { return; }
 
             if (string.IsNullOrEmpty(arg.ArgsStr)) { return; }
 
             var quotedName = Facepunch.Utility.String.QuoteSafe(arg.argUser.displayName);
             var quotedMessage = Facepunch.Utility.String.QuoteSafe(arg.GetString(0));
-            if (quotedMessage.Trim('"').StartsWith("/")) { Logger.LogDebug("[CHAT-CMD] " 
-                + quotedName + " executed " + quotedMessage); }
+            if (quotedMessage.Trim('"').StartsWith("/"))
+            {
+                Logger.LogDebug("[CHAT-CMD] "
++ quotedName + " executed " + quotedMessage);
+            }
 
             if (OnChatRaw != null)
             {
@@ -203,13 +222,13 @@ namespace Fougerite
                 int i = 0;
                 if (arr.Length == 0)
                 {
-                    arr = new[] {""};
+                    arr = new[] { "" };
                 }
                 foreach (var x in ns)
                 {
                     Fougerite.Data.GetData().chat_history.Add(x);
                     Fougerite.Data.GetData().chat_history_username.Add(quotedName);
-                    
+
                     if (i == 1)
                     {
                         ConsoleNetworker.Broadcast("chat.add " + quotedName + " " + '"' + arr[arr.Length - 1] + x);
@@ -221,10 +240,19 @@ namespace Fougerite
                     i++;
                 }
             }
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("ChatEvent Speed: " + sw.Elapsed.Seconds + " secs");
         }
 
         public static bool ConsoleReceived(ref ConsoleSystem.Arg a)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             StringComparison ic = StringComparison.InvariantCultureIgnoreCase;
             bool external = a.argUser == null;
             bool adminRights = (a.argUser != null && a.argUser.admin) || external;
@@ -247,7 +275,7 @@ namespace Fougerite
                         {
                             if (string.Equals(x.Plugin.Name, plugin, StringComparison.CurrentCultureIgnoreCase))
                             {
-                                if (x.Initialized) { x.DeInitialize();}
+                                if (x.Initialized) { x.DeInitialize(); }
                                 x.Initialize();
                                 a.ReplyWith("Fougerite: Reloaded " + x.Plugin.Name + "!");
                                 break;
@@ -368,12 +396,20 @@ namespace Fougerite
             {
                 a.ReplyWith(string.Format("Fougerite: {0}.{1} was executed!", a.Class, a.Function));
             }
-
+            if (sw == null) return true;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("ConsoleEvent Speed: " + sw.Elapsed.Seconds + " secs");
             return true;
         }
 
         public static bool CheckOwner(DeployableObject obj, Controllable controllable)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             DoorEvent de = new DoorEvent(new Entity(obj));
             if (obj.ownerID == controllable.playerClient.userID)
             {
@@ -391,12 +427,20 @@ namespace Fougerite
                     Logger.LogError("DoorUseEvent Error: " + ex.ToString());
                 }
             }
-
+            if (sw == null) return de.Open;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("CheckOwnerEvent(DoorOpen) Speed: " + sw.Elapsed.Seconds + " secs");
             return de.Open;
         }
 
         public static float EntityDecay(object entity, float dmg)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             if (entity == null)
                 return 0f;
 
@@ -420,11 +464,22 @@ namespace Fougerite
                 return de.DamageAmount;
             }
             catch { }
+            if (sw != null)
+            {
+                sw.Stop();
+                if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("EntityDecayEvent Speed: " + sw.Elapsed.Seconds + " secs");
+            }
             return 0f;
         }
 
         public static void EntityDeployed(object entity, ref uLink.NetworkMessageInfo info)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             Entity e = new Entity(entity);
             uLink.NetworkPlayer nplayer = info.sender;
             Fougerite.Player creator = e.Creator;
@@ -453,6 +508,9 @@ namespace Fougerite
             {
                 Logger.LogError("EntityDeployedWithPlacerEvent Error: " + ex.ToString());
             }
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("EntityDeployedEvent Speed: " + sw.Elapsed.Seconds + " secs");
             /*ItemRepresentation rp = new TorchItemRep();
             rp.ActionStream(1, uLink.RPCMode.AllExceptOwner, stream);
             Server.GetServer().Broadcast(ActualPlacer.ToString());
@@ -469,6 +527,12 @@ namespace Fougerite
 
         public static void EntityHurt(object entity, ref DamageEvent e)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             if (entity == null)
                 return;
 
@@ -511,6 +575,9 @@ namespace Fougerite
                 }
             }
             catch (Exception ex) { Logger.LogDebug("EntityHurtEvent Error " + ex); }
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("EntityHurtEvent Speed: " + sw.Elapsed.Seconds + " secs");
         }
 
         public static void hijack(string name)
@@ -544,6 +611,12 @@ namespace Fougerite
 
         public static void ItemPickup(Controllable controllable, IInventoryItem item, Inventory local, Inventory.AddExistingItemResult result)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             ItemPickupEvent ipe = new ItemPickupEvent(controllable, item, local, result);
             try
             {
@@ -556,10 +629,19 @@ namespace Fougerite
             {
                 Logger.LogError("ItemPickupEvent Error: " + ex);
             }
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("ItemPickupEvent Speed: " + sw.Elapsed.Seconds + " secs");
         }
 
         public static void FallDamage(FallDamage fd, float speed, float num, bool flag, bool flag2)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             FallDamageEvent fde = new FallDamageEvent(fd, speed, num, flag, flag2);
             try
             {
@@ -572,10 +654,19 @@ namespace Fougerite
             {
                 Logger.LogError("FallDamageEvent Error: " + ex);
             }
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("FallDamageEvent Speed: " + sw.Elapsed.Seconds + " secs");
         }
 
         public static void NPCHurt(ref DamageEvent e)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             HurtEvent he = new HurtEvent(ref e);
             var npc = he.Victim as NPC;
             if (npc != null && npc.Health > 0f)
@@ -599,10 +690,19 @@ namespace Fougerite
                     npc2.Health -= he.DamageAmount;
                 }
             }
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("NPCHurtEvent Speed: " + sw.Elapsed.Seconds + " secs");
         }
 
         public static void NPCKilled(ref DamageEvent e)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             try
             {
                 DeathEvent de = new DeathEvent(ref e);
@@ -610,16 +710,34 @@ namespace Fougerite
                     OnNPCKilled(de);
             }
             catch (Exception ex) { Logger.LogError("NPCKilledEvent Error: " + ex); }
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("NPCKilledEvent Speed: " + sw.Elapsed.Seconds + " secs");
         }
 
         public static void ConnectHandler(NetUser user)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             GameEvent.DoPlayerConnected(user.playerClient);
             PlayerConnect(user);
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("ConnectHandler Speed: " + sw.Elapsed.Seconds + " secs");
         }
 
         public static bool PlayerConnect(NetUser user)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             bool connected = false;
 
             if (user.playerClient == null)
@@ -648,7 +766,7 @@ namespace Fougerite
             }
             srv.AddPlayer(uid, player);
             //server.Players.Add(player);
-            Rust.Steam.Server.Steam_UpdateServer(server.maxplayers, srv.Players.Count, server.hostname, server.map, "rust,modded,fougerite");
+            //Rust.Steam.Server.Steam_UpdateServer(server.maxplayers, srv.Players.Count, server.hostname, server.map, "rust,modded,fougerite");
 
             try
             {
@@ -657,7 +775,7 @@ namespace Fougerite
                     OnPlayerConnected(player);
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Logger.LogError("PlayerConnectedEvent Error " + ex.ToString());
                 return connected;
@@ -670,11 +788,20 @@ namespace Fougerite
                 player.Message(string.Format("This server is powered by Fougerite v.{0}!", Bootstrap.Version));
             }
             Logger.LogDebug("User Connected: " + player.Name + " (" + player.SteamID + ")" + " (" + player.IP + ")");
+            if (sw == null) return connected;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("PlayerConnectedEvent Speed: " + sw.Elapsed.Seconds + " secs");
             return connected;
         }
 
         public static void PlayerDisconnect(uLink.NetworkPlayer nplayer)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             NetUser user = nplayer.GetLocalData() as NetUser;
             if (user == null)
             {
@@ -696,7 +823,7 @@ namespace Fougerite
             //if (Fougerite.Server.GetServer().Players.Contains(player)) { Fougerite.Server.GetServer().Players.Remove(player); }
             //player.PlayerClient.netUser.Dispose();
             Fougerite.Server.Cache[uid] = player;
-            Rust.Steam.Server.Steam_UpdateServer(server.maxplayers, Fougerite.Server.GetServer().Players.Count, server.hostname, server.map, "modded, fougerite");
+            //Rust.Steam.Server.Steam_UpdateServer(server.maxplayers, Fougerite.Server.GetServer().Players.Count, server.hostname, server.map, "modded, fougerite");
             try
             {
                 if (OnPlayerDisconnected != null)
@@ -710,10 +837,19 @@ namespace Fougerite
             }
             Logger.LogDebug("User Disconnected: " + player.Name + " (" + player.SteamID + ")" + " (" + player.IP + ")");
             if (Fougerite.Bootstrap.CR) { Fougerite.Server.Cache.Remove(uid); }
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("PlayerDisconnectEvent Speed: " + sw.Elapsed.Seconds + " secs");
         }
 
         public static void PlayerGather(Inventory rec, ResourceTarget rt, ResourceGivePair rg, ref int amount)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             Fougerite.Player player = Fougerite.Player.FindByNetworkPlayer(rec.networkView.owner);
             GatherEvent ge = new GatherEvent(rt, rg, amount);
             try
@@ -733,10 +869,19 @@ namespace Fougerite
             {
                 Logger.LogError("PlayerGatherEvent Error: " + ex);
             }
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("GatherEvent Speed: " + sw.Elapsed.Seconds + " secs");
         }
 
         public static void PlayerGatherWood(IMeleeWeaponItem rec, ResourceTarget rt, ref ItemDataBlock db, ref int amount, ref string name)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             Fougerite.Player player = Fougerite.Player.FindByNetworkPlayer(rec.inventory.networkView.owner);
             GatherEvent ge = new GatherEvent(rt, db, amount);
             ge.Item = "Wood";
@@ -754,10 +899,19 @@ namespace Fougerite
             {
                 Logger.LogError("PlayerGatherWoodEvent Error: " + ex);
             }
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("WoodGatherEvent Speed: " + sw.Elapsed.Seconds + " secs");
         }
 
         public static void PlayerHurt(ref DamageEvent e)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             try
             {
                 HurtEvent he = new HurtEvent(ref e);
@@ -772,7 +926,7 @@ namespace Fougerite
                     Zone3D zoned = Zone3D.GlobalContains(attacker);
                     if ((zoned != null) && !zoned.PVP)
                     {
-                        if (attacker != null) { attacker.Message("You are in a PVP restricted area.");}
+                        if (attacker != null) { attacker.Message("You are in a PVP restricted area."); }
                         he.DamageAmount = 0f;
                         e = he.DamageEvent;
                         return;
@@ -780,7 +934,7 @@ namespace Fougerite
                     zoned = Zone3D.GlobalContains(victim);
                     if ((zoned != null) && !zoned.PVP)
                     {
-                        if (attacker != null && victim != null) { attacker.Message(victim.Name + " is in a PVP restricted area.");}
+                        if (attacker != null && victim != null) { attacker.Message(victim.Name + " is in a PVP restricted area."); }
                         he.DamageAmount = 0f;
                         e = he.DamageEvent;
                         return;
@@ -788,11 +942,20 @@ namespace Fougerite
                 }
                 e = he.DamageEvent;
             }
-            catch(Exception ex) { Logger.LogError("PlayerHurtEvent Error: " + ex);}
+            catch (Exception ex) { Logger.LogError("PlayerHurtEvent Error: " + ex); }
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("PlayerHurtEvent Speed: " + sw.Elapsed.Seconds + " secs");
         }
 
         public static bool PlayerKilled(ref DamageEvent de)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             bool flag = false;
             try
             {
@@ -804,12 +967,20 @@ namespace Fougerite
                 flag = event2.DropItems;
             }
             catch (Exception ex) { Logger.LogError("PlayerKilledEvent Error: " + ex); }
-
+            if (sw == null) return flag;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("PlayerKilledEvent Speed: " + sw.Elapsed.Seconds + " secs");
             return flag;
         }
 
         public static void PlayerSpawned(PlayerClient pc, Vector3 pos, bool camp)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             Fougerite.Player player = Fougerite.Server.Cache[pc.userID];
             SpawnEvent se = new SpawnEvent(pos, camp);
             try
@@ -821,10 +992,19 @@ namespace Fougerite
                 }
             }
             catch (Exception ex) { Logger.LogError("PlayerSpawnedEvent Error: " + ex); }
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("PlayerSpawned Speed: " + sw.Elapsed.Seconds + " secs");
         }
 
         public static Vector3 PlayerSpawning(PlayerClient pc, Vector3 pos, bool camp)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             Fougerite.Player player = Fougerite.Server.Cache[pc.userID];
             SpawnEvent se = new SpawnEvent(pos, camp);
             try
@@ -836,11 +1016,20 @@ namespace Fougerite
                 return new Vector3(se.X, se.Y, se.Z);
             }
             catch (Exception ex) { Logger.LogError("PlayerSpawningEvent Error: " + ex); }
+            if (sw == null) return pos;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("PlayerSpawningEvent Speed: " + sw.Elapsed.Seconds + " secs");
             return pos;
         }
 
         public static void PluginInit()
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             try
             {
                 if (OnPluginInit != null)
@@ -852,10 +1041,19 @@ namespace Fougerite
             {
                 Logger.LogError("PluginInitEvent Error: " + ex.ToString());
             }
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("PluginInit Speed: " + sw.Elapsed.Seconds + " secs");
         }
 
         public static void PlayerTeleport(Fougerite.Player player, Vector3 from, Vector3 dest)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             try
             {
                 if (OnPlayerTeleport != null)
@@ -867,6 +1065,9 @@ namespace Fougerite
             {
                 Logger.LogError("TeleportEvent Error: " + ex.ToString());
             }
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("TeleportEvent Speed: " + sw.Elapsed.Seconds + " secs");
         }
 
         public static void RecieveNetwork(Metabolism m, float cal, float water, float rad, float anti, float temp, float poison)
@@ -891,7 +1092,7 @@ namespace Fougerite
             else
             {
                 m.caloricLevel = cal;
-            }  
+            }
             if (rad > 3000)
             {
                 m.radiationLevel = 0;
@@ -971,6 +1172,12 @@ namespace Fougerite
 
         public static void CraftingEvent(CraftingInventory inv, BlueprintDataBlock blueprint, int amount, ulong startTime)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             try
             {
                 CraftingEvent e = new CraftingEvent(inv, blueprint, amount, startTime);
@@ -983,6 +1190,9 @@ namespace Fougerite
             {
                 Logger.LogError("CraftingEvent Error: " + ex.ToString());
             }
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("CraftEvent Speed: " + sw.Elapsed.Seconds + " secs");
         }
 
         public static void AnimalMovement(BaseAIMovement m, BasicWildLifeAI ai, ulong simMillis)
@@ -1004,7 +1214,7 @@ namespace Fougerite
         public static void ResourceSpawned(ResourceTarget target)
         {
             try
-            { 
+            {
                 if (OnResourceSpawned != null)
                 {
                     OnResourceSpawned(target);
@@ -1018,6 +1228,12 @@ namespace Fougerite
 
         public static void ShootEvent(BulletWeaponDataBlock db, GameObject obj2, ItemRepresentation rep, ref uLink.NetworkMessageInfo info, IBulletWeaponItem bwi)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             try
             {
                 if (OnShoot != null)
@@ -1030,10 +1246,19 @@ namespace Fougerite
             {
                 Logger.LogError("ShootEvent Error: " + ex);
             }
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("ShootEvent Speed: " + sw.Elapsed.Seconds + " secs");
         }
 
         public static void BowShootEvent(BowWeaponDataBlock db, ItemRepresentation rep, ref uLink.NetworkMessageInfo info, IBowWeaponItem bwi)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             try
             {
                 if (OnBowShoot != null)
@@ -1046,10 +1271,19 @@ namespace Fougerite
             {
                 Logger.LogError("BowShootEvent Error: " + ex);
             }
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("BowShootEvent Speed: " + sw.Elapsed.Seconds + " secs");
         }
 
         public static void ShotgunShootEvent(ShotgunDataBlock shotgunDataBlock, uLink.BitStream stream, ItemRepresentation rep, ref uLink.NetworkMessageInfo info)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             NetCull.VerifyRPC(ref info, false);
             IBulletWeaponItem found = null;
             if (rep.Item(out found) && (found.uses > 0))
@@ -1094,10 +1328,19 @@ namespace Fougerite
                     found.TryConditionLoss(0.5f, 0.02f);
                 }
             }
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("ShotgunShootEvent Speed: " + sw.Elapsed.Seconds + " secs");
         }
 
         public static void GrenadeEvent(HandGrenadeDataBlock hgd, uLink.BitStream stream, ItemRepresentation rep, ref uLink.NetworkMessageInfo info)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             IHandGrenadeItem item;
             NetCull.VerifyRPC(ref info, false);
             if (rep.Item<IHandGrenadeItem>(out item) && item.ValidatePrimaryMessageTime(info.timestamp))
@@ -1128,6 +1371,9 @@ namespace Fougerite
                     item.inventory.RemoveItem(item.slot);
                 }
             }
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("GrenadeEvent Speed: " + sw.Elapsed.Seconds + " secs");
         }
 
         public static bool ServerSaved()
@@ -1254,8 +1500,19 @@ namespace Fougerite
 
         public static void ItemRemoved(Inventory inventory, int slot, IInventoryItem item)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             try
-            { 
+            {
+                foreach (var x in RPOS.AllWindows)
+                {
+                    Server.GetServer().Broadcast(x.name);
+                }
+                //RPOS.Get().
                 if (OnItemRemoved != null)
                 {
                     Fougerite.Events.InventoryModEvent e = new Fougerite.Events.InventoryModEvent(inventory, slot, item, "Remove");
@@ -1266,12 +1523,15 @@ namespace Fougerite
             {
                 //Logger.LogError("InventoryRemoveEvent error: " + ex);
             }
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("ItemRemoved Speed: " + sw.Elapsed.Seconds + " secs");
         }
 
         public static void ItemAdded(Inventory inventory, int slot, IInventoryItem item)
         {
             try
-            { 
+            {
                 if (OnItemAdded != null)
                 {
                     Fougerite.Events.InventoryModEvent e = new Fougerite.Events.InventoryModEvent(inventory, slot, item, "Add");
@@ -1286,6 +1546,12 @@ namespace Fougerite
 
         public static void Airdrop(Vector3 v)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             try
             {
                 if (OnAirdropCalled != null)
@@ -1297,10 +1563,19 @@ namespace Fougerite
             {
                 Logger.LogError("AirdropEvent Error: " + ex);
             }
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("Airdrop Speed: " + sw.Elapsed.Seconds + " secs");
         }
 
         public static void Airdrop2(SupplyDropZone srz)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             try
             {
                 if (OnAirdropCalled != null)
@@ -1312,6 +1587,9 @@ namespace Fougerite
             {
                 Logger.LogError("AirdropEvent Error: " + ex);
             }
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("Airdrop2 Speed: " + sw.Elapsed.Seconds + " secs");
         }
 
         /*public static void AirdropCrateDropped(GameObject go)
@@ -1331,6 +1609,12 @@ namespace Fougerite
 
         public static void SteamDeny(ClientConnection cc, NetworkPlayerApproval approval, string strReason, NetError errornum)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             SteamDenyEvent sde = new SteamDenyEvent(cc, approval, strReason, errornum);
             try
             {
@@ -1345,19 +1629,33 @@ namespace Fougerite
             }
             if (sde.ForceAllow)
             {
+                if (sw != null)
+                {
+                    sw.Stop();
+                    if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("Airdrop Speed: " + sw.Elapsed.Seconds + " secs");
+                }
                 return;
             }
             string deny = "Auth failed: " + strReason + " - " + cc.UserName + " (" +
                        cc.UserID.ToString() +
                        ")";
             ConsoleSystem.Print(deny, false);
-            approval.Deny((uLink.NetworkConnectionError) errornum);
+            approval.Deny((uLink.NetworkConnectionError)errornum);
             ConnectionAcceptor.CloseConnection(cc);
             Rust.Steam.Server.OnUserLeave(cc.UserID);
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("SteamDeny Speed: " + sw.Elapsed.Seconds + " secs");
         }
 
         public static void HandleuLinkDisconnect(string msg, object NetworkPlayer)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             try
             {
                 UnityEngine.Object[] obj = UnityEngine.Object.FindObjectsOfType(typeof(GameObject));
@@ -1377,7 +1675,7 @@ namespace Fougerite
                 }
                 if (NetworkPlayer is uLink.NetworkPlayer)
                 {
-                    uLink.NetworkPlayer np = (uLink.NetworkPlayer) NetworkPlayer;
+                    uLink.NetworkPlayer np = (uLink.NetworkPlayer)NetworkPlayer;
                     var data = np.GetLocalData();
                     NetUser user = data as NetUser;
                     if (user != null)
@@ -1418,10 +1716,19 @@ namespace Fougerite
             {
                 //Logger.LogError("[uLink Error] Full Exception: " + ex);
             }
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("HandleuLinkDisconnect Speed: " + sw.Elapsed.Seconds + " secs");
         }
 
         public static void PlayerApproval(ConnectionAcceptor ca, NetworkPlayerApproval approval)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             if (ca.m_Connections.Count >= server.maxplayers)
             {
                 approval.Deny(uLink.NetworkConnectionError.TooManyConnectedPlayers);
@@ -1440,12 +1747,12 @@ namespace Fougerite
                 string name = clientConnection.UserName;
                 if (clientConnection.Protocol != 1069)
                 {
-                    Debug.Log((object) ("Denying entry to client with invalid protocol version (" + ip + ")"));
+                    Debug.Log((object)("Denying entry to client with invalid protocol version (" + ip + ")"));
                     approval.Deny(uLink.NetworkConnectionError.IncompatibleVersions);
                 }
                 else if (BanList.Contains(uid))
                 {
-                    Debug.Log((object) ("Rejecting client (" + uid.ToString() + "in banlist)"));
+                    Debug.Log((object)("Rejecting client (" + uid.ToString() + "in banlist)"));
                     approval.Deny(uLink.NetworkConnectionError.ConnectionBanned);
                 }
                 else if (srv.IsBannedID(uid.ToString()) || srv.IsBannedIP(ip))
@@ -1484,7 +1791,7 @@ namespace Fougerite
                 {
                     PlayerApprovalEvent ape = new PlayerApprovalEvent(ca, approval, clientConnection, true);
                     try
-                    { 
+                    {
                         if (OnPlayerApproval != null)
                         {
                             OnPlayerApproval(ape);
@@ -1513,6 +1820,9 @@ namespace Fougerite
                     Accept(ca, approval, clientConnection);
                 }
             }
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("PlayerApprovalEvent Speed: " + sw.Elapsed.Seconds + " secs");
         }
 
         private static void Accept(ConnectionAcceptor ca, NetworkPlayerApproval approval, ClientConnection clientConnection)
@@ -1532,7 +1842,7 @@ namespace Fougerite
                 float.IsNaN(origin.y) || float.IsInfinity(origin.y) ||
                 float.IsNaN(origin.z) || float.IsInfinity(origin.z))
             {
-                Fougerite.Player player = Fougerite.Server.Cache.ContainsKey(hc.netUser.userID) ? Fougerite.Server.Cache[hc.netUser.userID] 
+                Fougerite.Player player = Fougerite.Server.Cache.ContainsKey(hc.netUser.userID) ? Fougerite.Server.Cache[hc.netUser.userID]
                     : Fougerite.Server.GetServer().FindPlayer(hc.netUser.userID.ToString());
                 if (player == null)
                 {
@@ -1571,8 +1881,14 @@ namespace Fougerite
 
         public static void ResearchItem(IInventoryItem otherItem)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             try
-            { 
+            {
                 if (OnResearch != null)
                 {
                     ResearchEvent researchEvent = new ResearchEvent(otherItem);
@@ -1583,10 +1899,19 @@ namespace Fougerite
             {
                 Logger.LogError("ResearchItem Error: " + ex.ToString());
             }
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("ResearchItem Speed: " + sw.Elapsed.Seconds + " secs");
         }
 
         public static void SetLooter(LootableObject lo, uLink.NetworkPlayer ply)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             lo.occupierText = null;
             if (ply == uLink.NetworkPlayer.unassigned)
             {
@@ -1619,12 +1944,20 @@ namespace Fougerite
                 }
                 lo._currentlyUsingPlayer = ply;
             }
-
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("SetLooterEvent Speed: " + sw.Elapsed.Seconds + " secs");
         }
 
         public static void OnUseEnter(LootableObject lo, Useable use)
         {
-            var ulinkuser = uLink.NetworkView.Get((UnityEngine.MonoBehaviour) use.user).owner;
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
+            var ulinkuser = uLink.NetworkView.Get((UnityEngine.MonoBehaviour)use.user).owner;
             NetUser user = ulinkuser.GetLocalData() as NetUser;
             lo._useable = use;
             lo._currentlyUsingPlayer = ulinkuser;
@@ -1649,13 +1982,16 @@ namespace Fougerite
                     {
                         Logger.LogError("LootStartEvent Error: " + ex);
                     }
-                    
+
                     /*if (lt.IsCancelled)
                     {
                         return;
                     }*/
                 }
             }
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("ChestEnterEvent Speed: " + sw.Elapsed.Seconds + " secs");
         }
 
         public static void RPCFix(Class48 c48, Class5 class5_0, uLink.NetworkPlayer networkPlayer_1)
@@ -1705,12 +2041,12 @@ namespace Fougerite
         public static void RPCCatch(object obj)
         {
             var info = obj as uLink.NetworkMessageInfo;
-            if (info == null) { return;}
-            if (info.sender == uLink.NetworkPlayer.server) { return;}
+            if (info == null) { return; }
+            if (info.sender == uLink.NetworkPlayer.server) { return; }
             var netuser = info.sender.localData as NetUser;
-            if (netuser == null) { return;}
+            if (netuser == null) { return; }
             Logger.LogWarning("[Fougerite uLink] RPC Message from " + netuser.displayName + "-" + netuser.userID + " triggered an exception. Kicking...");
-            if (netuser.connected) { netuser.Kick(NetError.Facepunch_Kick_Violation, true);}
+            if (netuser.connected) { netuser.Kick(NetError.Facepunch_Kick_Violation, true); }
         }
 
         public static void ResetHooks()
@@ -1718,76 +2054,76 @@ namespace Fougerite
             OnPluginInit = delegate
             {
             };
-            OnPlayerTeleport = delegate(Fougerite.Player param0, Vector3 param1, Vector3 param2)
+            OnPlayerTeleport = delegate (Fougerite.Player param0, Vector3 param1, Vector3 param2)
             {
             };
-            OnChat = delegate(Fougerite.Player param0, ref ChatString param1)
+            OnChat = delegate (Fougerite.Player param0, ref ChatString param1)
             {
             };
-            OnChatRaw = delegate(ref ConsoleSystem.Arg param0)
+            OnChatRaw = delegate (ref ConsoleSystem.Arg param0)
             {
             };
-            OnCommand = delegate(Fougerite.Player param0, string param1, string[] param2)
+            OnCommand = delegate (Fougerite.Player param0, string param1, string[] param2)
             {
             };
-            OnCommandRaw = delegate(ref ConsoleSystem.Arg param0)
+            OnCommandRaw = delegate (ref ConsoleSystem.Arg param0)
             {
             };
-            OnPlayerConnected = delegate(Fougerite.Player param0)
+            OnPlayerConnected = delegate (Fougerite.Player param0)
             {
             };
-            OnPlayerDisconnected = delegate(Fougerite.Player param0)
+            OnPlayerDisconnected = delegate (Fougerite.Player param0)
             {
             };
-            OnNPCKilled = delegate(DeathEvent param0)
+            OnNPCKilled = delegate (DeathEvent param0)
             {
             };
-            OnNPCHurt = delegate(HurtEvent param0)
+            OnNPCHurt = delegate (HurtEvent param0)
             {
             };
-            OnPlayerKilled = delegate(DeathEvent param0)
+            OnPlayerKilled = delegate (DeathEvent param0)
             {
             };
-            OnPlayerHurt = delegate(HurtEvent param0)
+            OnPlayerHurt = delegate (HurtEvent param0)
             {
             };
-            OnPlayerSpawned = delegate(Fougerite.Player param0, SpawnEvent param1)
+            OnPlayerSpawned = delegate (Fougerite.Player param0, SpawnEvent param1)
             {
             };
-            OnPlayerSpawning = delegate(Fougerite.Player param0, SpawnEvent param1)
+            OnPlayerSpawning = delegate (Fougerite.Player param0, SpawnEvent param1)
             {
             };
-            OnPlayerGathering = delegate(Fougerite.Player param0, GatherEvent param1)
+            OnPlayerGathering = delegate (Fougerite.Player param0, GatherEvent param1)
             {
             };
-            OnEntityHurt = delegate(HurtEvent param0)
+            OnEntityHurt = delegate (HurtEvent param0)
             {
             };
-            OnEntityDestroyed = delegate(DestroyEvent param0)
+            OnEntityDestroyed = delegate (DestroyEvent param0)
             {
             };
-            OnEntityDecay = delegate(DecayEvent param0)
+            OnEntityDecay = delegate (DecayEvent param0)
             {
             };
-            OnEntityDeployed = delegate(Fougerite.Player param0, Entity param1)
+            OnEntityDeployed = delegate (Fougerite.Player param0, Entity param1)
             {
             };
             OnEntityDeployedWithPlacer = delegate (Fougerite.Player param0, Entity param1, Fougerite.Player param2)
             {
             };
-            OnConsoleReceived = delegate(ref ConsoleSystem.Arg param0, bool param1)
+            OnConsoleReceived = delegate (ref ConsoleSystem.Arg param0, bool param1)
             {
             };
-            OnBlueprintUse = delegate(Fougerite.Player param0, BPUseEvent param1)
+            OnBlueprintUse = delegate (Fougerite.Player param0, BPUseEvent param1)
             {
             };
-            OnDoorUse = delegate(Fougerite.Player param0, DoorEvent param1)
+            OnDoorUse = delegate (Fougerite.Player param0, DoorEvent param1)
             {
             };
-            OnTablesLoaded = delegate(Dictionary<string, LootSpawnList> param0)
+            OnTablesLoaded = delegate (Dictionary<string, LootSpawnList> param0)
             {
             };
-            OnItemsLoaded = delegate(ItemsBlocks param0)
+            OnItemsLoaded = delegate (ItemsBlocks param0)
             {
             };
             OnServerInit = delegate
@@ -1799,47 +2135,47 @@ namespace Fougerite
             OnModulesLoaded = delegate
             {
             };
-            OnRecieveNetwork = delegate(Fougerite.Player param0, Metabolism param1, float param2, float param3, 
+            OnRecieveNetwork = delegate (Fougerite.Player param0, Metabolism param1, float param2, float param3,
                 float param4, float param5, float param6, float param7)
             {
             };
-            OnShowTalker = delegate(uLink.NetworkPlayer param0, Fougerite.Player param1)
+            OnShowTalker = delegate (uLink.NetworkPlayer param0, Fougerite.Player param1)
             {
             };
-            OnCrafting = delegate(Fougerite.Events.CraftingEvent param0)
+            OnCrafting = delegate (Fougerite.Events.CraftingEvent param0)
             {
             };
-            OnResourceSpawned = delegate(ResourceTarget param0)
+            OnResourceSpawned = delegate (ResourceTarget param0)
             {
             };
-            OnItemRemoved = delegate(Fougerite.Events.InventoryModEvent param0)
+            OnItemRemoved = delegate (Fougerite.Events.InventoryModEvent param0)
             {
             };
-            OnItemAdded = delegate(Fougerite.Events.InventoryModEvent param0)
+            OnItemAdded = delegate (Fougerite.Events.InventoryModEvent param0)
             {
             };
-            OnAirdropCalled = delegate(Vector3 param0)
+            OnAirdropCalled = delegate (Vector3 param0)
             {
             };
-            OnSteamDeny = delegate(SteamDenyEvent param0)
+            OnSteamDeny = delegate (SteamDenyEvent param0)
             {
             };
-            OnPlayerApproval = delegate(PlayerApprovalEvent param0)
+            OnPlayerApproval = delegate (PlayerApprovalEvent param0)
             {
             };
-            OnPlayerMove = delegate(HumanController param0, Vector3 param1, int param2, ushort param3, uLink.NetworkMessageInfo param4, Util.PlayerActions param5)
+            OnPlayerMove = delegate (HumanController param0, Vector3 param1, int param2, ushort param3, uLink.NetworkMessageInfo param4, Util.PlayerActions param5)
             {
             };
-            OnResearch = delegate(ResearchEvent param0)
+            OnResearch = delegate (ResearchEvent param0)
             {
             };
             OnServerSaved = delegate
             {
             };
-            OnItemPickup = delegate(ItemPickupEvent param0)
+            OnItemPickup = delegate (ItemPickupEvent param0)
             {
             };
-            OnFallDamage = delegate(FallDamageEvent param0)
+            OnFallDamage = delegate (FallDamageEvent param0)
             {
             };
             OnLootUse = delegate (LootStartEvent param0)
@@ -1884,6 +2220,12 @@ namespace Fougerite
 
         public static void ServerStarted()
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             DataStore.GetInstance().Load();
             Server.GetServer().UpdateBanlist();
             try
@@ -1895,10 +2237,19 @@ namespace Fougerite
             {
                 Logger.LogError("ServerInitEvent Error: " + ex.ToString());
             }
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("ServerStartedEvent Speed: " + sw.Elapsed.Seconds + " secs");
         }
 
         public static void ShowTalker(uLink.NetworkPlayer player, PlayerClient p)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             var pl = Fougerite.Server.Cache[p.userID];
             try
             {
@@ -1909,10 +2260,19 @@ namespace Fougerite
             {
                 Logger.LogError("ShowTalkerEvent Error: " + ex.ToString());
             }
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("MicUseEvent Speed: " + sw.Elapsed.Seconds + " secs");
         }
 
         internal static void ModulesLoaded()
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             try
             {
                 if (OnModulesLoaded != null)
@@ -1922,6 +2282,9 @@ namespace Fougerite
             {
                 Logger.LogError("ModulesLoadedEvent Error: " + ex.ToString());
             }
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("ModulesLoadedEvent Speed: " + sw.Elapsed.Seconds + " secs");
         }
 
         public static Dictionary<string, LootSpawnList> TablesLoaded(Dictionary<string, LootSpawnList> lists)
