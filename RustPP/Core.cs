@@ -16,7 +16,7 @@ namespace RustPP
     public class Core
     {
         public static string Name = "Rust++";
-        public static string Version = "1.1.7.6";
+        public static string Version = "1.1.8.0";
         public static IniParser config;
         public static PList blackList = new PList();
         public static PList whiteList = new PList();

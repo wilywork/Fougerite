@@ -28,7 +28,6 @@
             if (query.Count() == 1)
             {
                 BanPlayer(query.First(), pl);
-                return;
             }
             else
             {

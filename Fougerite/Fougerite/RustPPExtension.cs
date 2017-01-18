@@ -24,6 +24,14 @@ namespace Fougerite
             return list;
         }
 
+        public ShareCommand GetShareCommand
+        {
+            get
+            {
+                return (ShareCommand)ChatCommand.GetCommand("share");
+            }
+        }
+
         public FriendsCommand GetFriendsCommand
         {
             get

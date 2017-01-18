@@ -219,6 +219,11 @@ namespace Fougerite
             }
         }
 
+        public void RunServerCommand(string s)
+        {
+            ConsoleSystem.Run(s);
+        }
+
         public Fougerite.Player FindByNetworkPlayer(uLink.NetworkPlayer np)
         {
             foreach (var x in Fougerite.Server.GetServer().Players)
@@ -247,26 +252,19 @@ namespace Fougerite
                 {
                     if (Cache.ContainsKey(uid))
                     {
-                        Logger.LogDebug("[FindPlayer] Match: " + Cache[uid].Name);
                         return Cache[uid];
                     }
                     var flist = Players.Where(x => x.UID == uid).ToList();
-                    var names = flist.Select(x => x.Name).ToList();
                     if (flist.Count >= 1)
                     {
-                        Logger.LogDebug("[FindPlayer] Matches: " + flist.Count + " First Match: " + flist[0].Name +
-                                        " Matches: " + string.Join(", ", names.ToArray()));
                         return flist[0];
                     }
                 }
                 else
                 {
                     var flist = Players.Where(x => x.SteamID == search || x.SteamID.Contains(search)).ToList();
-                    var names = flist.Select(x => x.Name).ToList();
                     if (flist.Count >= 1)
                     {
-                        Logger.LogDebug("[FindPlayer] Matches: " + flist.Count + " First Match: " + flist[0].Name +
-                                        " Matches: " + string.Join(", ", names.ToArray()));
                         return flist[0];
                     }
                 }
@@ -275,15 +273,11 @@ namespace Fougerite
             {
                 var list = Players.Where(x => x.Name.ToLower().Contains(search.ToLower()) || 
                     string.Equals(x.Name, search, StringComparison.CurrentCultureIgnoreCase)).ToList();
-                var nnames = list.Select(x => x.Name).ToList();
                 if (list.Count >= 1)
                 {
-                    Logger.LogDebug("[FindPlayer] Matches: " + list.Count + " First Match: " + list[0].Name +
-                                    " Matches: " + string.Join(", ", nnames.ToArray()));
                     return list[0];
                 }
             }
-            Logger.LogDebug("[FindPlayer] 0 Matches");
             return null;
         }
 

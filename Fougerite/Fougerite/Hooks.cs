@@ -1401,6 +1401,7 @@ namespace Fougerite
                 return true;
             }
             var t = new Thread(() => SaveAll(path));
+            t.IsBackground = true;
             t.Start();
             return true;
         }

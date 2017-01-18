@@ -25,7 +25,7 @@
         }
         public override Version Version
         {
-            get { return new Version("1.1.7.9"); }
+            get { return new Version("1.1.8.0"); }
         }
 
         public static string GetAbsoluteFilePath(string fileName)
@@ -126,11 +126,12 @@
             {
                 command.PartialNameTP(ref arg, arg.GetInt(0));
                 arg.ArgsStr = string.Empty;
-            /* }  else if (Core.friendWaitList.Contains(arg.argUser.userID))
+            }
+            else if (Core.friendWaitList.Contains(arg.argUser.userID))
             {
                 (ChatCommand.GetCommand("addfriend") as AddFriendCommand).PartialNameAddFriend(ref arg, arg.GetInt(0));
                 Core.friendWaitList.Remove(arg.argUser.userID);
-                arg.ArgsStr = string.Empty; */
+                arg.ArgsStr = string.Empty; 
             } else if (Core.shareWaitList.Contains(pl.UID))
             {
                 (ChatCommand.GetCommand("share") as ShareCommand).PartialNameDoorShare(ref arg, arg.GetInt(0));
@@ -166,11 +167,11 @@
                 (ChatCommand.GetCommand("addwl") as WhiteListAddCommand).PartialNameWhitelist(ref arg, arg.GetInt(0));
                 Core.whiteWaitList.Remove(pl.UID);
                 arg.ArgsStr = string.Empty;
-            /* } else if (Core.adminAddWaitList.Contains(arg.argUser.userID))
+            } else if (Core.adminAddWaitList.Contains(arg.argUser.userID))
             {
                 (ChatCommand.GetCommand("addadmin") as AddAdminCommand).PartialNameNewAdmin(ref arg, arg.GetInt(0));
                 Core.adminAddWaitList.Remove(arg.argUser.userID);
-                arg.ArgsStr = string.Empty; */
+                arg.ArgsStr = string.Empty;
             } else if (Core.adminRemoveWaitList.Contains(pl.UID))
             {
                 (ChatCommand.GetCommand("unadmin") as RemoveAdminCommand).PartialNameRemoveAdmin(ref arg, arg.GetInt(0));
