@@ -216,7 +216,6 @@ namespace Fougerite
         {
             foreach (var x in Fougerite.Server.GetServer().Players)
             {
-                if (x.PlayerClient.netPlayer == null) continue;
                 if (x.PlayerClient.netPlayer == np) return x;
             }
             return null;

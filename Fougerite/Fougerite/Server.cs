@@ -245,7 +245,7 @@ namespace Fougerite
 
         public Fougerite.Player FindPlayer(string search)
         {
-            if (search.StartsWith("7656119"))
+            if (search.All(char.IsDigit))
             {
                 ulong uid;
                 if (ulong.TryParse(search, out uid))

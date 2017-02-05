@@ -538,7 +538,8 @@ namespace Fougerite
 
             try
             {
-                HurtEvent he = new HurtEvent(ref e, new Entity(entity));
+                var ent = new Entity(entity);
+                HurtEvent he = new HurtEvent(ref e, ent);
                 if (decayList.Contains(entity))
                     he.IsDecay = true;
 
@@ -554,13 +555,15 @@ namespace Fougerite
                 // when entity is destroyed
                 if (e.status != LifeStatus.IsAlive)
                 {
-                    var ent = new Entity(entity);
                     DestroyEvent de = new DestroyEvent(ref e, ent, he.IsDecay);
                     if (OnEntityDestroyed != null)
                         OnEntityDestroyed(de);
                 }
-                else if (OnEntityHurt != null)
-                    OnEntityHurt(he);
+                else
+                {
+                    if (OnEntityHurt != null)
+                        OnEntityHurt(he);
+                }
 
                 Zone3D zoned = Zone3D.GlobalContains(he.Entity);
                 if ((zoned == null) || !zoned.Protected)

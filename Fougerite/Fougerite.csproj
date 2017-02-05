@@ -49,6 +49,9 @@
     <Compile Include="Fougerite\Events\ShootEvent.cs" />
     <Compile Include="Fougerite\Events\ShotgunShootEvent.cs" />
     <Compile Include="Fougerite\Loom.cs" />
+    <Compile Include="Fougerite\MySQL\Connection.cs" />
+    <Compile Include="Fougerite\MySQL\MySql.cs" />
+    <Compile Include="Fougerite\MySQL\Sql.cs" />
     <Compile Include="Fougerite\ShutdownCatcher.cs" />
     <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -66,10 +69,21 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>F:\adt\RustLegacyServer\rust_server_Data\Managed\Google.ProtocolBuffers.Serialization.dll</HintPath>
     </Reference>
+    <Reference Include="I18N">
+      <HintPath>..\References\I18N.dll</HintPath>
+    </Reference>
+    <Reference Include="I18N.West">
+      <HintPath>..\References\I18N.West.dll</HintPath>
+    </Reference>
+    <Reference Include="MySql.Data">
+      <HintPath>..\References\MySql.Data.dll</HintPath>
+    </Reference>
     <Reference Include="RustPP">
       <HintPath>..\bin\modules\RustPP\RustPP.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration.Install" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="uLink, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
