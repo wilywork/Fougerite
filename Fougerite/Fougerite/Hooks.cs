@@ -74,6 +74,8 @@ namespace Fougerite
         public static event GrenadeThrowEventDelegate OnGrenadeThrow;
         public static bool IsShuttingDown = false;
 
+        internal static Thread SaveThread;
+
         public static void BlueprintUse(IBlueprintItem item, BlueprintDataBlock bdb)
         {
             Stopwatch sw = null;
@@ -1403,9 +1405,9 @@ namespace Fougerite
                 SaveAll(path);
                 return true;
             }
-            var t = new Thread(() => SaveAll(path));
-            t.IsBackground = true;
-            t.Start();
+            SaveThread = new Thread(() => SaveAll(path));
+            SaveThread.IsBackground = true;
+            SaveThread.Start();
             return true;
         }
 
@@ -1699,22 +1701,25 @@ namespace Fougerite
                         }
                     }
                 }
-
-                foreach (GameObject obj2 in objArray)
+                new Thread(() =>
                 {
-                    //Logger.LogWarning(obj2.name);
-                    try
+                    Thread.CurrentThread.IsBackground = true;
+                    foreach (GameObject obj2 in objArray)
                     {
-                        if (obj2 != null)
+                        //Logger.LogWarning(obj2.name);
+                        try
                         {
-                            obj2.SendMessage(msg, NetworkPlayer, SendMessageOptions.DontRequireReceiver);
+                            if (obj2 != null)
+                            {
+                                obj2.SendMessage(msg, NetworkPlayer, SendMessageOptions.DontRequireReceiver);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.LogError("[uLink Error] Disconnect failure, report to DreTaX: " + ex);
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        Logger.LogError("[uLink Error] Disconnect failure, report to DreTaX: " + ex);
-                    }
-                }
+                }).Start();
             }
             catch //(Exception ex)
             {

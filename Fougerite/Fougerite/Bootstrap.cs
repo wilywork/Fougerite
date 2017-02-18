@@ -8,7 +8,7 @@ namespace Fougerite
 
     public class Bootstrap : Facepunch.MonoBehaviour
     {
-        public const string Version = "1.5.2";
+        public const string Version = "1.5.3";
         public static bool CR = false;
         public static bool BI = false;
         internal static readonly Thread CurrentThread = Thread.CurrentThread;

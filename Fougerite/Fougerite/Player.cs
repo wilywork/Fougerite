@@ -414,7 +414,7 @@ namespace Fougerite
             return false;
         }
 
-        public bool SafeTeleportTo(Vector3 target, bool callhook = true)
+        public bool SafeTeleportTo(Vector3 target, bool callhook = true, bool dosafechecks = true)
         {
             if (this.IsOnline)
             {
@@ -437,7 +437,7 @@ namespace Fougerite
                 {
                     if (Physics.Raycast(target, Vector3.down, out hit))
                     {
-                        if (hit.collider.name == "HB Hit")
+                        if (hit.collider.name == "HB Hit" && dosafechecks)
                         {
                             // this.Message("There you are.");
                             return false;
@@ -480,7 +480,7 @@ namespace Fougerite
 
                     if (Physics.Raycast(terrain + Vector3.up * 300f, Vector3.down, out hit))
                     {
-                        if (hit.collider.name == "HB Hit")
+                        if (hit.collider.name == "HB Hit" && dosafechecks)
                         {
                             this.Message("There you are.");
                             return false;
@@ -488,7 +488,7 @@ namespace Fougerite
                         Vector3 worldPos = target - Terrain.activeTerrain.transform.position;
                         Vector3 tnPos = new Vector3(Mathf.InverseLerp(0, Terrain.activeTerrain.terrainData.size.x, worldPos.x), 0, Mathf.InverseLerp(0, Terrain.activeTerrain.terrainData.size.z, worldPos.z));
                         float gradient = Terrain.activeTerrain.terrainData.GetSteepness(tnPos.x, tnPos.z);
-                        if (gradient > 50f)
+                        if (gradient > 50f && dosafechecks)
                         {
                             this.Message("It's too steep there.");
                             return false;
@@ -510,6 +510,18 @@ namespace Fougerite
                 }
             }
             return false;
+        }
+
+        public Vector3 TeleportToTheClosestSpawnpoint(Vector3 target, bool callhook = true)
+        {
+            Vector3 pos;
+            Quaternion qt;
+            SpawnManager.GetClosestSpawn(target, out pos, out qt);
+            if (target != Vector3.zero)
+            {
+                TeleportTo(pos, callhook);
+            }
+            return pos;
         }
 
         public bool TeleportTo(float x, float y, float z, bool callhook = true)

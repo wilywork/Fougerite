@@ -68,28 +68,33 @@
             onground = new Vector3(x, y, z);
         }*/
 
+        [Obsolete("AirdropAt is deprecated, please use AirdropAtOriginal instead.")]
         public void AirdropAt(float x, float y, float z)
         {
             this.AirdropAt(x, y, z, 1);
         }
 
+        [Obsolete("AirdropAt is deprecated, please use AirdropAtOriginal instead.")]
         public void AirdropAt(float x, float y, float z, int rep)
         {
             Vector3 target = new Vector3(x, y, z);
             this.AirdropAt(target, rep);
         }
 
+        [Obsolete("AirdropAt is deprecated, please use AirdropAtOriginal instead.")]
         public void AirdropAtPlayer(Fougerite.Player p)
         {
             this.AirdropAt(p.X, p.Y, p.Z, 1);
         }
 
+        [Obsolete("AirdropAt is deprecated, please use AirdropAtOriginal instead.")]
         public void AirdropAtPlayer(Fougerite.Player p, int rep)
         {
             this.AirdropAt(p.X, p.Y, p.Z, rep);
         }
 
-        public void AirdropAt(Vector3 target, int rep)
+        [Obsolete("AirdropAt is deprecated, please use AirdropAtOriginal instead.")]
+        public void AirdropAt(Vector3 target, int rep = 1)
         {
             Vector3 original = target;
             System.Random rand = new System.Random();
@@ -108,6 +113,21 @@
                 Hooks.Airdrop(target);
                 Jitter(ref target);
             }
+        }
+
+        public void AirdropAtOriginal(float x, float y, float z, int rep = 1)
+        {
+            this.AirdropAtOriginal(new Vector3(x, y, z), rep);
+        }
+
+        public void AirdropAtOriginal(Fougerite.Player p, int rep = 1)
+        {
+            this.AirdropAtOriginal(p.Location, rep);
+        }
+
+        public void AirdropAtOriginal(Vector3 target, int rep = 1)
+        {
+            SupplyDropZone.CallAirDropAt(target);
         }
 
         private static void Jitter(ref Vector3 target)
