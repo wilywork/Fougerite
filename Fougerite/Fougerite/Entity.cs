@@ -230,7 +230,7 @@ namespace Fougerite
             return list;
         }
 
-        private T GetObject<T>()
+        public T GetObject<T>()
         {
             return (T)this.Object;
         }

@@ -490,7 +490,7 @@ namespace Fougerite
             NetUser user = data as NetUser;
             if (user != null)
             {
-                ActualPlacer = Fougerite.Server.Cache[user.userID];
+                if (Fougerite.Server.Cache.ContainsKey(user.userID)) ActualPlacer = Fougerite.Server.Cache[user.userID];
             }
             try
             {
@@ -527,7 +527,8 @@ namespace Fougerite
             NetCull.InstantiateDynamicWithArgs<Vector3>(td2.throwObjectPrefab, position, rotation, arg);*/
         }
 
-        public static void EntityHurt(object entity, ref DamageEvent e)
+        //Todo: Consider changing all hurt events to this.
+        public static void EntityHurt2(TakeDamage tkd, ref DamageEvent e)
         {
             Stopwatch sw = null;
             if (Logger.showSpeed)
@@ -535,9 +536,76 @@ namespace Fougerite
                 sw = new Stopwatch();
                 sw.Start();
             }
+            HurtEvent he = new HurtEvent(ref e);
+            if (!he.VictimIsEntity)
+            {
+                return;
+            }
+            var ent = he.Entity;
+            if (decayList.Contains(he.Entity))
+                he.IsDecay = true;
+
+            if (ent.IsStructure() && !he.IsDecay)
+            {
+                StructureComponent component = ent.Object as StructureComponent;
+                if (component != null &&
+                    ((component.IsType(StructureComponent.StructureComponentType.Ceiling) ||
+                      component.IsType(StructureComponent.StructureComponentType.Foundation)) ||
+                     component.IsType(StructureComponent.StructureComponentType.Pillar)))
+                {
+                    he.DamageAmount = 0f;
+                }
+            }
+            try
+            {
+                if (OnEntityHurt != null)
+                {
+                    OnEntityHurt(he);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("EntityHurtEvent Error: " + ex);
+            }
+            if (!tkd.takenodamage)
+            {
+                if (e.status != LifeStatus.IsAlive)
+                {
+                    DestroyEvent de = new DestroyEvent(ref e, ent, he.IsDecay);
+                    try
+                    {
+                        if (OnEntityDestroyed != null)
+                        {
+                            OnEntityDestroyed(de);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError("EntityDestroyEvent Error: " + ex);
+                    }
+                    tkd._health = 0f;
+                    he.Entity.Destroy();
+                }
+                else
+                {
+                    tkd._health -= he.DamageAmount;
+                }
+            }
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("EntityHurt/Destroy Event Speed: " + sw.Elapsed.Seconds + " secs");
+        }
+
+        /*public static void EntityHurt(object entity, ref DamageEvent e)
+        {
             if (entity == null)
                 return;
-
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
             try
             {
                 var ent = new Entity(entity);
@@ -545,13 +613,18 @@ namespace Fougerite
                 if (decayList.Contains(entity))
                     he.IsDecay = true;
 
-                if (he.Entity.IsStructure() && !he.IsDecay)
+                if (ent.IsStructure() && !he.IsDecay)
                 {
                     StructureComponent component = entity as StructureComponent;
-                    if (component != null && ((component.IsType(StructureComponent.StructureComponentType.Ceiling) || component.IsType(StructureComponent.StructureComponentType.Foundation)) || component.IsType(StructureComponent.StructureComponentType.Pillar)))
+                    if (component != null &&
+                        ((component.IsType(StructureComponent.StructureComponentType.Ceiling) ||
+                          component.IsType(StructureComponent.StructureComponentType.Foundation)) ||
+                         component.IsType(StructureComponent.StructureComponentType.Pillar)))
+                    {
                         he.DamageAmount = 0f;
+                    }
                 }
-                TakeDamage takeDamage = he.Entity.GetTakeDamage();
+                TakeDamage takeDamage = ent.GetTakeDamage();
                 takeDamage.health += he.DamageAmount;
 
                 // when entity is destroyed
@@ -567,23 +640,26 @@ namespace Fougerite
                         OnEntityHurt(he);
                 }
 
-                Zone3D zoned = Zone3D.GlobalContains(he.Entity);
-                if ((zoned == null) || !zoned.Protected)
+                //Zone3D zoned = Zone3D.GlobalContains(ent);
+                //if ((zoned == null) || !zoned.Protected)
+                //{
+                if ((he.Entity.GetTakeDamage().health - he.DamageAmount) <= 0f)
                 {
-                    if ((he.Entity.GetTakeDamage().health - he.DamageAmount) <= 0f)
-                        he.Entity.Destroy();
-                    else
-                    {
-                        TakeDamage damage2 = he.Entity.GetTakeDamage();
-                        damage2.health -= he.DamageAmount;
-                    }
+                    he.Entity.Destroy();
                 }
+                else
+                {
+                    TakeDamage damage2 = ent.GetTakeDamage();
+                    damage2.health -= he.DamageAmount;
+                }
+                //}
+                
             }
             catch (Exception ex) { Logger.LogDebug("EntityHurtEvent Error " + ex); }
             if (sw == null) return;
             sw.Stop();
             if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("EntityHurtEvent Speed: " + sw.Elapsed.Seconds + " secs");
-        }
+        }*/
 
         public static void hijack(string name)
         {
@@ -1701,9 +1777,9 @@ namespace Fougerite
                         }
                     }
                 }
-                new Thread(() =>
-                {
-                    Thread.CurrentThread.IsBackground = true;
+                //new Thread(() =>
+                //{
+                    //Thread.CurrentThread.IsBackground = true;
                     foreach (GameObject obj2 in objArray)
                     {
                         //Logger.LogWarning(obj2.name);
@@ -1719,7 +1795,7 @@ namespace Fougerite
                             Logger.LogError("[uLink Error] Disconnect failure, report to DreTaX: " + ex);
                         }
                     }
-                }).Start();
+                //}).Start();
             }
             catch //(Exception ex)
             {

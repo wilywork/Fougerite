@@ -1100,7 +1100,20 @@ namespace Fougerite.Patcher
 
         private void EntityHurtPatch()
         {
-            TypeDefinition type = rustAssembly.MainModule.GetType("StructureComponent");
+            TypeDefinition type = rustAssembly.MainModule.GetType("TakeDamage");
+            type.GetField("takenodamage").SetPublic(true);
+            type.GetField("_health").SetPublic(true);
+
+            MethodDefinition EntityHurt2 = hooksClass.GetMethod("EntityHurt2");
+            MethodDefinition ProcessDamageEvent = type.GetMethod("ProcessDamageEvent");
+            ProcessDamageEvent.Body.Instructions.Clear();
+            ProcessDamageEvent.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            ProcessDamageEvent.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            ProcessDamageEvent.Body.Instructions.Add(Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(EntityHurt2)));
+            ProcessDamageEvent.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+
+            //ProcessDamageEvent
+            /*TypeDefinition type = rustAssembly.MainModule.GetType("StructureComponent");
             TypeDefinition definition2 = rustAssembly.MainModule.GetType("DeployableObject");
             MethodDefinition definition3 = type.GetMethod("OnHurt");
             MethodDefinition definition4 = definition2.GetMethod("OnHurt");
@@ -1116,7 +1129,7 @@ namespace Fougerite.Patcher
             definition4.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
             definition4.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarga_S, definition4.Parameters[0]));
             definition4.Body.Instructions.Add(Instruction.Create(OpCodes.Call, reference));
-            definition4.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+            definition4.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));*/
         }
 
         private void ItemsTablesLoadedPatch()

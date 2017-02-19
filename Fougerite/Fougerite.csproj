@@ -52,33 +52,35 @@
     <Compile Include="Fougerite\ShutdownCatcher.cs" />
     <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\bin\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\References\PatchedReferences\Test\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="Facepunch.HitBox, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\bin\Facepunch.HitBox.dll</HintPath>
+      <HintPath>..\References\PatchedReferences\FougeriteReferences\Facepunch.HitBox.dll</HintPath>
+    </Reference>
+    <Reference Include="Facepunch.ID, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\References\PatchedReferences\FougeriteReferences\Facepunch.ID.dll</HintPath>
     </Reference>
     <Reference Include="Facepunch.MeshBatch, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\bin\Facepunch.MeshBatch.dll</HintPath>
+      <HintPath>..\References\PatchedReferences\Facepunch.MeshBatch.dll</HintPath>
+    </Reference>
+    <Reference Include="Google.ProtocolBuffers, Version=2.4.1.521, Culture=neutral, PublicKeyToken=55f7125234beb589, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\References\PatchedReferences\FougeriteReferences\Google.ProtocolBuffers.dll</HintPath>
     </Reference>
     <Reference Include="Google.ProtocolBuffers.Serialization, Version=2.4.1.521, Culture=neutral, PublicKeyToken=55f7125234beb589, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>F:\adt\RustLegacyServer\rust_server_Data\Managed\Google.ProtocolBuffers.Serialization.dll</HintPath>
+      <HintPath>..\References\PatchedReferences\FougeriteReferences\Google.ProtocolBuffers.Serialization.dll</HintPath>
     </Reference>
-    <Reference Include="RustPP">
-      <HintPath>..\bin\modules\RustPP\RustPP.dll</HintPath>
+    <Reference Include="RustPP, Version=1.1.7.9, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\References\PatchedReferences\FougeriteReferences\RustPP.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.XML" />
-    <Reference Include="uLink, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\References\uLink.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine">
-      <HintPath>..\References\UnityEngine.dll</HintPath>
-    </Reference>
     <Reference Include="System.Core">
       <HintPath>..\References\System.Core.dll</HintPath>
     </Reference>
@@ -128,14 +130,16 @@
     <Compile Include="IniParser.cs" />
     <Compile Include="Fougerite\Util.cs" />
     <Compile Include="Fougerite\Bootstrap.cs" />
-    <Reference Include="Facepunch.ID">
-      <HintPath>..\References\Facepunch.ID.dll</HintPath>
-    </Reference>
-    <Reference Include="Google.ProtocolBuffers">
-      <HintPath>..\References\Google.ProtocolBuffers.dll</HintPath>
-    </Reference>
     <Compile Include="Fougerite\Events\DestroyEvent.cs" />
     <Compile Include="Fougerite\SerializableDictionary.cs" />
+    <Reference Include="uLink, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\References\PatchedReferences\uLink.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\References\PatchedReferences\FougeriteReferences\UnityEngine.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <None Include="Fougerite.cfg">
