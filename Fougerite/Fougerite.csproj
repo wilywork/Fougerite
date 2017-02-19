@@ -52,7 +52,7 @@
     <Compile Include="Fougerite\ShutdownCatcher.cs" />
     <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\References\PatchedReferences\Test\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\References\PatchedReferences\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="Facepunch.HitBox, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
