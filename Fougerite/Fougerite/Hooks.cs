@@ -539,6 +539,14 @@ namespace Fougerite
             HurtEvent he = new HurtEvent(ref e);
             if (!he.VictimIsEntity)
             {
+                if (e.status != LifeStatus.IsAlive)
+                {
+                    tkd._health = 0f;
+                }
+                else
+                {
+                    tkd._health -= he.DamageAmount;
+                }
                 return;
             }
             var ent = he.Entity;
