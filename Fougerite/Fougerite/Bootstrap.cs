@@ -8,9 +8,10 @@ namespace Fougerite
 
     public class Bootstrap : Facepunch.MonoBehaviour
     {
-        public const string Version = "1.5.4B";
+        public const string Version = "1.5.5";
         public static bool CR = false;
         public static bool BI = false;
+        public static bool TS = false;
         internal static readonly Thread CurrentThread = Thread.CurrentThread;
 
         public static void AttachBootstrap()
@@ -47,6 +48,10 @@ namespace Fougerite
             if (Fougerite.Config.GetValue("Fougerite", "BanOnInvalidPacket") != null)
             {
                 BI = Fougerite.Config.GetBoolValue("Fougerite", "BanOnInvalidPacket");
+            }
+            if (Fougerite.Config.GetValue("Fougerite", "UseThreadAtServerSave") != null)
+            {
+                TS = Fougerite.Config.GetBoolValue("Fougerite", "UseThreadAtServerSave");
             }
             if (!Fougerite.Config.GetBoolValue("Fougerite", "deployabledecay") && !Fougerite.Config.GetBoolValue("Fougerite", "decay"))
             {

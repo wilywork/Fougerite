@@ -292,6 +292,8 @@ namespace Fougerite.Patcher
             Useable.GetField("canUse").SetPublic(true);
             Useable.GetField("_user").SetPublic(true);
             Useable.GetField("canUpdate").SetPublic(true);
+            Useable.GetField("callState").SetPublic(true);
+            Useable.GetNestedType("FunctionCallState").IsPublic = true;
         }
 
         private void ResearchPatch()

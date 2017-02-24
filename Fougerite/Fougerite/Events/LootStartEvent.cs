@@ -17,7 +17,6 @@ namespace Fougerite.Events
         private readonly bool _isobject;
         private readonly uLink.NetworkPlayer _np;
         private Timer _delayer = null;
-        private Vector3 _originaloc;
 
         public LootStartEvent(LootableObject lo, Fougerite.Player player, Useable use, uLink.NetworkPlayer nplayer)
         {
@@ -45,7 +44,9 @@ namespace Fougerite.Events
         internal void LootCancelTimer(object sender, ElapsedEventArgs e)
         {
             _delayer.Dispose();
-            _lo.transform.position = _originaloc;
+            // Change callstate, and call eject, for a proper nice exit.
+            _ue.callState = (FunctionCallState)0;
+            _ue.Eject();
         }
 
         public void Cancel()
@@ -54,16 +55,8 @@ namespace Fougerite.Events
             {
                 _cancel = true;
                 if (_delayer != null) return;
-                /*_lo._useable = _ue;
-                _lo._currentlyUsingPlayer = _np;
-                _lo._inventory.AddNetListener(_lo._currentlyUsingPlayer);
-                _lo.SendCurrentLooter();
-                _lo.CancelInvokes();
-                _lo.InvokeRepeating("RadialCheck", 0f, 10f);*/
-                _originaloc = _lo.transform.position;
-                _lo.transform.position = new Vector3(_originaloc.x + 5.5f, _originaloc.y, _originaloc.z + 5.5f);
-                // Timer is required, Useable.Eject doesn't allow us to work properly so we will hax with locations
-                _delayer = new Timer(100);
+                // Delay It, Let LootEnter Hook in Rust to finish.
+                _delayer = new Timer(130);
                 _delayer.Elapsed += LootCancelTimer;
                 _delayer.Start();
             }

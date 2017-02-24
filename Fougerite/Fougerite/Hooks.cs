@@ -74,8 +74,6 @@ namespace Fougerite
         public static event GrenadeThrowEventDelegate OnGrenadeThrow;
         public static bool IsShuttingDown = false;
 
-        internal static Thread SaveThread;
-
         public static void BlueprintUse(IBlueprintItem item, BlueprintDataBlock bdb)
         {
             Stopwatch sw = null;
@@ -120,7 +118,7 @@ namespace Fougerite
             }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("BluePrintEvent Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("BluePrintEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
         public static void ChatReceived(ref ConsoleSystem.Arg arg)
@@ -139,8 +137,7 @@ namespace Fougerite
             var quotedMessage = Facepunch.Utility.String.QuoteSafe(arg.GetString(0));
             if (quotedMessage.Trim('"').StartsWith("/"))
             {
-                Logger.LogDebug("[CHAT-CMD] "
-+ quotedName + " executed " + quotedMessage);
+                Logger.LogDebug("[CHAT-CMD] " + quotedName + " executed " + quotedMessage);
             }
 
             if (OnChatRaw != null)
@@ -244,7 +241,7 @@ namespace Fougerite
             }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("ChatEvent Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("ChatEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
         public static bool ConsoleReceived(ref ConsoleSystem.Arg a)
@@ -351,7 +348,6 @@ namespace Fougerite
                 {
                     Fougerite.Server.GetServer().GetRustPPAPI().RustPPSave();
                 }
-                DataStore.GetInstance().Save();
                 a.ReplyWith("Fougerite: Saved!");
             }
             else if (a.Class.Equals("fougerite", ic) && a.Function.Equals("rustpp", ic))
@@ -400,7 +396,7 @@ namespace Fougerite
             }
             if (sw == null) return true;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("ConsoleEvent Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("ConsoleEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
             return true;
         }
 
@@ -431,7 +427,7 @@ namespace Fougerite
             }
             if (sw == null) return de.Open;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("CheckOwnerEvent(DoorOpen) Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("CheckOwnerEvent(DoorOpen) Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
             return de.Open;
         }
 
@@ -469,7 +465,7 @@ namespace Fougerite
             if (sw != null)
             {
                 sw.Stop();
-                if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("EntityDecayEvent Speed: " + sw.Elapsed.Seconds + " secs");
+                if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("EntityDecayEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
             }
             return 0f;
         }
@@ -512,7 +508,7 @@ namespace Fougerite
             }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("EntityDeployedEvent Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("EntityDeployedEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
             /*ItemRepresentation rp = new TorchItemRep();
             rp.ActionStream(1, uLink.RPCMode.AllExceptOwner, stream);
             Server.GetServer().Broadcast(ActualPlacer.ToString());
@@ -601,7 +597,7 @@ namespace Fougerite
             }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("EntityHurt/Destroy Event Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("EntityHurt/Destroy Event Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
         /*public static void EntityHurt(object entity, ref DamageEvent e)
@@ -666,7 +662,7 @@ namespace Fougerite
             catch (Exception ex) { Logger.LogDebug("EntityHurtEvent Error " + ex); }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("EntityHurtEvent Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("EntityHurtEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }*/
 
         public static void hijack(string name)
@@ -720,7 +716,7 @@ namespace Fougerite
             }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("ItemPickupEvent Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("ItemPickupEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
         public static void FallDamage(FallDamage fd, float speed, float num, bool flag, bool flag2)
@@ -745,7 +741,7 @@ namespace Fougerite
             }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("FallDamageEvent Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("FallDamageEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
         public static void NPCHurt(ref DamageEvent e)
@@ -781,7 +777,7 @@ namespace Fougerite
             }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("NPCHurtEvent Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("NPCHurtEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
         public static void NPCKilled(ref DamageEvent e)
@@ -801,7 +797,7 @@ namespace Fougerite
             catch (Exception ex) { Logger.LogError("NPCKilledEvent Error: " + ex); }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("NPCKilledEvent Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("NPCKilledEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
         public static void ConnectHandler(NetUser user)
@@ -816,7 +812,7 @@ namespace Fougerite
             PlayerConnect(user);
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("ConnectHandler Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("ConnectHandler Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
         public static bool PlayerConnect(NetUser user)
@@ -879,7 +875,7 @@ namespace Fougerite
             Logger.LogDebug("User Connected: " + player.Name + " (" + player.SteamID + ")" + " (" + player.IP + ")");
             if (sw == null) return connected;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("PlayerConnectedEvent Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("PlayerConnectedEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
             return connected;
         }
 
@@ -925,10 +921,10 @@ namespace Fougerite
                 Logger.LogError("PlayerDisconnectedEvent Error " + ex.ToString());
             }
             Logger.LogDebug("User Disconnected: " + player.Name + " (" + player.SteamID + ")" + " (" + player.IP + ")");
-            if (Fougerite.Bootstrap.CR) { Fougerite.Server.Cache.Remove(uid); }
+            if (Fougerite.Bootstrap.CR && Fougerite.Server.Cache.ContainsKey(uid)) { Fougerite.Server.Cache.Remove(uid); }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("PlayerDisconnectEvent Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("PlayerDisconnectEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
         public static void PlayerGather(Inventory rec, ResourceTarget rt, ResourceGivePair rg, ref int amount)
@@ -960,7 +956,7 @@ namespace Fougerite
             }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("GatherEvent Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("GatherEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
         public static void PlayerGatherWood(IMeleeWeaponItem rec, ResourceTarget rt, ref ItemDataBlock db, ref int amount, ref string name)
@@ -990,7 +986,7 @@ namespace Fougerite
             }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("WoodGatherEvent Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("WoodGatherEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
         public static void PlayerHurt(ref DamageEvent e)
@@ -1034,7 +1030,7 @@ namespace Fougerite
             catch (Exception ex) { Logger.LogError("PlayerHurtEvent Error: " + ex); }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("PlayerHurtEvent Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("PlayerHurtEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
         public static bool PlayerKilled(ref DamageEvent de)
@@ -1058,7 +1054,7 @@ namespace Fougerite
             catch (Exception ex) { Logger.LogError("PlayerKilledEvent Error: " + ex); }
             if (sw == null) return flag;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("PlayerKilledEvent Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("PlayerKilledEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
             return flag;
         }
 
@@ -1083,7 +1079,7 @@ namespace Fougerite
             catch (Exception ex) { Logger.LogError("PlayerSpawnedEvent Error: " + ex); }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("PlayerSpawned Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("PlayerSpawned Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
         public static Vector3 PlayerSpawning(PlayerClient pc, Vector3 pos, bool camp)
@@ -1107,7 +1103,7 @@ namespace Fougerite
             catch (Exception ex) { Logger.LogError("PlayerSpawningEvent Error: " + ex); }
             if (sw == null) return pos;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("PlayerSpawningEvent Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("PlayerSpawningEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
             return pos;
         }
 
@@ -1132,7 +1128,7 @@ namespace Fougerite
             }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("PluginInit Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("PluginInit Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
         public static void PlayerTeleport(Fougerite.Player player, Vector3 from, Vector3 dest)
@@ -1156,7 +1152,7 @@ namespace Fougerite
             }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("TeleportEvent Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("TeleportEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
         public static void RecieveNetwork(Metabolism m, float cal, float water, float rad, float anti, float temp, float poison)
@@ -1281,7 +1277,7 @@ namespace Fougerite
             }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("CraftEvent Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("CraftEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
         public static void AnimalMovement(BaseAIMovement m, BasicWildLifeAI ai, ulong simMillis)
@@ -1337,7 +1333,7 @@ namespace Fougerite
             }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("ShootEvent Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("ShootEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
         public static void BowShootEvent(BowWeaponDataBlock db, ItemRepresentation rep, ref uLink.NetworkMessageInfo info, IBowWeaponItem bwi)
@@ -1362,7 +1358,7 @@ namespace Fougerite
             }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("BowShootEvent Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("BowShootEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
         public static void ShotgunShootEvent(ShotgunDataBlock shotgunDataBlock, uLink.BitStream stream, ItemRepresentation rep, ref uLink.NetworkMessageInfo info)
@@ -1419,7 +1415,7 @@ namespace Fougerite
             }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("ShotgunShootEvent Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("ShotgunShootEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
         public static void GrenadeEvent(HandGrenadeDataBlock hgd, uLink.BitStream stream, ItemRepresentation rep, ref uLink.NetworkMessageInfo info)
@@ -1462,7 +1458,7 @@ namespace Fougerite
             }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("GrenadeEvent Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("GrenadeEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
         public static bool ServerSaved()
@@ -1489,9 +1485,16 @@ namespace Fougerite
                 SaveAll(path);
                 return true;
             }
-            SaveThread = new Thread(() => SaveAll(path));
-            SaveThread.IsBackground = true;
-            SaveThread.Start();
+            if (Bootstrap.TS)
+            {
+                Loom.ExecuteInBiggerStackThread(() => {
+                    SaveAll(path);
+                });
+            }
+            else
+            {
+                SaveAll(path);
+            }
             return true;
         }
 
@@ -1615,7 +1618,7 @@ namespace Fougerite
             }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("ItemRemoved Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("ItemRemoved Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
         public static void ItemAdded(Inventory inventory, int slot, IInventoryItem item)
@@ -1655,7 +1658,7 @@ namespace Fougerite
             }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("Airdrop Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("Airdrop Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
         public static void Airdrop2(SupplyDropZone srz)
@@ -1679,7 +1682,7 @@ namespace Fougerite
             }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("Airdrop2 Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("Airdrop2 Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
         /*public static void AirdropCrateDropped(GameObject go)
@@ -1722,7 +1725,7 @@ namespace Fougerite
                 if (sw != null)
                 {
                     sw.Stop();
-                    if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("Airdrop Speed: " + sw.Elapsed.Seconds + " secs");
+                    if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("Airdrop Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
                 }
                 return;
             }
@@ -1735,7 +1738,7 @@ namespace Fougerite
             Rust.Steam.Server.OnUserLeave(cc.UserID);
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("SteamDeny Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("SteamDeny Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
         public static void HandleuLinkDisconnect(string msg, object NetworkPlayer)
@@ -1787,22 +1790,22 @@ namespace Fougerite
                 }
                 //new Thread(() =>
                 //{
-                    //Thread.CurrentThread.IsBackground = true;
-                    foreach (GameObject obj2 in objArray)
+                //Thread.CurrentThread.IsBackground = true;
+                foreach (GameObject obj2 in objArray)
+                {
+                    //Logger.LogWarning(obj2.name);
+                    try
                     {
-                        //Logger.LogWarning(obj2.name);
-                        try
+                        if (obj2 != null)
                         {
-                            if (obj2 != null)
-                            {
-                                obj2.SendMessage(msg, NetworkPlayer, SendMessageOptions.DontRequireReceiver);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.LogError("[uLink Error] Disconnect failure, report to DreTaX: " + ex);
+                            obj2.SendMessage(msg, NetworkPlayer, SendMessageOptions.DontRequireReceiver);
                         }
                     }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError("[uLink Error] Disconnect failure, report to DreTaX: " + ex);
+                    }
+                }
                 //}).Start();
             }
             catch //(Exception ex)
@@ -1811,7 +1814,7 @@ namespace Fougerite
             }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("HandleuLinkDisconnect Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("HandleuLinkDisconnect Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
         public static void PlayerApproval(ConnectionAcceptor ca, NetworkPlayerApproval approval)
@@ -1915,7 +1918,7 @@ namespace Fougerite
             }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("PlayerApprovalEvent Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("PlayerApprovalEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
         private static void Accept(ConnectionAcceptor ca, NetworkPlayerApproval approval, ClientConnection clientConnection)
@@ -1994,7 +1997,7 @@ namespace Fougerite
             }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("ResearchItem Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("ResearchItem Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
         public static void SetLooter(LootableObject lo, uLink.NetworkPlayer ply)
@@ -2039,7 +2042,7 @@ namespace Fougerite
             }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("SetLooterEvent Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("SetLooterEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
         public static void OnUseEnter(LootableObject lo, Useable use)
@@ -2084,7 +2087,7 @@ namespace Fougerite
             }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("ChestEnterEvent Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("ChestEnterEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
         public static void RPCFix(Class48 c48, Class5 class5_0, uLink.NetworkPlayer networkPlayer_1)
@@ -2332,7 +2335,7 @@ namespace Fougerite
             }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("ServerStartedEvent Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("ServerStartedEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
         public static void ShowTalker(uLink.NetworkPlayer player, PlayerClient p)
@@ -2355,7 +2358,7 @@ namespace Fougerite
             }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("MicUseEvent Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("MicUseEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
         internal static void ModulesLoaded()
@@ -2377,7 +2380,7 @@ namespace Fougerite
             }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.Seconds > 0) Logger.LogSpeed("ModulesLoadedEvent Speed: " + sw.Elapsed.Seconds + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("ModulesLoadedEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
         public static Dictionary<string, LootSpawnList> TablesLoaded(Dictionary<string, LootSpawnList> lists)
