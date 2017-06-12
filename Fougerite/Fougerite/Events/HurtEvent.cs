@@ -209,7 +209,16 @@
             get { return this._status; }
         }
 
+        [System.Obsolete("Sleeper is deprecated, please use VictimIsSleeper instead.")]
         public bool Sleeper
+        {
+            get
+            {
+                return this._sleeper;
+            }
+        }
+
+        public bool VictimIsSleeper
         {
             get
             {

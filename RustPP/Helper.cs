@@ -128,6 +128,7 @@
                 FileStream stream = new FileStream(path, FileMode.Create);
                 StreamWriter writer = new StreamWriter(stream);
                 formatter.Serialize(writer.BaseStream, ht);
+                writer.Dispose();
             }
             catch (Exception ex)
             {

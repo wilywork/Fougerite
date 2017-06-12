@@ -60,6 +60,7 @@ namespace MagmaModule
             Engine.SetParameter("Plugin", this);
             Engine.SetParameter("PluginCollector", GlobalPluginCollector.GetPluginCollector());
             Engine.SetParameter("Loom", Loom.Current);
+            Engine.SetParameter("JSON", JsonAPI.GetInstance);
             //Engine.SetParameter("SQLite", new Fougerite.SQLite());
         }
 

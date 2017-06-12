@@ -48,6 +48,7 @@
     <Compile Include="Fougerite\Events\LootStartEvent.cs" />
     <Compile Include="Fougerite\Events\ShootEvent.cs" />
     <Compile Include="Fougerite\Events\ShotgunShootEvent.cs" />
+    <Compile Include="Fougerite\JsonAPI.cs" />
     <Compile Include="Fougerite\Loom.cs" />
     <Compile Include="Fougerite\ShutdownCatcher.cs" />
     <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -73,6 +74,13 @@
     <Reference Include="Google.ProtocolBuffers.Serialization, Version=2.4.1.521, Culture=neutral, PublicKeyToken=55f7125234beb589, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\References\PatchedReferences\FougeriteReferences\Google.ProtocolBuffers.Serialization.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\References\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json.Schema">
+      <HintPath>..\References\Newtonsoft.Json.Schema.dll</HintPath>
     </Reference>
     <Reference Include="RustPP, Version=1.1.7.9, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -134,7 +142,7 @@
     <Compile Include="Fougerite\SerializableDictionary.cs" />
     <Reference Include="uLink, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\References\PatchedReferences\uLink.dll</HintPath>
+      <HintPath>..\References\uLink.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

@@ -8,20 +8,14 @@ namespace Fougerite
         private ulong _uid;
         private int _instanceid;
         private string _name;
+        public bool IsDestroyed = false;
 
         public Sleeper(DeployableObject obj)
         {
             this._sleeper = obj;
             this._instanceid = this._sleeper.GetInstanceID();
             this._uid = this._sleeper.ownerID;
-            if (Fougerite.Server.Cache.ContainsKey(UID))
-            {
-                this._name = Fougerite.Server.Cache[UID].Name;
-            }
-            else
-            {
-                this._name = this._sleeper.ownerName;
-            }
+            this._name = Fougerite.Server.Cache.ContainsKey(UID) ? Fougerite.Server.Cache[UID].Name : this._sleeper.ownerName;
         }
 
         public float Health
@@ -44,6 +38,10 @@ namespace Fougerite
 
         public void Destroy()
         {
+            if (IsDestroyed)
+            {
+                return;
+            }
             try
             {
                 this._sleeper.OnKilled();
@@ -52,6 +50,7 @@ namespace Fougerite
             {
                 TryNetCullDestroy();
             }
+            IsDestroyed = true;
         }
 
         private void TryNetCullDestroy()

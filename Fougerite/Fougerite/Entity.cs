@@ -15,6 +15,7 @@ namespace Fougerite
         private readonly string _creatorname;
         private readonly string _name;
         private readonly string _ownername;
+        public bool IsDestroyed = false;
 
         public Entity(object Obj)
         {
@@ -160,6 +161,10 @@ namespace Fougerite
 
         public void Destroy()
         {
+            if (IsDestroyed)
+            {
+                return;
+            }
             if (this.IsDeployableObject())
             {
                 try
@@ -186,6 +191,7 @@ namespace Fougerite
                     TryNetCullDestroy();
                 }
             }
+            IsDestroyed = true;
         }
 
         private void TryNetCullDestroy()
@@ -220,7 +226,13 @@ namespace Fougerite
         public List<Entity> GetLinkedStructs()
         {
             List<Entity> list = new List<Entity>();
-            foreach (StructureComponent component in (this.Object as StructureComponent)._master._structureComponents)
+            var obj = this.Object as StructureComponent;
+            if (obj == null)
+            {
+                list.Add(this);
+                return list;
+            }
+            foreach (StructureComponent component in obj._master._structureComponents)
             {
                 if (component != this.Object as StructureComponent)
                 {

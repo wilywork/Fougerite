@@ -199,7 +199,10 @@ namespace Fougerite
         {
             foreach (Fougerite.Player player in this.Players)
             {
-                player.Message(arg);
+                if (player.IsOnline)
+                {
+                    player.Message(arg);
+                }
             }
         }
 
@@ -207,7 +210,10 @@ namespace Fougerite
         {
             foreach (Fougerite.Player player in this.Players)
             {
-                player.MessageFrom(name, arg);
+                if (player.IsOnline)
+                {
+                    player.MessageFrom(name, arg);
+                }
             }
         }
 
@@ -215,7 +221,10 @@ namespace Fougerite
         {
             foreach (Fougerite.Player player in this.Players)
             {
-                player.Notice(s);
+                if (player.IsOnline)
+                {
+                    player.Notice(s);
+                }
             }
         }
 

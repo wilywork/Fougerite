@@ -53,6 +53,7 @@ namespace JintModule
                 .SetValue("Data", Data.GetData())
                 .SetValue("PluginCollector", GlobalPluginCollector.GetPluginCollector())
                 .SetValue("Loom", Loom.Current)
+                .SetValue("JSON", JsonAPI.GetInstance)
                 //.SetValue("SQLite", new SQLite())
                 .Execute(code);
 

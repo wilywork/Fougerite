@@ -47,6 +47,7 @@ namespace MoonSharpModule
             script.Globals.Set("World", UserData.Create(Fougerite.World.GetWorld()));
             script.Globals.Set("PluginCollector", UserData.Create(GlobalPluginCollector.GetPluginCollector()));
             script.Globals.Set("Loom", UserData.Create(Loom.Current));
+            script.Globals.Set("JSON", UserData.Create(JsonAPI.GetInstance));
             foreach (DynValue v in script.Globals.Keys)
             {
                 Globals.Add(v.ToString().Replace('"'.ToString(), ""));

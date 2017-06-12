@@ -912,13 +912,15 @@ namespace Fougerite.Patcher
             MethodDefinition NPCKilledHook = hooksClass.GetMethod("NPCKilled");
 
             this.CloneMethod(orig);
-            ILProcessor iLProcessor = orig.Body.GetILProcessor();
-            iLProcessor.InsertBefore(orig.Body.Instructions[0], Instruction.Create(OpCodes.Call, this.rustAssembly.MainModule.Import(method)));
-            iLProcessor.InsertBefore(orig.Body.Instructions[0], Instruction.Create(OpCodes.Ldarga_S, orig.Parameters[0]));
+            // OldNPC Hurt
+            //ILProcessor iLProcessor = orig.Body.GetILProcessor();
+            //iLProcessor.InsertBefore(orig.Body.Instructions[0], Instruction.Create(OpCodes.Call, this.rustAssembly.MainModule.Import(method)));
+            //iLProcessor.InsertBefore(orig.Body.Instructions[0], Instruction.Create(OpCodes.Ldarga_S, orig.Parameters[0]));
 
-            iLProcessor = NPCKilled.Body.GetILProcessor();
-            iLProcessor.InsertBefore(NPCKilled.Body.Instructions[0], Instruction.Create(OpCodes.Call, this.rustAssembly.MainModule.Import(NPCKilledHook)));
-            iLProcessor.InsertBefore(NPCKilled.Body.Instructions[0], Instruction.Create(OpCodes.Ldarga_S, NPCKilled.Parameters[0]));
+            // OldNPC Killed
+            //iLProcessor = NPCKilled.Body.GetILProcessor();
+            //iLProcessor.InsertBefore(NPCKilled.Body.Instructions[0], Instruction.Create(OpCodes.Call, this.rustAssembly.MainModule.Import(NPCKilledHook)));
+            //iLProcessor.InsertBefore(NPCKilled.Body.Instructions[0], Instruction.Create(OpCodes.Ldarga_S, NPCKilled.Parameters[0]));
         }
 
         private void NPCHurtPatch_HostileWildlifeAI()
@@ -1160,11 +1162,11 @@ namespace Fougerite.Patcher
             TypeDefinition type = rustAssembly.MainModule.GetType("HumanBodyTakeDamage");
             MethodDefinition orig = type.GetMethod("Hurt");
             MethodDefinition method = hooksClass.GetMethod("PlayerHurt");
-
-            this.CloneMethod(orig);
-            ILProcessor iLProcessor = orig.Body.GetILProcessor();
-            iLProcessor.InsertBefore(orig.Body.Instructions[0], Instruction.Create(OpCodes.Ldarg_1));
-            iLProcessor.InsertAfter(orig.Body.Instructions[0], Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(method)));
+            // OldPlayer Hurt
+            //this.CloneMethod(orig);
+            //ILProcessor iLProcessor = orig.Body.GetILProcessor();
+            //iLProcessor.InsertBefore(orig.Body.Instructions[0], Instruction.Create(OpCodes.Ldarg_1));
+            //iLProcessor.InsertAfter(orig.Body.Instructions[0], Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(method)));
         }
 
         private void PlayerJoinLeavePatch()
@@ -1230,6 +1232,32 @@ namespace Fougerite.Patcher
             iLProcessor.InsertAfter(orig.Body.Instructions[0x16], Instruction.Create(OpCodes.Callvirt, rustAssembly.MainModule.Import(method)));
             iLProcessor.InsertAfter(orig.Body.Instructions[0x17], Instruction.Create(OpCodes.Brfalse, orig.Body.Instructions[0x2f]));
             orig.Body.Instructions[0x11] = Instruction.Create(OpCodes.Brfalse, orig.Body.Instructions[0x16]);
+        }
+
+        private void PatchuLink()
+        {
+            AssemblyDefinition ulink = AssemblyDefinition.ReadAssembly("uLink.dll");
+            TypeDefinition Class0 = ulink.MainModule.GetType("Class0");
+            MethodDefinition method = hooksClass.GetMethod("uLinkCatch");
+
+            Class0.IsPublic = true;
+            Class0.GetField("endPoint_0").SetPublic(true);
+
+            MethodDefinition method_17 = Class0.GetMethod("method_17");
+            int Position = method_17.Body.Instructions.Count - 34; // second was 30
+
+            ILProcessor iLProcessor = method_17.Body.GetILProcessor();
+            iLProcessor.InsertBefore(method_17.Body.Instructions[Position], Instruction.Create(OpCodes.Callvirt, ulink.MainModule.Import(method)));
+            iLProcessor.InsertBefore(method_17.Body.Instructions[Position], Instruction.Create(OpCodes.Ldarg_0));
+
+            MethodDefinition method_41 = Class0.GetMethod("method_41");
+            int Position2 = method_41.Body.Instructions.Count - 34; // second was 30
+
+            ILProcessor iLProcessor2 = method_41.Body.GetILProcessor();
+            iLProcessor2.InsertBefore(method_41.Body.Instructions[Position2], Instruction.Create(OpCodes.Callvirt, ulink.MainModule.Import(method)));
+            iLProcessor2.InsertBefore(method_41.Body.Instructions[Position2], Instruction.Create(OpCodes.Ldarg_0));
+
+            ulink.Write("uLink.dll");
         }
 
         private void TalkerNotifications()
@@ -1466,6 +1494,7 @@ namespace Fougerite.Patcher
                     this.BowShootPatch();
                     this.ShotgunShootPatch();
                     this.GrenadePatch();
+                    this.PatchuLink();
                 }
                 catch (Exception ex)
                 {

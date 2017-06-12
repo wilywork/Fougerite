@@ -14,7 +14,7 @@ namespace Fougerite
     public class Player
     {
         private long connectedAt;
-        private long connectedAt2;
+        private readonly long connectedAt2;
         private PlayerInv inv;
         private bool invError;
         private bool justDied;
@@ -22,7 +22,7 @@ namespace Fougerite
         private readonly ulong uid;
         private string name;
         private string ipaddr;
-        private List<string> _CommandCancelList;
+        private readonly List<string> _CommandCancelList;
         private bool disconnected;
         private Vector3 _lastpost;
         internal uLink.NetworkPlayer _np;
@@ -163,6 +163,7 @@ namespace Fougerite
                 }
                 Server.GetServer().RemovePlayer(uid);
                 this.ourPlayer.netUser.Kick(NetError.Facepunch_Kick_RCON, false);
+                IsDisconnecting = true;
             }
         }
 

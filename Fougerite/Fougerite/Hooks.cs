@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Timers;
 using Facepunch.Clocks.Counters;
@@ -73,6 +74,8 @@ namespace Fougerite
         public static event BowShootEventDelegate OnBowShoot;
         public static event GrenadeThrowEventDelegate OnGrenadeThrow;
         public static bool IsShuttingDown = false;
+
+        public static readonly List<ulong> uLinkDCCache = new List<ulong>(); 
 
         public static void BlueprintUse(IBlueprintItem item, BlueprintDataBlock bdb)
         {
@@ -523,7 +526,6 @@ namespace Fougerite
             NetCull.InstantiateDynamicWithArgs<Vector3>(td2.throwObjectPrefab, position, rotation, arg);*/
         }
 
-        //Todo: Consider changing all hurt events to this.
         public static void EntityHurt2(TakeDamage tkd, ref DamageEvent e)
         {
             Stopwatch sw = null;
@@ -532,67 +534,144 @@ namespace Fougerite
                 sw = new Stopwatch();
                 sw.Start();
             }
-            HurtEvent he = new HurtEvent(ref e);
-            if (!he.VictimIsEntity)
-            {
-                if (e.status != LifeStatus.IsAlive)
-                {
-                    tkd._health = 0f;
-                }
-                else
-                {
-                    tkd._health -= he.DamageAmount;
-                }
-                return;
-            }
-            var ent = he.Entity;
-            if (decayList.Contains(he.Entity))
-                he.IsDecay = true;
 
-            if (ent.IsStructure() && !he.IsDecay)
+            HurtEvent he = new HurtEvent(ref e);
+            he.DamageAmount = e.amount;
+            if (he.VictimIsPlayer || he.VictimIsSleeper)
             {
-                StructureComponent component = ent.Object as StructureComponent;
-                if (component != null &&
-                    ((component.IsType(StructureComponent.StructureComponentType.Ceiling) ||
-                      component.IsType(StructureComponent.StructureComponentType.Foundation)) ||
-                     component.IsType(StructureComponent.StructureComponentType.Pillar)))
+                try
                 {
-                    he.DamageAmount = 0f;
+                    if (OnPlayerHurt != null)
+                    {
+                        OnPlayerHurt(he);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError("PlayerHurtEvent Error: " + ex);
+                }
+                switch (e.status)
+                {
+                    case LifeStatus.IsAlive:
+                        tkd._health -= he.DamageAmount;
+                        break;
+                    case LifeStatus.WasKilled:
+                        tkd._health = 0f;
+                        break;
                 }
             }
-            try
+            else if (he.VictimIsNPC)
             {
-                if (OnEntityHurt != null)
+                var victim = he.Victim as NPC;
+                if (victim != null && victim.Health > 0f)
                 {
-                    OnEntityHurt(he);
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError("EntityHurtEvent Error: " + ex);
-            }
-            if (!tkd.takenodamage)
-            {
-                if (e.status != LifeStatus.IsAlive)
-                {
-                    DestroyEvent de = new DestroyEvent(ref e, ent, he.IsDecay);
                     try
                     {
-                        if (OnEntityDestroyed != null)
+                        if (OnNPCHurt != null)
                         {
-                            OnEntityDestroyed(de);
+                            OnNPCHurt(he);
                         }
                     }
                     catch (Exception ex)
                     {
-                        Logger.LogError("EntityDestroyEvent Error: " + ex);
+                        Logger.LogError("NPCHurtEvent Error: " + ex.ToString());
                     }
-                    tkd._health = 0f;
-                    he.Entity.Destroy();
+                    switch (e.status)
+                    {
+                        case LifeStatus.IsAlive:
+                            tkd._health -= he.DamageAmount;
+                            break;
+                        case LifeStatus.WasKilled:
+                            DeathEvent de = new DeathEvent(ref e);
+                            try
+                            {
+                                if (OnNPCKilled != null)
+                                {
+                                    OnNPCKilled(de);
+                                }
+                            }
+                            catch (Exception ex) { Logger.LogError("NPCKilledEvent Error: " + ex); }
+                            tkd._health = 0f;
+                            break;
+                    }
                 }
-                else
+            }
+            else if (he.VictimIsEntity)
+            {
+                var ent = he.Entity;
+                if (decayList.Contains(he.Entity))
+                    he.IsDecay = true;
+
+                if (ent.IsStructure() && !he.IsDecay)
                 {
-                    tkd._health -= he.DamageAmount;
+                    StructureComponent component = ent.Object as StructureComponent;
+                    if (component != null &&
+                        ((component.IsType(StructureComponent.StructureComponentType.Ceiling) ||
+                          component.IsType(StructureComponent.StructureComponentType.Foundation)) ||
+                         component.IsType(StructureComponent.StructureComponentType.Pillar)))
+                    {
+                        he.DamageAmount = 0f;
+                    }
+                }
+                try
+                {
+                    if (OnEntityHurt != null)
+                    {
+                        OnEntityHurt(he);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError("EntityHurtEvent Error: " + ex);
+                }
+                if (!tkd.takenodamage)
+                {
+                    switch (e.status)
+                    {
+                        case LifeStatus.IsAlive:
+                            if (!ent.IsDestroyed)
+                            {
+                                tkd._health -= he.DamageAmount;
+                            }
+                            break;
+                        case LifeStatus.WasKilled:
+                            DestroyEvent de2 = new DestroyEvent(ref e, ent, he.IsDecay);
+                            try
+                            {
+                                if (OnEntityDestroyed != null)
+                                {
+                                    OnEntityDestroyed(de2);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.LogError("EntityDestroyEvent Error: " + ex);
+                            }
+                            if (!ent.IsDestroyed)
+                            {
+                                tkd._health = 0f;
+                            }
+                            break;
+                        case LifeStatus.IsDead:
+                            DestroyEvent de22 = new DestroyEvent(ref e, ent, he.IsDecay);
+                            try
+                            {
+                                if (OnEntityDestroyed != null)
+                                {
+                                    OnEntityDestroyed(de22);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.LogError("EntityDestroyEvent Error: " + ex);
+                            }
+                            if (!ent.IsDestroyed)
+                            {
+                                tkd._health = 0f;
+                                ent.Destroy();
+                            }
+                            break;
+                    }
                 }
             }
             if (sw == null) return;
@@ -782,7 +861,7 @@ namespace Fougerite
 
         public static void NPCKilled(ref DamageEvent e)
         {
-            Stopwatch sw = null;
+            /*Stopwatch sw = null;
             if (Logger.showSpeed)
             {
                 sw = new Stopwatch();
@@ -797,7 +876,7 @@ namespace Fougerite
             catch (Exception ex) { Logger.LogError("NPCKilledEvent Error: " + ex); }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("NPCKilledEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("NPCKilledEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");*/
         }
 
         public static void ConnectHandler(NetUser user)
@@ -831,7 +910,10 @@ namespace Fougerite
                 return connected;
             }
             ulong uid = user.userID;
-
+            if (uLinkDCCache.Contains(uid))
+            {
+                uLinkDCCache.Remove(uid);
+            }
             Fougerite.Server srv = Fougerite.Server.GetServer();
             Fougerite.Player player = new Fougerite.Player(user.playerClient);
             if (!Fougerite.Server.Cache.ContainsKey(uid))
@@ -904,6 +986,7 @@ namespace Fougerite
                 Logger.LogWarning("[WeirdDisconnect] Player was null at the disconnection. Something might be wrong? OPT: " + Fougerite.Bootstrap.CR);
                 return;
             }
+            player.IsDisconnecting = true;
             Fougerite.Server.GetServer().RemovePlayer(uid);
             //if (Fougerite.Server.GetServer().Players.Contains(player)) { Fougerite.Server.GetServer().Players.Remove(player); }
             //player.PlayerClient.netUser.Dispose();
@@ -991,7 +1074,7 @@ namespace Fougerite
 
         public static void PlayerHurt(ref DamageEvent e)
         {
-            Stopwatch sw = null;
+            /*Stopwatch sw = null;
             if (Logger.showSpeed)
             {
                 sw = new Stopwatch();
@@ -1030,7 +1113,7 @@ namespace Fougerite
             catch (Exception ex) { Logger.LogError("PlayerHurtEvent Error: " + ex); }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("PlayerHurtEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("PlayerHurtEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");*/
         }
 
         public static bool PlayerKilled(ref DamageEvent de)
@@ -2100,13 +2183,15 @@ namespace Fougerite
             else
             {
                 if (IsShuttingDown) { return; }
-                Logger.LogDebug("===Fougerite uLink===");
                 NetUser user = networkPlayer_1.GetLocalData() as NetUser;
                 if (user != null)
                 {
-                    if (Fougerite.Server.Cache.ContainsKey(user.userID))
+                    ulong id = user.userID;
+                    if (uLinkDCCache.Contains(id)){return;}
+                    Logger.LogDebug("===Fougerite uLink===");
+                    if (Fougerite.Server.Cache.ContainsKey(id))
                     {
-                        Fougerite.Player player = Fougerite.Server.Cache[user.userID];
+                        Fougerite.Player player = Fougerite.Server.Cache[id];
                         if (player != null)
                         {
                             Logger.LogDebug("[Fougerite uLink] Detected RPC Failing Player: " + player.Name + "-" +
@@ -2118,16 +2203,19 @@ namespace Fougerite
                                 return; // Return to avoid the RPC Logging
                             }
                             Logger.LogDebug("[Fougerite uLink] Server says It's offline. Not touching.");
+                            uLinkDCCache.Add(player.UID);
                         }
                     }
                     else
                     {
                         Logger.LogDebug("[Fougerite uLink] Not existing in cache...");
+                        uLinkDCCache.Add(id);
                     }
                 }
                 else
                 {
-                    Logger.LogDebug("[Fougerite uLink] Not existing in cache...");
+                    Logger.LogDebug("===Fougerite uLink===");
+                    Logger.LogDebug("[Fougerite uLink] Not existing in cache... (2x0)");
                 }
                 Logger.LogDebug("[Fougerite uLink] Private RPC (internal RPC " + class5_0.enum0_0 + ")" + " was not sent because a connection to " + class5_0.networkPlayer_1 + " was not found!");
                 //NetworkLog.Error<string, string, uLink.NetworkPlayer, string>(NetworkLogFlags.BadMessage | NetworkLogFlags.RPC, "Private RPC ", (class5_0.method_11() ? class5_0.string_0 : ("(internal RPC " + class5_0.enum0_0 + ")")) + " was not sent because a connection to ", class5_0.networkPlayer_1, " was not found!");
@@ -2143,6 +2231,12 @@ namespace Fougerite
             if (netuser == null) { return; }
             Logger.LogWarning("[Fougerite uLink] RPC Message from " + netuser.displayName + "-" + netuser.userID + " triggered an exception. Kicking...");
             if (netuser.connected) { netuser.Kick(NetError.Facepunch_Kick_Violation, true); }
+        }
+
+        public static void uLinkCatch(Class0 instance)
+        {
+            string ip = ((IPEndPoint)(instance.endPoint_0)).Address.ToString();
+            Logger.Log("[uLink Ignore] Ignored Socket from: " + ip);
         }
 
         public static void ResetHooks()
