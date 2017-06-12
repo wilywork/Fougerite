@@ -3,6 +3,7 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -54,6 +55,11 @@ namespace Fougerite
         {
             return new JObject();
         }
+        
+        public JObject CreateJsonObject(object[] objects)
+        {
+            return new JObject(objects);
+        }
 
         public JSchema CreateJSchema(string json)
         {
@@ -86,11 +92,36 @@ namespace Fougerite
             return new JsonSerializer();
         }
 
-        public JsonWriter CreateJsonWriter()
+        public JsonWriter CreateJsonWriter(StringBuilder sb, bool idented = false)
         {
-            StringBuilder sb = new StringBuilder();
             StringWriter sw = new StringWriter(sb);
-            return new JsonTextWriter(sw);
+            JsonTextWriter jtw = new JsonTextWriter(sw);
+            if (idented) jtw.Formatting = Formatting.Indented;
+            return jtw;
+        }
+
+        public StringBuilder CreateStringBD()
+        {
+            return new StringBuilder();
+        }
+
+        public JProperty CreateJProperty(string key, object value)
+        {
+            return new JProperty(key, value);
+        }
+        public JProperty CreateJProperty(string key, object[] value)
+        {
+            return new JProperty(key, value);
+        }
+
+        public JTokenReader CreateJTokenReader(JObject jo)
+        {
+            return new JTokenReader(jo);
+        }
+
+        public StringReader CreateStringReader(string json)
+        {
+            return new StringReader(json);
         }
 
         public static JsonAPI GetInstance
