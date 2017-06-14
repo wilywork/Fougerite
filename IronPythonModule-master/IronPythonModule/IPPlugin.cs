@@ -52,6 +52,7 @@ namespace IronPythonModule {
             Scope.SetVariable("PluginCollector", GlobalPluginCollector.GetPluginCollector());
             Scope.SetVariable("Loom", Fougerite.Loom.Current);
             Scope.SetVariable("JSON", Fougerite.JsonAPI.GetInstance);
+            Scope.SetVariable("MySQL", Fougerite.MySQLConnector.GetInstance);
             //Scope.SetVariable("SQLite", new Fougerite.SQLite());
             Engine.Execute(code, Scope);
 			Class = Engine.Operations.Invoke(Scope.GetVariable(name));

@@ -48,6 +48,7 @@ namespace MoonSharpModule
             script.Globals.Set("PluginCollector", UserData.Create(GlobalPluginCollector.GetPluginCollector()));
             script.Globals.Set("Loom", UserData.Create(Loom.Current));
             script.Globals.Set("JSON", UserData.Create(JsonAPI.GetInstance));
+            script.Globals.Set("MySQL", UserData.Create(MySQLConnector.GetInstance));
             foreach (DynValue v in script.Globals.Keys)
             {
                 Globals.Add(v.ToString().Replace('"'.ToString(), ""));

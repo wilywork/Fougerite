@@ -33,8 +33,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\bin\Fougerite.dll</HintPath>
     </Reference>
-    <Reference Include="IronPython.Deps, Version=2.7.0.40, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="IronPython.Deps, Version=2.7.0.40, Culture=neutral, PublicKeyToken=null">
       <HintPath>ref\IronPython.Deps.dll</HintPath>
     </Reference>
     <Reference Include="System" />
