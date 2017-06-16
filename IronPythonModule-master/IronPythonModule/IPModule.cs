@@ -147,10 +147,10 @@ namespace IronPythonModule
             {
 				string code = GetPluginScriptText(name);
                 string[] lines = code.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
-				DirectoryInfo path = new DirectoryInfo(Path.Combine(pluginDirectory.FullName, name));
-				IPPlugin plugin = new IPPlugin(name, code, path);
+                DirectoryInfo path = new DirectoryInfo(Path.Combine(pluginDirectory.FullName, name));
+                IPPlugin plugin = new IPPlugin(name, code, path);
                 InstallHooks(plugin);
-			    string cmdname = null;
+                string cmdname = null;
                 bool d = false, f = false;
                 foreach (string line in lines)
                 {

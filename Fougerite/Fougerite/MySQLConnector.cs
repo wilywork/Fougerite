@@ -18,14 +18,14 @@ namespace Fougerite
         private string _username;
         private string _password;
 
-        public MySqlConnection Connect(string ip, string database, string username, string passwd)
+        public MySqlConnection Connect(string ip, string database, string username, string passwd, string extraarg = "")
         {
             ServerAddress = ip;
             DataBase = database;
             _username = username;
             _password = passwd;
             string connectionString = "SERVER=" + ServerAddress + ";" + "DATABASE=" +
-            DataBase + ";" + "UID=" + _username + ";" + "PASSWORD=" + _password + ";";
+            DataBase + ";" + "UID=" + _username + ";" + "PASSWORD=" + _password + ";" + extraarg;
 
             connection = new MySqlConnection(connectionString);
             return connection;

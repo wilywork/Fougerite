@@ -43,7 +43,7 @@ namespace GlitchFix
 
         public override Version Version
         {
-            get { return new Version("1.4.7");}
+            get { return new Version("1.4.8");}
         }
 
         public override uint Order
@@ -83,10 +83,8 @@ namespace GlitchFix
         }
         public void OnPlayerTeleport(Fougerite.Player player, Vector3 from, Vector3 dest)
         {
-            //Server.GetServer().Broadcast("FROM: " + from.ToString() + " ** DEST: " + dest.ToString());
             if (RockGlitch)
             {
-
                 var loc = player.Location;
                 Vector3 cachedPosition = loc;
                 RaycastHit cachedRaycast;
@@ -103,10 +101,10 @@ namespace GlitchFix
                 {
                     return;
                 }
-                if (cachedRaycast.collider.gameObject.name != "") return;
+                if (!string.IsNullOrEmpty(cachedRaycast.collider.gameObject.name)) return;
                 if (cachedRaycast.point.y < player.Y) return;
                 Logger.LogDebug(player.Name + " tried to TELEPORT rock glitch at " + player.Location);
-                Server.GetServer().Broadcast(player.Name + " - [color #FA5858] Rock glitch attempt has been logged, the Player has been Killed!!");
+                Server.GetServer().Broadcast(player.Name + " don't try to rock glitch =)");
                 foreach (Collider collider in Physics.OverlapSphere(player.Location, 3f))
                 {
                     if (collider.gameObject.name == "SleepingBagA(Clone)")
@@ -114,13 +112,12 @@ namespace GlitchFix
                 }
                 if (RockGlitchKill)
                 {
-                    //allow admin
                     if (player.Admin)
                     {
-                        player.Message("Rock Detection!!!! Admin Bypass");
+                        player.Message("You administrator rights allowed you to bug inside rocks.");
                         return;
                     }
-                                    
+                    player.Message("Glitching gets you killed.");
                     player.Kill();
                 }
             }
@@ -157,10 +154,9 @@ namespace GlitchFix
                 }
                 if (RockGlitchKill)
                 {
-                    //allow admin
                     if (player.Admin)
                     {
-                        player.Message("Rock Detection!!!! Admin Bypass");
+                        player.Message("You administrator rights allowed you to bug inside rocks.");
                         return;
                     }
                     player.Message("Glitching gets you killed.");

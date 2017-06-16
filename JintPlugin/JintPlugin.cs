@@ -55,7 +55,7 @@ namespace JintModule
                 .SetValue("Loom", Loom.Current)
                 .SetValue("JSON", JsonAPI.GetInstance)
                 .SetValue("MySQL", MySQLConnector.GetInstance)
-                //.SetValue("SQLite", new SQLite())
+                .SetValue("SQLite", SQLiteConnector.GetInstance)
                 .Execute(code);
 
             object author = GetGlobalObject("Author");

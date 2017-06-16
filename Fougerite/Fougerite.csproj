@@ -93,6 +93,10 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Data.SQLite, Version=1.0.105.2, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\References\SqliteRef\System.Data.SQLite.dll</HintPath>
+    </Reference>
     <Reference Include="System.XML" />
     <Reference Include="System.Core">
       <HintPath>..\References\System.Core.dll</HintPath>
@@ -114,6 +118,7 @@
     <Compile Include="Fougerite\ModuleContainer.cs" />
     <Compile Include="Fougerite\ModuleManager.cs" />
     <Compile Include="Fougerite\FougeriteEx.cs" />
+    <Compile Include="Fougerite\SQLiteConnector.cs" />
     <Compile Include="Global.cs" />
     <Compile Include="Fougerite\ChatString.cs" />
     <Compile Include="Fougerite\Logger.cs" />

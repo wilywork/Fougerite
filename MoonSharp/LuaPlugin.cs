@@ -49,6 +49,7 @@ namespace MoonSharpModule
             script.Globals.Set("Loom", UserData.Create(Loom.Current));
             script.Globals.Set("JSON", UserData.Create(JsonAPI.GetInstance));
             script.Globals.Set("MySQL", UserData.Create(MySQLConnector.GetInstance));
+            script.Globals.Set("SQLite", UserData.Create(Fougerite.SQLiteConnector.GetInstance));
             foreach (DynValue v in script.Globals.Keys)
             {
                 Globals.Add(v.ToString().Replace('"'.ToString(), ""));

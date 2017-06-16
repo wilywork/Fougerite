@@ -537,8 +537,9 @@ namespace Fougerite
 
             HurtEvent he = new HurtEvent(ref e);
             he.DamageAmount = e.amount;
-            if (he.VictimIsPlayer || he.VictimIsSleeper)
+            if (he.VictimIsPlayer)
             {
+                Player vp = (Player) he.Victim;
                 try
                 {
                     if (OnPlayerHurt != null)
@@ -550,9 +551,43 @@ namespace Fougerite
                 {
                     Logger.LogError("PlayerHurtEvent Error: " + ex);
                 }
+                if (vp.Health - he.DamageAmount > 0 && e.status == LifeStatus.WasKilled)
+                {
+                    e.status = LifeStatus.IsAlive;
+                }
                 switch (e.status)
                 {
                     case LifeStatus.IsAlive:
+                        e.amount = he.DamageAmount;
+                        tkd._health -= he.DamageAmount;
+                        break;
+                    case LifeStatus.WasKilled:
+                        tkd._health = 0f;
+                        break;
+                }
+            }
+            else if (he.VictimIsSleeper)
+            {
+                Sleeper vp = (Sleeper)he.Victim;
+                try
+                {
+                    if (OnPlayerHurt != null)
+                    {
+                        OnPlayerHurt(he);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError("PlayerHurtEvent (Sleeper) Error: " + ex);
+                }
+                if (vp.Health - he.DamageAmount > 0 && e.status == LifeStatus.WasKilled)
+                {
+                    e.status = LifeStatus.IsAlive;
+                }
+                switch (e.status)
+                {
+                    case LifeStatus.IsAlive:
+                        e.amount = he.DamageAmount;
                         tkd._health -= he.DamageAmount;
                         break;
                     case LifeStatus.WasKilled:

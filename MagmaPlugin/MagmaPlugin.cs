@@ -62,7 +62,7 @@ namespace MagmaModule
             Engine.SetParameter("Loom", Loom.Current);
             Engine.SetParameter("JSON", JsonAPI.GetInstance);
             Engine.SetParameter("MySQL", MySQLConnector.GetInstance);
-            //Engine.SetParameter("SQLite", new Fougerite.SQLite());
+            Engine.SetParameter("SQLite", SQLiteConnector.GetInstance);
         }
 
         public object Invoke(string func, params object[] obj)

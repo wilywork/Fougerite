@@ -8,7 +8,7 @@ namespace Fougerite
 
     public class Bootstrap : Facepunch.MonoBehaviour
     {
-        public const string Version = "1.5.6C";
+        public const string Version = "1.5.7";
         public static bool CR = false;
         public static bool BI = false;
         public static bool TS = false;
@@ -83,6 +83,7 @@ namespace Fougerite
                 Fougerite.Hooks.ServerStarted();
                 Fougerite.ShutdownCatcher.Hook();
             }
+            SQLiteConnector.GetInstance.Setup();
         }
     }
 }
