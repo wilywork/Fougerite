@@ -293,6 +293,9 @@ namespace JintModule
                 case "On_LootUse":
                     Hooks.OnLootUse += OnLootUse;
                     break;
+                case "On_PlayerBan":
+                    Hooks.OnPlayerBan += OnBanEvent;
+                    break;
                 }
             }
         }
@@ -423,6 +426,9 @@ namespace JintModule
                     break;
                 case "On_LootUse":
                     Hooks.OnLootUse -= OnLootUse;
+                    break;
+                case "On_PlayerBan":
+                    Hooks.OnPlayerBan -= OnBanEvent;
                     break;
                 }
             }
@@ -902,6 +908,11 @@ namespace JintModule
         public void OnLootUse(LootStartEvent le)
         {
             Invoke("On_LootUse", le);
+        }
+
+        public void OnBanEvent(BanEvent be)
+        {
+            Invoke("On_PlayerBan", be);
         }
 
         public void OnPluginShutdown()

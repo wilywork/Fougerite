@@ -73,6 +73,7 @@ namespace Fougerite
         public static event ShotgunShootEventDelegate OnShotgunShoot;
         public static event BowShootEventDelegate OnBowShoot;
         public static event GrenadeThrowEventDelegate OnGrenadeThrow;
+        public static event BanEventDelegate OnPlayerBan;
         public static bool IsShuttingDown = false;
 
         public static readonly List<ulong> uLinkDCCache = new List<ulong>(); 
@@ -2274,6 +2275,22 @@ namespace Fougerite
             Logger.Log("[uLink Ignore] Ignored Socket from: " + ip);
         }
 
+        public static bool OnBanEventHandler(BanEvent be)
+        {
+            try
+            {
+                if (OnPlayerBan != null)
+                {
+                    OnPlayerBan(be);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("BanEvent Error: " + ex);
+            }
+            return be.Cancelled;
+        }
+
         public static void ResetHooks()
         {
             OnPluginInit = delegate
@@ -2418,9 +2435,9 @@ namespace Fougerite
             OnGrenadeThrow = delegate (GrenadeThrowEvent param0)
             {
             };
-            /*OnAirdropCrateDropped = delegate (GameObject param0)
+            OnPlayerBan = delegate (BanEvent param0)
             {
-            };*/
+            };
             foreach (Fougerite.Player player in Fougerite.Server.GetServer().Players)
             {
                 player.FixInventoryRef();
@@ -2570,7 +2587,7 @@ namespace Fougerite
         public delegate void ShotgunShootEventDelegate(ShotgunShootEvent shootEvent);
         public delegate void BowShootEventDelegate(BowShootEvent bowshootEvent);
         public delegate void GrenadeThrowEventDelegate(GrenadeThrowEvent grenadeThrowEvent);
-
+        public delegate void BanEventDelegate(BanEvent banEvent);
         //public delegate void AirdropCrateDroppedDelegate(GameObject go);
     }
 }

@@ -23,9 +23,9 @@ namespace Fougerite
             }
         }
 
-        public SQLiteConnection Connect(string extraarguments = "")
+        public SQLiteConnection Connect(string extraarguments = ";Version=3;New=False;Compress=True;Foreign Keys=True;")
         {
-            _dbConnection = new SQLiteConnection("Data Source=" + SQLitePath + ";Version=3;New=False;Compress=True;Foreign Keys=True;" + extraarguments);
+            _dbConnection = new SQLiteConnection("Data Source=" + SQLitePath + extraarguments);
             return _dbConnection;
         }
 

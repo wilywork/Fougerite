@@ -1,4 +1,6 @@
 ﻿
+using Fougerite.Events;
+
 namespace Fougerite
 {
     using System;
@@ -53,6 +55,8 @@ namespace Fougerite
 
         public void BanPlayer(Fougerite.Player player, string Banner = "Console", string reason = "You were banned.", Fougerite.Player Sender = null, bool AnnounceToServer = false)
         {
+            bool cancel = Hooks.OnBanEventHandler(new BanEvent(player, Banner, reason, Sender));
+            if (cancel) { return;}
             string red = "[color #FF0000]";
             string green = "[color #009900]";
             string white = "[color #FFFFFF]";
@@ -87,6 +91,8 @@ namespace Fougerite
 
         public void BanPlayerIPandID(string ip, string id, string name = "1", string reason = "You were banned.", string adminname = "Unknown")
         {
+            bool cancel = Hooks.OnBanEventHandler(new BanEvent(ip, id, name, reason, adminname));
+            if (cancel) { return; }
             File.AppendAllText(Path.Combine(Util.GetRootFolder(), "Save\\BanLog.log"), "[" + DateTime.Now.ToShortDateString() + " "
                 + DateTime.Now.ToString("HH:mm:ss") + "] " + name + "|" + ip + "|" + adminname + "|" + reason + "\r\n");
             File.AppendAllText(Path.Combine(Util.GetRootFolder(), "Save\\BanLog.log"), "[" + DateTime.Now.ToShortDateString()
@@ -97,6 +103,8 @@ namespace Fougerite
 
         public void BanPlayerIP(string ip, string name = "1", string reason = "You were banned.", string adminname = "Unknown")
         {
+            bool cancel = Hooks.OnBanEventHandler(new BanEvent(ip, name, reason, adminname, false));
+            if (cancel) { return; }
             File.AppendAllText(Path.Combine(Util.GetRootFolder(), "Save\\BanLog.log"), "[" + DateTime.Now.ToShortDateString() + " "
                 + DateTime.Now.ToString("HH:mm:ss") + "] " + name + "|" + ip + "|" + adminname + "|" + reason + "\r\n");
             DataStore.GetInstance().Add("Ips", ip, name);
@@ -104,6 +112,8 @@ namespace Fougerite
 
         public void BanPlayerID(string id, string name = "1", string reason = "You were banned.", string adminname = "Unknown")
         {
+            bool cancel = Hooks.OnBanEventHandler(new BanEvent(id, name, reason, adminname, true));
+            if (cancel) { return; }
             File.AppendAllText(Path.Combine(Util.GetRootFolder(), "Save\\BanLog.log"), "[" + DateTime.Now.ToShortDateString()
                 + " " + DateTime.Now.ToString("HH:mm:ss") + "] " + name + "|" + id + "|" + adminname + "|" + reason + "\r\n");
             DataStore.GetInstance().Add("Ids", id, name);

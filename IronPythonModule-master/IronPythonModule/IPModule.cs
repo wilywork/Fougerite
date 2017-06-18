@@ -318,6 +318,7 @@ namespace IronPythonModule
                 case "On_ItemPickup": Hooks.OnItemPickup += new Hooks.ItemPickupDelegate(plugin.OnItemPickup); break;
                 case "On_FallDamage": Hooks.OnFallDamage += new Hooks.FallDamageDelegate(plugin.OnFallDamage); break;
                 case "On_LootUse": Hooks.OnLootUse += new Hooks.LootEnterDelegate(plugin.OnLootUse); break;
+                case "On_PlayerBan": Hooks.OnPlayerBan += new Hooks.BanEventDelegate(plugin.OnBanEvent); break;
                 }
 			}
 		}
@@ -367,6 +368,7 @@ namespace IronPythonModule
                 case "On_ItemPickup": Hooks.OnItemPickup -= new Hooks.ItemPickupDelegate(plugin.OnItemPickup); break;
                 case "On_FallDamage": Hooks.OnFallDamage -= new Hooks.FallDamageDelegate(plugin.OnFallDamage); break;
                 case "On_LootUse": Hooks.OnLootUse -= new Hooks.LootEnterDelegate(plugin.OnLootUse); break;
+                case "On_PlayerBan": Hooks.OnPlayerBan -= new Hooks.BanEventDelegate(plugin.OnBanEvent); break;
                 }
 			}
 		}

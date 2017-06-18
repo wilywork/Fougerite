@@ -156,6 +156,7 @@ namespace MagmaModule
                     case "On_ItemPickup": Hooks.OnItemPickup += OnItemPickup; break;
                     case "On_FallDamage": Hooks.OnFallDamage += OnFallDamage; break;
                     case "On_LootUse": Hooks.OnLootUse += OnLootUse; break;
+                    case "On_PlayerBan": Hooks.OnPlayerBan += OnBanEvent; break;
                 }
             }
         }
@@ -215,6 +216,7 @@ namespace MagmaModule
                     case "On_ItemPickup": Hooks.OnItemPickup -= OnItemPickup; break;
                     case "On_FallDamage": Hooks.OnFallDamage -= OnFallDamage; break;
                     case "On_LootUse": Hooks.OnLootUse -= OnLootUse; break;
+                    case "On_PlayerBan": Hooks.OnPlayerBan -= OnBanEvent; break;
                 }
             }
         }
@@ -676,6 +678,11 @@ namespace MagmaModule
         {
             if (Code.Contains(name + "Callback"))
                 Invoke(name + "Callback");
+        }
+
+        public void OnBanEvent(BanEvent be)
+        {
+            Invoke("On_PlayerBan", be);
         }
 
         public void OnTimerCBArgs(string name, object[] args)

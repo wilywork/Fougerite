@@ -508,6 +508,11 @@ namespace IronPythonModule {
             this.Invoke("On_LootUse", new object[] { le });
         }
 
+        public void OnBanEvent(BanEvent be)
+        {
+            this.Invoke("On_PlayerBan", new object[] { be });
+        }
+
         /*public void OnTimerCB(IPTimedEvent evt) {
 			if (Globals.Contains(evt.Name + "Callback")) {
 				Invoke(evt.Name + "Callback", evt);

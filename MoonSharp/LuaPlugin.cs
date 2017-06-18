@@ -308,6 +308,11 @@ namespace MoonSharpModule
             Invoke("On_LootUse", new object[] { le });
         }
 
+        public void OnBanEvent(BanEvent be)
+        {
+            Invoke("On_PlayerBan", new object[] { be });
+        }
+
         public void OnTimerCB(MoonSharpTE evt)
         {
             if (Globals.Contains(evt.Name + "Callback"))
