@@ -640,17 +640,6 @@ namespace Fougerite
                 if (decayList.Contains(he.Entity))
                     he.IsDecay = true;
 
-                if (ent.IsStructure() && !he.IsDecay)
-                {
-                    StructureComponent component = ent.Object as StructureComponent;
-                    if (component != null &&
-                        ((component.IsType(StructureComponent.StructureComponentType.Ceiling) ||
-                          component.IsType(StructureComponent.StructureComponentType.Foundation)) ||
-                         component.IsType(StructureComponent.StructureComponentType.Pillar)))
-                    {
-                        he.DamageAmount = 0f;
-                    }
-                }
                 try
                 {
                     if (OnEntityHurt != null)
@@ -661,6 +650,17 @@ namespace Fougerite
                 catch (Exception ex)
                 {
                     Logger.LogError("EntityHurtEvent Error: " + ex);
+                }
+                if (ent.IsStructure() && !he.IsDecay)
+                {
+                    StructureComponent component = ent.Object as StructureComponent;
+                    if (component != null &&
+                        ((component.IsType(StructureComponent.StructureComponentType.Ceiling) ||
+                          component.IsType(StructureComponent.StructureComponentType.Foundation)) ||
+                         component.IsType(StructureComponent.StructureComponentType.Pillar)))
+                    {
+                        he.DamageAmount = 0f;
+                    }
                 }
                 if (!tkd.takenodamage)
                 {
