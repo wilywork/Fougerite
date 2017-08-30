@@ -862,9 +862,9 @@ namespace Fougerite
             if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("FallDamageEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
-        /*public static void NPCHurt(ref DamageEvent e)
+        public static void NPCHurt(ref DamageEvent e)
         {
-            Stopwatch sw = null;
+            /*Stopwatch sw = null;
             if (Logger.showSpeed)
             {
                 sw = new Stopwatch();
@@ -895,8 +895,8 @@ namespace Fougerite
             }
             if (sw == null) return;
             sw.Stop();
-            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("NPCHurtEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
-        }*/
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("NPCHurtEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");*/
+        }
 
         public static void NPCKilled(ref DamageEvent e)
         {
