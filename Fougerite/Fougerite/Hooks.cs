@@ -8,6 +8,7 @@ using Facepunch.Clocks.Counters;
 using Google.ProtocolBuffers.Serialization;
 using RustProto;
 using RustProto.Helpers;
+using Shell32;
 
 namespace Fougerite
 {
@@ -861,7 +862,7 @@ namespace Fougerite
             if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("FallDamageEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
-        public static void NPCHurt(ref DamageEvent e)
+        /*public static void NPCHurt(ref DamageEvent e)
         {
             Stopwatch sw = null;
             if (Logger.showSpeed)
@@ -895,7 +896,7 @@ namespace Fougerite
             if (sw == null) return;
             sw.Stop();
             if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("NPCHurtEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
-        }
+        }*/
 
         public static void NPCKilled(ref DamageEvent e)
         {
@@ -2281,7 +2282,7 @@ namespace Fougerite
         {
             IInventoryItem itemf;
             IInventoryItem itemf2;
-            if (((byte)(((byte)Inventory.SlotOperations.Combine | (byte)Inventory.SlotOperations.Move | (byte)Inventory.SlotOperations.Stack) & (byte)info.SlotOperations)) == 0)
+            if (((byte)((SlotOperations.Combine | SlotOperations.Move | SlotOperations.Stack) & info.SlotOperations)) == 0)
             {
                 return Inventory.SlotOperationResult.Error_NoOpArgs;
             }
@@ -2295,14 +2296,14 @@ namespace Fougerite
                 {
                     return Inventory.SlotOperationResult.Error_SameSlot;
                 }
-                if ((((byte)((byte)Inventory.SlotOperations.EnsureAuthenticLooter & (byte)info.SlotOperations)) == 0x80) && !inst.IsAnAuthorizedLooter(info.Looter, ((byte)((byte)Inventory.SlotOperations.ReportCheater & (byte)info.SlotOperations)) == 0x40, "slotop_srcdst"))
+                if ((((byte)(SlotOperations.EnsureAuthenticLooter & info.SlotOperations)) == 0x80) && !inst.IsAnAuthorizedLooter(info.Looter, ((byte)(SlotOperations.ReportCheater & info.SlotOperations)) == 0x40, "slotop_srcdst"))
                 {
                     return Inventory.SlotOperationResult.Error_NotALooter;
                 }
             }
-            else if (((byte)((byte)Inventory.SlotOperations.EnsureAuthenticLooter & (byte)info.SlotOperations)) == 0x80)
+            else if (((byte)(SlotOperations.EnsureAuthenticLooter & info.SlotOperations)) == 0x80)
             {
-                bool reportCheater = ((byte)((byte)Inventory.SlotOperations.ReportCheater & (byte)info.SlotOperations)) == 0x40;
+                bool reportCheater = ((byte)(SlotOperations.ReportCheater & info.SlotOperations)) == 0x40;
                 if (!inst.IsAnAuthorizedLooter(info.Looter, reportCheater, "slotop_src") || !toInventory.IsAnAuthorizedLooter(info.Looter, reportCheater, "slotop_dst"))
                 {
                     ItemMoveEvent ime4 = new ItemMoveEvent(inst, fromSlot, toInventory, toSlot, info);
@@ -2314,7 +2315,6 @@ namespace Fougerite
                     return Inventory.SlotOperationResult.Error_NotALooter;
                 }
             }
-            
             if (!inst.GetItem(fromSlot, out itemf))
             {
                 return Inventory.SlotOperationResult.Error_EmptySourceSlot;
@@ -2324,13 +2324,13 @@ namespace Fougerite
                 InventoryItem.MergeResult failed;
                 inst.MarkSlotDirty(fromSlot);
                 toInventory.MarkSlotDirty(toSlot);
-                if ((((byte)(((byte)Inventory.SlotOperations.Combine | (byte)Inventory.SlotOperations.Stack) & (byte)info.SlotOperations)) == 1) && (itemf.datablock.uniqueID == itemf2.datablock.uniqueID))
+                if ((((byte)((SlotOperations.Combine | SlotOperations.Stack) & info.SlotOperations)) == 1) && (itemf.datablock.uniqueID == itemf2.datablock.uniqueID))
                 {
                     failed = itemf.TryStack(itemf2);
                 }
-                else if (((byte)(((byte)Inventory.SlotOperations.Combine | (byte)Inventory.SlotOperations.Stack) & (byte)info.SlotOperations)) != 0)
+                else if (((byte)((SlotOperations.Combine | SlotOperations.Stack) & info.SlotOperations)) != 0)
                 {
-                    failed = itemf2.TryCombine(itemf2);
+                    failed = itemf.TryCombine(itemf2);
                 }
                 else
                 {
@@ -2368,13 +2368,13 @@ namespace Fougerite
                         }
                         return Inventory.SlotOperationResult.Success_Combined;
                 }
-                if (((byte)((byte)Inventory.SlotOperations.Move & (byte)info.SlotOperations)) == 4)
+                if (((byte)(SlotOperations.Move & info.SlotOperations)) == 4)
                 {
                     return Inventory.SlotOperationResult.Error_OccupiedDestination;
                 }
                 return Inventory.SlotOperationResult.NoOp;
             }
-            if (((byte)((byte)Inventory.SlotOperations.Move & (byte)info.SlotOperations)) == 0)
+            if (((byte)(SlotOperations.Move & info.SlotOperations)) == 0)
             {
                 return Inventory.SlotOperationResult.Error_EmptyDestinationSlot;
             }
