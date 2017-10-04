@@ -25,6 +25,8 @@ namespace Fougerite
         private readonly List<string> _CommandCancelList;
         private bool disconnected;
         private Vector3 _lastpost;
+        internal bool _adminoff = false;
+        internal bool _modoff = false;
         internal uLink.NetworkPlayer _np;
 
         public Player()
@@ -548,10 +550,32 @@ namespace Fougerite
             return false;
         }
 
+        public void ForceAdminOff(bool state)
+        {
+            if (Fougerite.Server.Cache[UID] != null)
+            {
+                Fougerite.Server.Cache[UID]._adminoff = state;
+            }
+            _adminoff = state;
+        }
+
+        public void ForceModeratorOff(bool state)
+        {
+            if (Fougerite.Server.Cache[UID] != null)
+            {
+                Fougerite.Server.Cache[UID]._modoff = state;
+            }
+            _modoff = state;
+        }
+
         public bool Admin
         {
             get
             {
+                if (_adminoff)
+                {
+                    return false;
+                }
                 if (this.IsOnline)
                 {
                     return this.ourPlayer.netUser.admin;
@@ -565,6 +589,10 @@ namespace Fougerite
         {
             get
             {
+                if (_modoff)
+                {
+                    return false;
+                }
                if (Fougerite.Server.GetServer().HasRustPP)
                {
                     if (Fougerite.Server.GetServer().GetRustPPAPI().IsAdmin(this.UID))
