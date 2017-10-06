@@ -556,6 +556,11 @@ namespace Fougerite
             {
                 Fougerite.Server.Cache[UID]._adminoff = state;
             }
+            if (state && this.ourPlayer.netUser.admin)
+            {
+                ourPlayer.netUser.SetAdmin(false);
+                ourPlayer.netUser.admin = false;
+            }
             _adminoff = state;
         }
 
