@@ -712,6 +712,17 @@ namespace Fougerite.Patcher
             iLProcessor.InsertBefore(FallImpact.Body.Instructions[Position], Instruction.Create(OpCodes.Ldloc_0));
             iLProcessor.InsertBefore(FallImpact.Body.Instructions[Position], Instruction.Create(OpCodes.Ldarg_1));
             iLProcessor.InsertBefore(FallImpact.Body.Instructions[Position], Instruction.Create(OpCodes.Ldarg_0));
+
+            MethodDefinition FallDamageCheck = hooksClass.GetMethod("FallDamageCheck");
+
+            MethodDefinition flo = FallDamage.GetMethod("fIo");
+            ILProcessor iLProcessor2 = flo.Body.GetILProcessor();
+            iLProcessor2.Body.Instructions.Clear();
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(FallDamageCheck)));
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+
         }
 
         private void HumanControllerPatch()
@@ -1307,18 +1318,55 @@ namespace Fougerite.Patcher
         private void TalkerNotifications()
         {
             TypeDefinition type = rustAssembly.MainModule.GetType("VoiceCom");
-            TypeDefinition definition2 = rustAssembly.MainModule.GetType("PlayerClient");
-            MethodDefinition definition3 = type.GetMethod("clientspeak");
-            MethodDefinition method = hooksClass.GetMethod("ShowTalker");
+            type.IsSealed = false;
+            MethodDefinition method2 = hooksClass.GetMethod("ShowTalker");
+
+            MethodDefinition clientspeak = type.GetMethod("clientspeak");
+            MethodDefinition method = hooksClass.GetMethod("ConfirmVoice");
+            
+            type.GetField("playerList").SetPublic(true);
+
+            /*ILProcessor iLProcessor = clientspeak.Body.GetILProcessor();
+            iLProcessor.Body.Instructions.Clear();
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Call, this.rustAssembly.MainModule.Import(method)));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));*/
+
+            int i = 0;
+            ILProcessor iLProcessor = clientspeak.Body.GetILProcessor();
+            iLProcessor.InsertBefore(clientspeak.Body.Instructions[i], Instruction.Create(OpCodes.Ret));
+            iLProcessor.InsertBefore(clientspeak.Body.Instructions[i], Instruction.Create(OpCodes.Brtrue_S, clientspeak.Body.Instructions[1]));
+            iLProcessor.InsertBefore(clientspeak.Body.Instructions[i], Instruction.Create(OpCodes.Call, this.rustAssembly.MainModule.Import(method)));
+            iLProcessor.InsertBefore(clientspeak.Body.Instructions[i], Instruction.Create(OpCodes.Ldarg_2));
+
+
+            /*ILProcessor iLProcessor = clientspeak.Body.GetILProcessor();
+            iLProcessor.Body.Instructions.Clear();
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(method)));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));*/
+
+
+            VariableDefinition variable1 = clientspeak.Body.Variables[0];
+            VariableDefinition variable3 = clientspeak.Body.Variables[6];
+
+            int i2 = clientspeak.Body.Instructions.Count - 42;
+
+            iLProcessor.InsertBefore(clientspeak.Body.Instructions[i2], Instruction.Create(OpCodes.Call, this.rustAssembly.MainModule.Import(method2)));
+            iLProcessor.InsertBefore(clientspeak.Body.Instructions[i2], Instruction.Create(OpCodes.Ldloc_S, variable1));
+            iLProcessor.InsertBefore(clientspeak.Body.Instructions[i2], Instruction.Create(OpCodes.Ldloc_S, variable3));
+
+            /*MethodDefinition method2 = hooksClass.GetMethod("ShowTalker");
             FieldDefinition field = definition2.GetField("netPlayer");
             VariableDefinition variable = null;
-            variable = definition3.Body.Variables[6];
+            variable = clientspeak.Body.Variables[6];
 
-            ILProcessor iLProcessor = definition3.Body.GetILProcessor();
-            iLProcessor.InsertAfter(definition3.Body.Instructions[0x57], Instruction.Create(OpCodes.Ldloc_S, variable));
-            iLProcessor.InsertAfter(definition3.Body.Instructions[0x58], Instruction.Create(OpCodes.Ldfld, rustAssembly.MainModule.Import(field)));
-            iLProcessor.InsertAfter(definition3.Body.Instructions[0x59], Instruction.Create(OpCodes.Ldloc_0));
-            iLProcessor.InsertAfter(definition3.Body.Instructions[90], Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(method)));
+            iLProcessor.InsertAfter(clientspeak.Body.Instructions[0x57], Instruction.Create(OpCodes.Ldloc_S, variable));
+            iLProcessor.InsertAfter(clientspeak.Body.Instructions[0x58], Instruction.Create(OpCodes.Ldfld, rustAssembly.MainModule.Import(field)));
+            iLProcessor.InsertAfter(clientspeak.Body.Instructions[0x59], Instruction.Create(OpCodes.Ldloc_0));
+            iLProcessor.InsertAfter(clientspeak.Body.Instructions[90], Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(method2)));*/
         }
 
         private void ConditionDebug()
