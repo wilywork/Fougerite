@@ -1285,47 +1285,41 @@ namespace Fougerite
             {
                 p = Fougerite.Server.Cache[m.playerClient.userID];
             }
-            if (float.IsNaN(cal) || cal > 3000)
+            if (float.IsNaN(cal) || cal > 3000 || float.IsInfinity(cal) || cal < 0)
             {
                 m.caloricLevel = 600;
+                h = true;
                 if (p != null)
                 {
-                    Logger.LogWarning("[CalorieHack] " + p.Name + " | " + p.SteamID + " is using calorie hacks! =)");
-                    Fougerite.Server.GetServer().Broadcast("CalorieHack Detected: " + p.Name);
-                    Fougerite.Server.GetServer().BanPlayer(p, "Console", "CalorieHack");
-                    h = true;
+                    Logger.LogWarning("[CalorieHack] Bypassed. Target was: " + p.Name + " " + cal);
+                    //Logger.LogWarning("[CalorieHack] " + p.Name + " | " + p.SteamID + " is using calorie hacks! =)");
+                    //Fougerite.Server.GetServer().Broadcast("CalorieHack Detected: " + p.Name);
+                    //Fougerite.Server.GetServer().BanPlayer(p, "Console", "CalorieHack");
                 }
             }
             else
             {
                 m.caloricLevel = cal;
             }
-            if (rad > 3000)
+            if (float.IsNaN(rad) || rad > 3000 || float.IsInfinity(rad) || rad < 0)
             {
                 m.radiationLevel = 0;
                 h = true;
                 if (p != null)
                 {
-                    Logger.LogDebug("[RadiationHack] Someone tried to kill " + p.Name + " with radiation hacks.");
-                }
-            }
-            else if (float.IsNaN(rad))
-            {
-                m.radiationLevel = 0;
-                h = true;
-                if (p != null)
-                {
-                    Logger.LogWarning("[RadiationHack] " + p.Name + " using radiation hacks.");
-                    Fougerite.Server.GetServer().Broadcast("RadiationHack Detected: " + p.Name);
-                    Fougerite.Server.GetServer().BanPlayer(p, "Console", "RadiationHack");
+                    Logger.LogDebug("[RadiationHack] Bypassed. Target was: " + p.Name + " " + rad);
                 }
             }
             else
             {
                 m.radiationLevel = rad;
             }
-            if (float.IsNaN(poison) || poison > 5000)
+            if (float.IsNaN(poison) || poison > 5000 || float.IsInfinity(poison) || poison < 0)
             {
+                if (p != null)
+                {
+                    Logger.LogDebug("[PoisonChange] Bypassed. Target was: " + p.Name + " " + poison);
+                }
                 m.poisonLevel = 0;
                 h = true;
             }
@@ -1333,8 +1327,12 @@ namespace Fougerite
             {
                 m.poisonLevel = poison;
             }
-            if (float.IsNaN(water) || water > 5000)
+            if (float.IsNaN(water) || water > 5000 || float.IsInfinity(water) || water < 0)
             {
+                if (p != null)
+                {
+                    Logger.LogDebug("[WaterChange] Bypassed. Target was: " + p.Name + " " + water);
+                }
                 m.waterLevelLitre = 0;
                 h = true;
             }
@@ -1342,8 +1340,12 @@ namespace Fougerite
             {
                 m.waterLevelLitre = water;
             }
-            if (float.IsNaN(anti) || anti > 3000)
+            if (float.IsNaN(anti) || anti > 3000 || float.IsInfinity(anti) || anti < 0)
             {
+                if (p != null)
+                {
+                    Logger.LogDebug("[AntiRadChange] Bypassed. Target was: " + p.Name + " " + anti);
+                }
                 m.antiRads = 0;
                 h = true;
             }
@@ -1351,8 +1353,12 @@ namespace Fougerite
             {
                 m.antiRads = anti;
             }
-            if (float.IsNaN(temp) || temp > 5000)
+            if (float.IsNaN(temp) || temp > 5000 || float.IsInfinity(temp) || temp < 0)
             {
+                if (p != null)
+                {
+                    Logger.LogDebug("[TemperatureChange] Bypassed. Target was: " + p.Name + " " + temp);
+                }
                 m.coreTemperature = 0;
                 h = true;
             }
@@ -1374,7 +1380,10 @@ namespace Fougerite
             {
                 Logger.LogError("RecieveNetworkEvent Error: " + ex.ToString());
             }
-            if (!h) { RPOS.MetabolismUpdate(); }
+            if (!h)
+            {
+                RPOS.MetabolismUpdate();
+            }
         }
 
         public static void CraftingEvent(CraftingInventory inv, BlueprintDataBlock blueprint, int amount, ulong startTime)
@@ -2680,7 +2689,7 @@ namespace Fougerite
             if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("ServerStartedEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
-        public static void ShowTalker(uLink.NetworkPlayer player, PlayerClient p)
+        /*public static void ShowTalker(uLink.NetworkPlayer player, PlayerClient p)
         {
             Stopwatch sw = null;
             if (Logger.showSpeed)
@@ -2701,7 +2710,48 @@ namespace Fougerite
             if (sw == null) return;
             sw.Stop();
             if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("MicUseEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
+        }*/
+
+        public static bool ConfirmVoice(byte[] data)
+        {
+            if (data.Length > 1500)
+            {
+                Logger.LogWarning("[VoiceByteOverflown] Received a huge amount of byte, clearing. " + data.Length);
+                Array.Clear(data, 0, data.Length);
+                return false;
+            }
+            return true;
         }
+
+        public static void ShowTalker(PlayerClient p, PlayerClient p2)
+        {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
+            var pl = Fougerite.Server.Cache[p2.userID];
+            try
+            {
+                if (OnShowTalker != null)
+                    OnShowTalker(p.netPlayer, pl);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("ShowTalkerEvent Error: " + ex.ToString());
+            }
+            if (sw == null) return;
+            sw.Stop();
+            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("MicUseEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
+        }
+
+        public static void FallDamageCheck(FallDamage fd, float v)
+        {
+            Logger.LogWarning("[Legbreak RPC] Bypassed a legbreak RPC possibly sent by a hacker. Value: " + v);
+            //fd.SetLegInjury(v);
+        }
+
 
         internal static void ModulesLoaded()
         {

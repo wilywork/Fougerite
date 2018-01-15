@@ -18,7 +18,6 @@ namespace Fougerite
     {
         private readonly Dictionary<string, System.Type> typeCache = new Dictionary<string, System.Type>();
         private static Util util;
-
         /*
          * All UnStackable Items
          */
