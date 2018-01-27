@@ -1277,9 +1277,15 @@ namespace Fougerite
             if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("TeleportEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
+        internal static DateTime LasTime = DateTime.Now;
         public static void RecieveNetwork(Metabolism m, float cal, float water, float rad, float anti, float temp, float poison)
         {
-            bool h = false;
+            if (LasTime.AddMinutes(5) > DateTime.UtcNow)
+            {
+                LasTime = DateTime.Now;
+                Logger.LogWarning("[RecieveNetwork] A metabolism hack was prevented.");
+            }
+            /*bool h = false;
             Fougerite.Player p = null;
             if (m.playerClient != null)
             {
@@ -1383,7 +1389,7 @@ namespace Fougerite
             if (!h)
             {
                 RPOS.MetabolismUpdate();
-            }
+            }*/
         }
 
         public static void CraftingEvent(CraftingInventory inv, BlueprintDataBlock blueprint, int amount, ulong startTime)
@@ -1732,10 +1738,10 @@ namespace Fougerite
             }
             try
             {
-                foreach (var x in RPOS.AllWindows)
+                /*foreach (var x in RPOS.AllWindows)
                 {
                     Server.GetServer().Broadcast(x.name);
-                }
+                }*/
                 //RPOS.Get().
                 if (OnItemRemoved != null)
                 {
@@ -2714,6 +2720,11 @@ namespace Fougerite
 
         public static bool ConfirmVoice(byte[] data)
         {
+            if (data == null)
+            {
+                Logger.LogWarning("[VoiceByteOverflown] Received null value.");
+                return false;
+            }
             if (data.Length > 1500)
             {
                 Logger.LogWarning("[VoiceByteOverflown] Received a huge amount of byte, clearing. " + data.Length);
