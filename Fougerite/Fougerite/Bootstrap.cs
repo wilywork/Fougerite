@@ -8,10 +8,11 @@ namespace Fougerite
 
     public class Bootstrap : Facepunch.MonoBehaviour
     {
-        public const string Version = "1.6.0B";
+        public const string Version = "1.6.1";
         public static bool CR = false;
         public static bool BI = false;
         public static bool TS = false;
+        public static bool EnableDefaultRustDecay = true;
         internal static readonly Thread CurrentThread = Thread.CurrentThread;
 
         public static void AttachBootstrap()
@@ -65,6 +66,24 @@ namespace Fougerite
                 structure.maxframeattempt = -1;
                 structure.framelimit = -1;
                 structure.minpercentdmg = float.MaxValue;
+            }
+            if (Fougerite.Config.GetValue("Fougerite", "EnableDefaultRustDecay") != null)
+            {
+                EnableDefaultRustDecay = Fougerite.Config.GetBoolValue("Fougerite", "EnableDefaultRustDecay");
+            }
+            else
+            {
+                NetCull.Callbacks.beforeEveryUpdate += new NetCull.UpdateFunctor(EnvDecay.Callbacks.RunDecayThink);
+                Logger.LogWarning("[RustDecay] The default Rust Decay is enabled. (Config option not found)");
+            }
+            if (EnableDefaultRustDecay)
+            {
+                NetCull.Callbacks.beforeEveryUpdate += new NetCull.UpdateFunctor(EnvDecay.Callbacks.RunDecayThink);
+                Logger.LogWarning("[RustDecay] The default Rust Decay is enabled.");
+            }
+            else
+            {
+                Logger.LogWarning("[RustDecay] The default Rust Decay is disabled.");
             }
             return true;
         }
