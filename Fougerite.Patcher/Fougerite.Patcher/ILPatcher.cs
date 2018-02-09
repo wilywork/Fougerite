@@ -1436,6 +1436,19 @@ namespace Fougerite.Patcher
             iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
         }
 
+        private void DecayStopPatch()
+        {
+            TypeDefinition EnvDecay = rustAssembly.MainModule.GetType("EnvDecay");
+            TypeDefinition CallBacks = EnvDecay.GetNestedType("Callbacks");
+            CallBacks.IsPublic = true;
+            CallBacks.GetMethod("RunDecayThink").SetPublic(true);
+            IEnumerable<MethodDefinition> Consts = CallBacks.GetConstructors();
+            MethodDefinition md = Consts.ToArray()[0];
+            md.SetPublic(true);
+            md.Body.Instructions.Clear();
+            md.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+        }
+
         private void GrenadePatch()
         {
             TypeDefinition HandGrenadeDataBlock = rustAssembly.MainModule.GetType("HandGrenadeDataBlock");
@@ -1576,6 +1589,7 @@ namespace Fougerite.Patcher
                     this.PatchuLink();
                     this.SlotOperationPatch();
                     this.RepairBenchEvent();
+                    this.DecayStopPatch();
                 }
                 catch (Exception ex)
                 {
