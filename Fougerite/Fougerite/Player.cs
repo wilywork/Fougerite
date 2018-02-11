@@ -99,7 +99,7 @@ namespace Fougerite
             {
                 if (this.IsOnline)
                 {
-                    Character c = this.PlayerClient.netUser.playerClient.GetComponent(typeof(Character)) as Character;
+                    Character c = this.PlayerClient.controllable.GetComponent<Character>();
                     return c;
                 }
                 return null;
