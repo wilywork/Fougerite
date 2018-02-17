@@ -1466,6 +1466,35 @@ namespace Fougerite.Patcher
             iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
         }
 
+        private void GenericSpawnerPatch()
+        {
+            TypeDefinition GenericSpawner = rustAssembly.MainModule.GetType("GenericSpawner");
+            GenericSpawner.GetField("spawnStagger").SetPublic(true);
+            MethodDefinition OnServerLoad = GenericSpawner.GetMethod("OnServerLoad");
+
+            MethodDefinition method = hooksClass.GetMethod("GenericHook");
+            
+            int i = OnServerLoad.Body.Instructions.Count - 16;
+            ILProcessor iLProcessor = OnServerLoad.Body.GetILProcessor();
+            iLProcessor.InsertBefore(OnServerLoad.Body.Instructions[i], Instruction.Create(OpCodes.Call, this.rustAssembly.MainModule.Import(method)));
+            iLProcessor.InsertBefore(OnServerLoad.Body.Instructions[i], Instruction.Create(OpCodes.Ldarg_0));
+        }
+
+        private void ServerLoadedPatch()
+        {
+            TypeDefinition ServerInit = rustAssembly.MainModule.GetType("ServerInit");
+            MethodDefinition LoadLevel = ServerInit.GetMethod("LoadLevel");
+
+            MethodDefinition method = hooksClass.GetMethod("ServerLoadedHook");
+
+            ILProcessor iLProcessor = LoadLevel.Body.GetILProcessor();
+            iLProcessor.Body.Instructions.Clear();
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(method)));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+        }
+
         public bool FirstPass()
         {
             try
@@ -1590,6 +1619,8 @@ namespace Fougerite.Patcher
                     this.SlotOperationPatch();
                     this.RepairBenchEvent();
                     this.DecayStopPatch();
+                    this.GenericSpawnerPatch();
+                    this.ServerLoadedPatch();
                 }
                 catch (Exception ex)
                 {

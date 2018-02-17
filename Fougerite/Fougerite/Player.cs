@@ -366,6 +366,14 @@ namespace Fougerite
             }
         }
 
+        public void SendConsoleMessage(string msg)
+        {
+            if (this.IsOnline)
+            {
+                ConsoleNetworker.singleton.networkView.RPC<string>("CL_ConsoleMessage", PlayerClient.netPlayer, msg);
+            }
+        }
+
         public void SendCommand(string cmd)
         {
             if (this.IsOnline)
