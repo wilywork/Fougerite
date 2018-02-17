@@ -77,6 +77,8 @@ namespace Fougerite
         public static event BanEventDelegate OnPlayerBan;
         public static event RepairBenchEventDelegate OnRepairBench;
         public static event ItemMoveEventDelegate OnItemMove;
+        public static event GenericSpawnerLoadDelegate OnGenericSpawnerLoad;
+        public static event ServerLoadedDelegate OnServerLoaded;
         public static bool IsShuttingDown = false;
 
         public static readonly List<ulong> uLinkDCCache = new List<ulong>(); 
@@ -215,7 +217,7 @@ namespace Fougerite
                 string s = Regex.Replace(newchat, @"\[/?color\b.*?\]", string.Empty);
                 if (s.Length <= 100)
                 {
-                    Fougerite.Data.GetData().chat_history.Add(newchat);
+                    Fougerite.Data.GetData().chat_history.Add(chatstr);
                     Fougerite.Data.GetData().chat_history_username.Add(quotedName);
                     ConsoleNetworker.Broadcast("chat.add " + quotedName + " " + newchat);
                     return;
@@ -1619,14 +1621,7 @@ namespace Fougerite
             }
             if (IsShuttingDown)
             {
-                SaveAll(path);
-                return true;
-            }
-            if (Bootstrap.TS)
-            {
-                Loom.ExecuteInBiggerStackThread(() => {
-                    SaveAll(path);
-                });
+                SaveAll(path, true);
             }
             else
             {
@@ -1635,7 +1630,7 @@ namespace Fougerite
             return true;
         }
 
-        internal static void SaveAll(string path)
+        internal static void SaveAll(string path, bool shuttingdown = false)
         {
             SystemTimestamp restart = SystemTimestamp.Restart;
             if (path == string.Empty)
@@ -1668,62 +1663,178 @@ namespace Fougerite
                     }
                     ServerSaveManager._loadedOnce = true;
                 }
-                using (Recycler<WorldSave, WorldSave.Builder> recycler = WorldSave.Recycler())
+                // If the server is shutting down, we shouldn't start tricking with the threads, just simply save it as it is.
+                if (shuttingdown)
                 {
-                    WorldSave.Builder builder = recycler.OpenBuilder();
-                    timestamp2 = SystemTimestamp.Restart;
-                    ServerSaveManager.Get(false).DoSave(ref builder);
+                    ServerSaveManager s;
+                    WorldSave.Builder builder;
+                    using (Recycler<WorldSave, WorldSave.Builder> recycler = WorldSave.Recycler())
+                    {
+                        builder = recycler.OpenBuilder();
+                        timestamp2 = SystemTimestamp.Restart;
+                        s = ServerSaveManager.Get(false);
+                    }
+                    s.DoSave(ref builder);
                     timestamp2.Stop();
                     timestamp3 = SystemTimestamp.Restart;
                     fsave = builder.Build();
                     timestamp3.Stop();
-                }
-                int num = fsave.SceneObjectCount + fsave.InstanceObjectCount;
-                if (save.friendly)
-                {
-                    using (FileStream stream = File.Open(path + ".json", FileMode.Create, FileAccess.Write))
+                    int num = fsave.SceneObjectCount + fsave.InstanceObjectCount;
+                    if (save.friendly)
                     {
-                        JsonFormatWriter writer = JsonFormatWriter.CreateInstance(stream);
-                        writer.Formatted();
-                        writer.WriteMessage(fsave);
+                        using (FileStream stream = File.Open(path + ".json", FileMode.Create, FileAccess.Write))
+                        {
+                            JsonFormatWriter writer = JsonFormatWriter.CreateInstance(stream);
+                            writer.Formatted();
+                            writer.WriteMessage(fsave);
+                        }
                     }
-                }
-                SystemTimestamp timestamp5 = timestamp4 = SystemTimestamp.Restart;
-                using (FileStream stream2 = File.Open(path + ".new", FileMode.Create, FileAccess.Write))
-                {
-                    fsave.WriteTo(stream2);
-                    stream2.Flush();
-                }
-                timestamp4.Stop();
-                if (File.Exists(path + ".old.5"))
-                {
-                    File.Delete(path + ".old.5");
-                }
-                for (int i = 4; i >= 0; i--)
-                {
-                    if (File.Exists(path + ".old." + i))
+
+                    SystemTimestamp timestamp5 = timestamp4 = SystemTimestamp.Restart;
+                    using (FileStream stream2 = File.Open(path + ".new", FileMode.Create, FileAccess.Write))
                     {
-                        File.Move(path + ".old." + i, path + ".old." + (i + 1));
+                        fsave.WriteTo(stream2);
+                        stream2.Flush();
                     }
-                }
-                if (File.Exists(path))
-                {
-                    File.Move(path, path + ".old.0");
-                }
-                if (File.Exists(path + ".new"))
-                {
-                    File.Move(path + ".new", path);
-                }
-                timestamp5.Stop();
-                restart.Stop();
-                if (save.profile)
-                {
-                    object[] args = new object[] { num, timestamp2.ElapsedSeconds, timestamp2.ElapsedSeconds / restart.ElapsedSeconds, timestamp3.ElapsedSeconds, timestamp3.ElapsedSeconds / restart.ElapsedSeconds, timestamp4.ElapsedSeconds, timestamp4.ElapsedSeconds / restart.ElapsedSeconds, timestamp5.ElapsedSeconds, timestamp5.ElapsedSeconds / restart.ElapsedSeconds, restart.ElapsedSeconds, restart.ElapsedSeconds / restart.ElapsedSeconds };
-                    Logger.Log(string.Format(" Saved {0} Object(s) [times below are in elapsed seconds]\r\n  Logic:\t{1,-16:0.000000}\t{2,7:0.00%}\r\n  Build:\t{3,-16:0.000000}\t{4,7:0.00%}\r\n  Stream:\t{5,-16:0.000000}\t{6,7:0.00%}\r\n  All IO:\t{7,-16:0.000000}\t{8,7:0.00%}\r\n  Total:\t{9,-16:0.000000}\t{10,7:0.00%}", args));
+
+                    timestamp4.Stop();
+                    if (File.Exists(path + ".old.5"))
+                    {
+                        File.Delete(path + ".old.5");
+                    }
+
+                    for (int i = 4; i >= 0; i--)
+                    {
+                        if (File.Exists(path + ".old." + i))
+                        {
+                            File.Move(path + ".old." + i, path + ".old." + (i + 1));
+                        }
+                    }
+
+                    if (File.Exists(path))
+                    {
+                        File.Move(path, path + ".old.0");
+                    }
+
+                    if (File.Exists(path + ".new"))
+                    {
+                        File.Move(path + ".new", path);
+                    }
+
+                    timestamp5.Stop();
+                    restart.Stop();
+                    if (save.profile)
+                    {
+                        object[] args = new object[]
+                        {
+                            num, timestamp2.ElapsedSeconds,
+                            timestamp2.ElapsedSeconds / restart.ElapsedSeconds, timestamp3.ElapsedSeconds,
+                            timestamp3.ElapsedSeconds / restart.ElapsedSeconds, timestamp4.ElapsedSeconds,
+                            timestamp4.ElapsedSeconds / restart.ElapsedSeconds, timestamp5.ElapsedSeconds,
+                            timestamp5.ElapsedSeconds / restart.ElapsedSeconds, restart.ElapsedSeconds,
+                            restart.ElapsedSeconds / restart.ElapsedSeconds
+                        };
+                        Logger.Log(string.Format(
+                            " Saved {0} Object(s) [times below are in elapsed seconds]\r\n  Logic:\t{1,-16:0.000000}\t{2,7:0.00%}\r\n  Build:\t{3,-16:0.000000}\t{4,7:0.00%}\r\n  Stream:\t{5,-16:0.000000}\t{6,7:0.00%}\r\n  All IO:\t{7,-16:0.000000}\t{8,7:0.00%}\r\n  Total:\t{9,-16:0.000000}\t{10,7:0.00%}",
+                            args));
+                    }
+                    else
+                    {
+                        Logger.Log(string.Concat(new object[]
+                            {" Saved ", num, " Object(s). Took ", restart.ElapsedSeconds, " seconds."}));
+                    }
                 }
                 else
                 {
-                    Logger.Log(string.Concat(new object[] { " Saved ", num, " Object(s). Took ", restart.ElapsedSeconds, " seconds." }));
+                    // Call the code on the main thread, ServerSaveManager.Get(false) uses Findobjectsoftype which doesnt like threading.
+                    Loom.QueueOnMainThread(() =>
+                    {
+                        ServerSaveManager s;
+                        WorldSave.Builder builder;
+                        using (Recycler<WorldSave, WorldSave.Builder> recycler = WorldSave.Recycler())
+                        {
+                            builder = recycler.OpenBuilder();
+                            s = ServerSaveManager.Get(false); // Once this execution is finished, call a new thread to finish up the writing.
+                        }
+
+                        new Thread(() =>
+                        {
+                            Thread.CurrentThread.IsBackground = true;
+                            timestamp2 = SystemTimestamp.Restart;
+                            s.DoSave(ref builder);
+                            timestamp2.Stop();
+                            timestamp3 = SystemTimestamp.Restart;
+                            fsave = builder.Build();
+                            timestamp3.Stop();
+                            int num = fsave.SceneObjectCount + fsave.InstanceObjectCount;
+                            if (save.friendly)
+                            {
+                                using (FileStream stream = File.Open(path + ".json", FileMode.Create, FileAccess.Write))
+                                {
+                                    JsonFormatWriter writer = JsonFormatWriter.CreateInstance(stream);
+                                    writer.Formatted();
+                                    writer.WriteMessage(fsave);
+                                }
+                            }
+
+                            SystemTimestamp timestamp5 = timestamp4 = SystemTimestamp.Restart;
+                            using (FileStream stream2 = File.Open(path + ".new", FileMode.Create, FileAccess.Write))
+                            {
+                                fsave.WriteTo(stream2);
+                                stream2.Flush();
+                            }
+
+                            timestamp4.Stop();
+                            if (File.Exists(path + ".old.5"))
+                            {
+                                File.Delete(path + ".old.5");
+                            }
+
+                            for (int i = 4; i >= 0; i--)
+                            {
+                                if (File.Exists(path + ".old." + i))
+                                {
+                                    File.Move(path + ".old." + i, path + ".old." + (i + 1));
+                                }
+                            }
+
+                            if (File.Exists(path))
+                            {
+                                File.Move(path, path + ".old.0");
+                            }
+
+                            if (File.Exists(path + ".new"))
+                            {
+                                File.Move(path + ".new", path);
+                            }
+
+                            timestamp5.Stop();
+                            restart.Stop();
+                            Loom.QueueOnMainThread(() =>
+                            {
+                                if (save.profile)
+                                {
+                                    object[] args = new object[]
+                                    {
+                                        num, timestamp2.ElapsedSeconds,
+                                        timestamp2.ElapsedSeconds / restart.ElapsedSeconds, timestamp3.ElapsedSeconds,
+                                        timestamp3.ElapsedSeconds / restart.ElapsedSeconds, timestamp4.ElapsedSeconds,
+                                        timestamp4.ElapsedSeconds / restart.ElapsedSeconds, timestamp5.ElapsedSeconds,
+                                        timestamp5.ElapsedSeconds / restart.ElapsedSeconds, restart.ElapsedSeconds,
+                                        restart.ElapsedSeconds / restart.ElapsedSeconds
+                                    };
+                                    Logger.Log(string.Format(
+                                        " Saved {0} Object(s) [times below are in elapsed seconds]\r\n  Logic:\t{1,-16:0.000000}\t{2,7:0.00%}\r\n  Build:\t{3,-16:0.000000}\t{4,7:0.00%}\r\n  Stream:\t{5,-16:0.000000}\t{6,7:0.00%}\r\n  All IO:\t{7,-16:0.000000}\t{8,7:0.00%}\r\n  Total:\t{9,-16:0.000000}\t{10,7:0.00%}",
+                                        args));
+                                }
+                                else
+                                {
+                                    Logger.Log(string.Concat(new object[]
+                                        {" Saved ", num, " Object(s). Took ", restart.ElapsedSeconds, " seconds."}));
+                                }
+                            });
+                        }).Start();
+                    });
                 }
             }
         }
@@ -2496,6 +2607,40 @@ namespace Fougerite
             return be.Cancelled;
         }
 
+        public static void GenericHook(GenericSpawner gs)
+        {
+            try
+            {
+                if (OnGenericSpawnerLoad != null)
+                {
+                    OnGenericSpawnerLoad(gs);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("GenericSpawnerLoad Error: " + ex);
+            }
+        }
+
+        public static IEnumerator ServerLoadedHook(ServerInit init, string levelName)
+        {
+            yield return RustLevel.Load(levelName);
+            try
+            {
+                if (OnServerLoaded != null)
+                {
+                    OnServerLoaded();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("ServerLoaded Error: " + ex);
+            }
+            Logger.Log("Server Initialized.");
+            UnityEngine.Object.Destroy(init.gameObject);
+            yield break;
+        }
+        
         public static void ResetHooks()
         {
             OnPluginInit = delegate
@@ -2649,6 +2794,12 @@ namespace Fougerite
             OnItemMove = delegate (ItemMoveEvent param0)
             {
             };
+            OnGenericSpawnerLoad = delegate (GenericSpawner param0)
+            {
+            };
+            OnServerLoaded = delegate ()
+            {
+            };
             foreach (Fougerite.Player player in Fougerite.Server.GetServer().Players)
             {
                 player.FixInventoryRef();
@@ -2725,7 +2876,7 @@ namespace Fougerite
                 Logger.LogWarning("[VoiceByteOverflown] Received null value.");
                 return false;
             }
-            if (data.Length > 1500)
+            if (data.Length > 2350)
             {
                 Logger.LogWarning("[VoiceByteOverflown] Received a huge amount of byte, clearing. " + data.Length);
                 Array.Clear(data, 0, data.Length);
@@ -2847,6 +2998,9 @@ namespace Fougerite
         public delegate void BanEventDelegate(BanEvent banEvent);
         public delegate void RepairBenchEventDelegate(RepairEvent repairEvent);
         public delegate void ItemMoveEventDelegate(ItemMoveEvent itemMoveEvent);
+        public delegate void GenericSpawnerLoadDelegate(GenericSpawner genericSpawner);
+        public delegate void ServerLoadedDelegate();
+
         //public delegate void AirdropCrateDroppedDelegate(GameObject go);
     }
 }

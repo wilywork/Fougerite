@@ -102,7 +102,6 @@
         </e>
       </e>
       <e p="IronPythonModule-master\IronPythonModule" t="IncludeRecursive">
-        <e p="bin" t="ExcludeRecursive" />
         <e p="FougeriteEx" t="Include">
           <e p="Dump.cs" t="Include" />
           <e p="Extensions.cs" t="Include" />

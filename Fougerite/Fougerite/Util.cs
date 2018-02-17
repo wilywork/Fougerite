@@ -578,6 +578,7 @@ namespace Fougerite
             return FindDeployableAt(givenPosition, dist, forceupdate);
         }
 
+        [System.Obsolete("Use FindClosestEntity, and distinguish between the object types.", false)]
         public Entity FindDeployableAt(Vector3 givenPosition, float dist = 1f, bool forceupdate = false)
         {
             foreach (var x in World.GetWorld().DeployableObjects(forceupdate))
@@ -587,6 +588,7 @@ namespace Fougerite
             return null;
         }
 
+        [System.Obsolete("Use FindClosestEntity, and distinguish between the object types.", false)]
         public Entity FindDoorAt(Vector3 givenPosition, float dist = 2f, bool forceupdate = false)
         {
             foreach (var x in World.GetWorld().BasicDoors(forceupdate))
@@ -596,6 +598,7 @@ namespace Fougerite
             return null;
         }
 
+        [System.Obsolete("Use FindClosestEntity, and distinguish between the object types.", false)]
         public Entity FindStructureAt(Vector3 givenPosition, float dist = 1f, bool forceupdate = false)
         {
             foreach (var x in World.GetWorld().StructureComponents(forceupdate))
@@ -605,6 +608,7 @@ namespace Fougerite
             return null;
         }
 
+        [System.Obsolete("Use FindClosestEntity, and distinguish between the object types.", false)]
         public Entity FindLootableAt(Vector3 givenPosition, float dist = 1f)
         {
             foreach (var x in World.GetWorld().LootableObjects)
@@ -614,6 +618,7 @@ namespace Fougerite
             return null;
         }
 
+        [System.Obsolete("Use FindClosestEntity, and distinguish between the object types.", false)]
         public Entity FindEntityAt(Vector3 givenPosition, float dist = 1f)
         {
             foreach (var x in World.GetWorld().Entities)
@@ -622,6 +627,116 @@ namespace Fougerite
             }
             return null;
         }
+
+        public Entity FindClosestEntity(Vector3 givenPosition, float dist = 1f)
+        {
+            Collider[] array = Facepunch.MeshBatch.MeshBatchPhysics.OverlapSphere(givenPosition, dist);
+            if (array.Length == 0)
+            {
+                return null;
+            }
+            Collider closest = array[0];
+            if (array.Length > 1)
+            {
+                for (int i = 1; i < array.Length; i++)
+                {
+                    if (Vector3.Distance(array[i].transform.position, givenPosition) <
+                        Vector3.Distance(closest.transform.position, givenPosition))
+                    {
+                        closest = array[i];
+                    }
+                }
+            }
+
+            if (closest.gameObject.GetComponent<StructureMaster>())
+            {
+                return new Entity(closest.gameObject.GetComponent<StructureMaster>());
+            }
+            if (closest.gameObject.GetComponent<StructureComponent>())
+            {
+                return new Entity(closest.gameObject.GetComponent<StructureComponent>());
+            }
+            if (closest.gameObject.GetComponent<DeployableObject>())
+            {
+                return new Entity(closest.gameObject.GetComponent<DeployableObject>());
+            }
+            if (closest.gameObject.GetComponent<LootableObject>())
+            {
+                return new Entity(closest.gameObject.GetComponent<LootableObject>());
+            }
+            if (closest.gameObject.GetComponent<SupplyCrate>())
+            {
+                return new Entity(closest.gameObject.GetComponent<SupplyCrate>());
+            }
+            if (closest.gameObject.GetComponent<ResourceTarget>())
+            {
+                return new Entity(closest.gameObject.GetComponent<ResourceTarget>());
+            }
+            return null;
+        }
+
+        public List<Entity> FindEntitysAroundFast(Vector3 givenPosition, float dist = 1f)
+        {
+            Collider[] array = Facepunch.MeshBatch.MeshBatchPhysics.OverlapSphere(givenPosition, dist);
+            List<Entity> list = new List<Entity>();
+            foreach (var x in array)
+            {
+                if (x.gameObject.GetComponent<StructureMaster>())
+                {
+                    list.Add(new Entity(x.gameObject.GetComponent<StructureMaster>()));
+                }
+                else if (x.gameObject.GetComponent<StructureComponent>())
+                {
+                    list.Add(new Entity(x.gameObject.GetComponent<StructureComponent>()));
+                }
+                else if (x.gameObject.GetComponent<DeployableObject>())
+                {
+                    list.Add(new Entity(x.gameObject.GetComponent<DeployableObject>()));
+                }
+                else if (x.gameObject.GetComponent<LootableObject>())
+                {
+                    list.Add(new Entity(x.gameObject.GetComponent<LootableObject>()));
+                }
+                else if (x.gameObject.GetComponent<SupplyCrate>())
+                {
+                    list.Add(new Entity(x.gameObject.GetComponent<SupplyCrate>()));
+                }
+                else if (x.gameObject.GetComponent<ResourceTarget>())
+                {
+                    list.Add(new Entity(x.gameObject.GetComponent<ResourceTarget>()));
+                }
+            }
+            return list;
+        }
+        
+        public GameObject FindClosestObject(Vector3 givenPosition, float dist = 1f)
+        {
+            Collider[] array = Facepunch.MeshBatch.MeshBatchPhysics.OverlapSphere(givenPosition, dist);
+            if (array.Length == 0)
+            {
+                return null;
+            }
+            Collider closest = array[0];
+            if (array.Length > 1)
+            {
+                for (int i = 1; i < array.Length; i++)
+                {
+                    if (Vector3.Distance(array[i].transform.position, givenPosition) <
+                        Vector3.Distance(closest.transform.position, givenPosition))
+                    {
+                        closest = array[i];
+                    }
+                }
+            }
+            return closest.gameObject; // Specific Entities can be converted to Entity, see the Entity class's constructor. (Example: It doesn't handle BasicDoor.)
+        }
+        
+        public List<GameObject> FindObjectsAroundFast(Vector3 givenPosition, float dist = 1f)
+        {
+            Collider[] array = Facepunch.MeshBatch.MeshBatchPhysics.OverlapSphere(givenPosition, dist);
+            return array.Select(x => x.gameObject).ToList();
+        }
+
 
         public List<Entity> FindDeployablesAround(Vector3 givenPosition, float dist = 100f, bool forceupdate = false)
         {

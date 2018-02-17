@@ -8,10 +8,10 @@ namespace Fougerite
 
     public class Bootstrap : Facepunch.MonoBehaviour
     {
-        public const string Version = "1.6.1";
+        public const string Version = "1.6.2";
         public static bool CR = false;
         public static bool BI = false;
-        public static bool TS = false;
+        public static bool AutoBanCraft = true;
         public static bool EnableDefaultRustDecay = true;
         internal static readonly Thread CurrentThread = Thread.CurrentThread;
 
@@ -38,7 +38,8 @@ namespace Fougerite
         public bool ApplyOptions()
         {
             // look for the string 'false' to disable.  **not a bool check**
-            if (Fougerite.Config.GetValue("Fougerite", "enabled") == "false") {
+            if (Fougerite.Config.GetValue("Fougerite", "enabled") == "false") 
+            {
                 Debug.Log("Fougerite is disabled. No modules loaded. No hooks called.");
                 return false;
             }
@@ -50,9 +51,9 @@ namespace Fougerite
             {
                 BI = Fougerite.Config.GetBoolValue("Fougerite", "BanOnInvalidPacket");
             }
-            if (Fougerite.Config.GetValue("Fougerite", "UseThreadAtServerSave") != null)
+            if (Fougerite.Config.GetValue("Fougerite", "AutoBanCraft") != null)
             {
-                TS = Fougerite.Config.GetBoolValue("Fougerite", "UseThreadAtServerSave");
+                AutoBanCraft = Fougerite.Config.GetBoolValue("Fougerite", "AutoBanCraft");
             }
             if (!Fougerite.Config.GetBoolValue("Fougerite", "deployabledecay") && !Fougerite.Config.GetBoolValue("Fougerite", "decay"))
             {
