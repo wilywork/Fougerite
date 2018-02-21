@@ -301,12 +301,13 @@ namespace Fougerite.Patcher
             TypeDefinition type = rustAssembly.MainModule.GetType("ResearchToolItem`1");
             MethodDefinition TryCombine = type.GetMethod("TryCombine");
             MethodDefinition method = hooksClass.GetMethod("ResearchItem");
-            int Position = TryCombine.Body.Instructions.Count - 13;
 
             ILProcessor iLProcessor = TryCombine.Body.GetILProcessor();
-            iLProcessor.InsertBefore(TryCombine.Body.Instructions[Position],
-                Instruction.Create(OpCodes.Callvirt, this.rustAssembly.MainModule.Import(method)));
-            iLProcessor.InsertBefore(TryCombine.Body.Instructions[Position], Instruction.Create(OpCodes.Ldarg_1));
+            iLProcessor.Body.Instructions.Clear();
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Call, this.rustAssembly.MainModule.Import(method)));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
         }
 
         private void AntiDecay()

@@ -6,6 +6,7 @@ using System.Threading;
 using System.Timers;
 using Facepunch.Clocks.Counters;
 using Google.ProtocolBuffers.Serialization;
+using Rust;
 using RustProto;
 using RustProto.Helpers;
 using Shell32;
@@ -2223,7 +2224,8 @@ namespace Fougerite
             }
         }
 
-        public static void ResearchItem(IInventoryItem otherItem)
+        public static InventoryItem.MergeResult ResearchItem(ResearchToolItem<ToolDataBlock> rti,
+            IInventoryItem otherItem)
         {
             Stopwatch sw = null;
             if (Logger.showSpeed)
@@ -2231,11 +2233,40 @@ namespace Fougerite
                 sw = new Stopwatch();
                 sw.Start();
             }
+
+            BlueprintDataBlock block2;
+            PlayerInventory inventory = rti.inventory as PlayerInventory;
+            if ((inventory == null) || (otherItem.inventory != inventory))
+            {
+                return InventoryItem.MergeResult.Failed;
+            }
+
+            ItemDataBlock datablock = otherItem.datablock;
+            if ((datablock == null) || !datablock.isResearchable)
+            {
+                return InventoryItem.MergeResult.Failed;
+            }
+
+            if (!inventory.AtWorkBench())
+            {
+                return InventoryItem.MergeResult.Failed;
+            }
+
+            if (!BlueprintDataBlock.FindBlueprintForItem<BlueprintDataBlock>(otherItem.datablock, out block2))
+            {
+                return InventoryItem.MergeResult.Failed;
+            }
+
+            if (inventory.KnowsBP(block2))
+            {
+                return InventoryItem.MergeResult.Failed;
+            }
+
+            ResearchEvent researchEvent = new ResearchEvent(otherItem);;
             try
             {
                 if (OnResearch != null)
                 {
-                    ResearchEvent researchEvent = new ResearchEvent(otherItem);
                     OnResearch(researchEvent);
                 }
             }
@@ -2243,9 +2274,27 @@ namespace Fougerite
             {
                 Logger.LogError("ResearchItem Error: " + ex.ToString());
             }
-            if (sw == null) return;
-            sw.Stop();
-            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("ResearchItem Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
+
+            if (!researchEvent.Cancelled)
+            {
+                inventory.BindBlueprint(block2);
+                Notice.Popup(inventory.networkView.owner, "?", "You can now craft " + otherItem.datablock.name, 4f);
+                int numWant = 1;
+                if (rti.Consume(ref numWant))
+                {
+                    rti.inventory.RemoveItem(rti.slot);
+                }
+
+            }
+
+            if (sw != null)
+            {
+                sw.Stop();
+                if (sw.Elapsed.TotalSeconds > 0)
+                    Logger.LogSpeed("ResearchItem Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
+            }
+
+            return !researchEvent.Cancelled ? InventoryItem.MergeResult.Combined : InventoryItem.MergeResult.Failed;
         }
 
         public static void SetLooter(LootableObject lo, uLink.NetworkPlayer ply)
