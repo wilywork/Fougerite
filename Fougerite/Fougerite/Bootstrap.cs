@@ -8,7 +8,7 @@ namespace Fougerite
 
     public class Bootstrap : Facepunch.MonoBehaviour
     {
-        public const string Version = "1.6.2";
+        public const string Version = "1.6.2B";
         public static bool CR = false;
         public static bool BI = false;
         public static bool AutoBanCraft = true;
