@@ -8,10 +8,25 @@ namespace Fougerite
 
     public class Bootstrap : Facepunch.MonoBehaviour
     {
-        public const string Version = "1.6.2B";
+        /// <summary>
+        /// Returns the Current Fougerite Version
+        /// </summary>
+        public const string Version = "1.6.3";
+        /// <summary>
+        /// This value decides wheather we should remove the player classes from the cache upon disconnect.
+        /// </summary>
         public static bool CR = false;
+        /// <summary>
+        /// This value decides wheater we should ban a player for sending invalid packets.
+        /// </summary>
         public static bool BI = false;
+        /// <summary>
+        /// This value decides wheather we should ban a player for Craft hacking.
+        /// </summary>
         public static bool AutoBanCraft = true;
+        /// <summary>
+        /// This value decides wheather we should enable the default rust decay.
+        /// </summary>
         public static bool EnableDefaultRustDecay = true;
         internal static readonly Thread CurrentThread = Thread.CurrentThread;
 
