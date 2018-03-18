@@ -186,6 +186,17 @@ namespace Fougerite
         /// <summary>
         /// Disconnects the player from the server.
         /// </summary>
+        public void Disconnect()
+        {
+            if (this.IsOnline)
+            {
+                Disconnect(true);
+            }
+        }
+
+        /// <summary>
+        /// Disconnects the player from the server.
+        /// </summary>
         /// <param name="SendNotification"></param>
         public void Disconnect(bool SendNotification = true)
         {

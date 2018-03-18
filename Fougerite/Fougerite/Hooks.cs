@@ -970,7 +970,7 @@ namespace Fougerite
             return blocks.ToArray();
         }
 
-        public static void ItemPickup(Controllable controllable, IInventoryItem item, Inventory local, Inventory.AddExistingItemResult result)
+        public static bool ItemPickup(ItemPickup pickup, Controllable controllable)
         {
             Stopwatch sw = null;
             if (Logger.showSpeed)
@@ -978,7 +978,29 @@ namespace Fougerite
                 sw = new Stopwatch();
                 sw.Start();
             }
-            ItemPickupEvent ipe = new ItemPickupEvent(controllable, item, local, result);
+
+            IInventoryItem item;
+            Inventory local = controllable.GetLocal<Inventory>();
+            if (local == null)
+            {
+                return false;
+            }
+
+            Inventory inventory2 = pickup.GetLocal<Inventory>();
+            if ((inventory2 == null) || object.ReferenceEquals(item = inventory2.firstItem, null))
+            {
+                pickup.RemoveThis();
+                return false;
+            }
+            
+            if (sw != null)
+            {
+                sw.Stop();
+                if (sw.Elapsed.TotalSeconds > 0)
+                    Logger.LogSpeed("ItemPickupEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
+            }
+            
+            ItemPickupEvent ipe = new ItemPickupEvent(controllable, item, local);
             try
             {
                 if (OnItemPickup != null)
@@ -990,9 +1012,39 @@ namespace Fougerite
             {
                 Logger.LogError("ItemPickupEvent Error: " + ex);
             }
-            if (sw == null) return;
-            sw.Stop();
-            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("ItemPickupEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
+
+            if (ipe.Cancelled)
+            {
+                return false;
+            }
+
+            Inventory.AddExistingItemResult result = local.AddExistingItem(item, false);
+            switch (result)
+            {
+                case Inventory.AddExistingItemResult.CompletlyStacked:
+                    inventory2.RemoveItem(item);
+                    break;
+
+                case Inventory.AddExistingItemResult.Moved:
+                    break;
+
+                case Inventory.AddExistingItemResult.PartiallyStacked:
+                    pickup.UpdateItemInfo(item);
+                    return true;
+
+                case Inventory.AddExistingItemResult.Failed:
+                    return false;
+
+                case Inventory.AddExistingItemResult.BadItemArgument:
+                    pickup.RemoveThis();
+                    return false;
+
+                default:
+                    throw new NotImplementedException();
+            }
+
+            pickup.RemoveThis();
+            return true;
         }
 
         public static void FallDamage(FallDamage fd, float speed, float num, bool flag, bool flag2)
@@ -2004,7 +2056,7 @@ namespace Fougerite
             }
         }
 
-        public static void ItemRemoved(Inventory inventory, int slot, IInventoryItem item)
+        public static bool ItemRemoved(Inventory inv, int slot, InventoryItem match, bool mustMatch)
         {
             Stopwatch sw = null;
             if (Logger.showSpeed)
@@ -2012,42 +2064,107 @@ namespace Fougerite
                 sw = new Stopwatch();
                 sw.Start();
             }
+            Collection<InventoryItem> collection = inv.collection;
+            InventoryItem inventoryItem;
+            if (mustMatch && (!collection.Get(slot, out inventoryItem) || !object.ReferenceEquals((object) inventoryItem, (object) match)) || !collection.Evict(slot, out inventoryItem))
+            {
+                return false;
+            }
+
+            Fougerite.Events.InventoryModEvent e = null;
             try
             {
-                /*foreach (var x in RPOS.AllWindows)
-                {
-                    Server.GetServer().Broadcast(x.name);
-                }*/
-                //RPOS.Get().
+                e = new Fougerite.Events.InventoryModEvent(inv, slot, inventoryItem.iface, "Remove");
                 if (OnItemRemoved != null)
                 {
-                    Fougerite.Events.InventoryModEvent e = new Fougerite.Events.InventoryModEvent(inventory, slot, item, "Remove");
                     OnItemRemoved(e);
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                //Logger.LogError("InventoryRemoveEvent error: " + ex);
+                Logger.LogError("InventoryRemoveEvent Error: " + ex);
             }
-            if (sw == null) return;
-            sw.Stop();
-            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("ItemRemoved Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
+
+            if (e != null && e.Cancelled)
+            {
+                if (sw != null)
+                {
+                    sw.Stop();
+                    if (sw.Elapsed.TotalSeconds > 0)
+                        Logger.LogSpeed("ItemRemoved Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
+                }
+                return false;
+            }
+
+            if (inventoryItem == inv._activeItem)
+            {
+                inv.DeactivateItem();
+            }
+
+            inv.ItemRemoved(slot, inventoryItem.iface);
+            inv.MarkSlotDirty(slot);
+            if (sw != null)
+            {
+                sw.Stop();
+                if (sw.Elapsed.TotalSeconds > 0)
+                    Logger.LogSpeed("ItemRemoved Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
+            }
+            return true;
         }
 
-        public static void ItemAdded(Inventory inventory, int slot, IInventoryItem item)
+        public static bool ItemAdded(ref Inventory.Payload.Assignment args)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
+
+            Fougerite.Events.InventoryModEvent e = null;
             try
             {
+                e = new Fougerite.Events.InventoryModEvent(args.inventory, args.slot, args.item.iface, "Add");
                 if (OnItemAdded != null)
                 {
-                    Fougerite.Events.InventoryModEvent e = new Fougerite.Events.InventoryModEvent(inventory, slot, item, "Add");
                     OnItemAdded(e);
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                //Logger.LogError("InventoryAddEvent error: " + ex);
+                Logger.LogError("InventoryAddEvent Error: " + ex);
             }
+
+            if (e == null || (e != null && !e.Cancelled))
+            {
+                if (args.inventory.CheckSlotFlagsAgainstSlot(args.datablock._itemFlags, args.slot) &&
+                    args.item.CanMoveToSlot(args.inventory, args.slot))
+                {
+                    ++args.attemptsMade;
+                    if (args.collection.Occupy(args.slot, args.item))
+                    {
+                        if (!args.fresh && (bool) ((UnityEngine.Object) args.item.inventory))
+                            args.item.inventory.RemoveItem(args.item.slot);
+                        args.item.SetUses(args.uses);
+                        args.item.OnAddedTo(args.inventory, args.slot);
+                        args.inventory.ItemAdded(args.slot, args.item.iface);
+                        if (sw != null)
+                        {
+                            sw.Stop();
+                            if (sw.Elapsed.TotalSeconds > 0)
+                                Logger.LogSpeed("ItemAdded Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
+                        }
+                        return true;
+                    }
+                }
+            }
+            if (sw != null)
+            {
+                sw.Stop();
+                if (sw.Elapsed.TotalSeconds > 0)
+                    Logger.LogSpeed("ItemAdded Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
+            }
+            return false;
         }
 
         public static void Airdrop(Vector3 v)
@@ -2201,12 +2318,8 @@ namespace Fougerite
                         }
                     }
                 }
-                //new Thread(() =>
-                //{
-                //Thread.CurrentThread.IsBackground = true;
                 foreach (GameObject obj2 in objArray)
                 {
-                    //Logger.LogWarning(obj2.name);
                     try
                     {
                         if (obj2 != null)
@@ -2219,11 +2332,10 @@ namespace Fougerite
                         Logger.LogError("[uLink Error] Disconnect failure, report to DreTaX: " + ex);
                     }
                 }
-                //}).Start();
             }
-            catch //(Exception ex)
+            catch (Exception ex)
             {
-                //Logger.LogError("[uLink Error] Full Exception: " + ex);
+                Logger.LogDebug("[uLink Error] Full Exception: " + ex);
             }
             if (sw == null) return;
             sw.Stop();
