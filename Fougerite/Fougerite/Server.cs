@@ -179,6 +179,11 @@ namespace Fougerite
             return false;
         }
 
+        /// <summary>
+        /// Tries to return all of the banned ips by name.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public List<string> FindIPsOfName(string name)
         {
             var ips = DataStore.GetInstance().Keys("Ips");
@@ -192,6 +197,11 @@ namespace Fougerite
             return collection;
         }
 
+        /// <summary>
+        /// Tries to return all of the banned ids by name.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public List<string> FindIDsOfName(string name)
         {
             var ids = DataStore.GetInstance().Keys("Ids");
@@ -205,6 +215,10 @@ namespace Fougerite
             return collection;
         }
 
+        /// <summary>
+        /// Sends a message to everyone on the server.
+        /// </summary>
+        /// <param name="arg"></param>
         public void Broadcast(string arg)
         {
             foreach (Fougerite.Player player in this.Players)
@@ -216,6 +230,11 @@ namespace Fougerite
             }
         }
 
+        /// <summary>
+        /// Sends a message to everyone on the server with a different name.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="arg"></param>
         public void BroadcastFrom(string name, string arg)
         {
             foreach (Fougerite.Player player in this.Players)
@@ -227,6 +246,10 @@ namespace Fougerite
             }
         }
 
+        /// <summary>
+        /// Sends a notification message which will appear in the middle of the screen for everyone.
+        /// </summary>
+        /// <param name="s"></param>
         public void BroadcastNotice(string s)
         {
             foreach (Fougerite.Player player in this.Players)
@@ -238,11 +261,35 @@ namespace Fougerite
             }
         }
 
+        /// <summary>
+        /// Sends an inventory notification message which will appear on the right bottom for everyone.
+        /// </summary>
+        /// <param name="s"></param>
+        public void BroadcastInv(string s)
+        {
+            foreach (Fougerite.Player player in this.Players)
+            {
+                if (player.IsOnline)
+                {
+                    player.InventoryNotice(s);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Sends a message directly to the console.
+        /// </summary>
+        /// <param name="s"></param>
         public void RunServerCommand(string s)
         {
             ConsoleSystem.Run(s);
         }
 
+        /// <summary>
+        /// Tries to find the player by uLink.NetworkPlayer
+        /// </summary>
+        /// <param name="np"></param>
+        /// <returns></returns>
         public Fougerite.Player FindByNetworkPlayer(uLink.NetworkPlayer np)
         {
             foreach (var x in Fougerite.Server.GetServer().Players)
@@ -253,6 +300,11 @@ namespace Fougerite
             return null;
         }
 
+        /// <summary>
+        /// Tries to find the player by PlayerClient
+        /// </summary>
+        /// <param name="pc"></param>
+        /// <returns></returns>
         public Fougerite.Player FindByPlayerClient(PlayerClient pc)
         {
             foreach (var x in Fougerite.Server.GetServer().Players)
@@ -262,6 +314,11 @@ namespace Fougerite
             return null;
         }
 
+        /// <summary>
+        /// Tries to Find the player by SteamID or Name.
+        /// </summary>
+        /// <param name="search"></param>
+        /// <returns></returns>
         public Fougerite.Player FindPlayer(string search)
         {
             if (search.All(char.IsDigit))
@@ -300,6 +357,10 @@ namespace Fougerite
             return null;
         }
 
+        /// <summary>
+        /// Returns the instance of the Server class.
+        /// </summary>
+        /// <returns></returns>
         public static Fougerite.Server GetServer()
         {
             if (server == null)
@@ -309,12 +370,18 @@ namespace Fougerite
             return server;
         }
 
+        /// <summary>
+        /// Saves the server.
+        /// </summary>
         public void Save()
         {
             AvatarSaveProc.SaveAll();
             ServerSaveManager.AutoSave();
         }
 
+        /// <summary>
+        /// Returns the Chat History.
+        /// </summary>
         public List<string> ChatHistoryMessages
         {
             get
@@ -323,6 +390,9 @@ namespace Fougerite
             }
         }
 
+        /// <summary>
+        /// Returns the Chat User history.
+        /// </summary>
         public List<string> ChatHistoryUsers
         {
             get
@@ -331,6 +401,9 @@ namespace Fougerite
             }
         }
 
+        /// <summary>
+        /// Returns the current ItemBlocks of the Server.
+        /// </summary>
         public ItemsBlocks Items
         {
             get
@@ -343,6 +416,9 @@ namespace Fougerite
             }
         }
 
+        /// <summary>
+        /// Returns all online players. (Iteration safe.)
+        /// </summary>
         public List<Fougerite.Player> Players
         {
             get
@@ -376,6 +452,10 @@ namespace Fougerite
             return this.players.ContainsKey(id);
         }
 
+        /// <summary>
+        /// Restricts the specified command globally. (Doesn't modify Player's own Restriction table)
+        /// </summary>
+        /// <param name="cmd"></param>
         public void RestrictConsoleCommand(string cmd)
         {
             if (!ConsoleCommandCancelList.Contains(cmd))
@@ -384,6 +464,10 @@ namespace Fougerite
             }
         }
 
+        /// <summary>
+        /// UnRestricts the specified command globally. (Doesn't modify Player's own Restriction table)
+        /// </summary>
+        /// <param name="cmd"></param>
         public void UnRestrictConsoleCommand(string cmd)
         {
             if (ConsoleCommandCancelList.Contains(cmd))
@@ -392,11 +476,17 @@ namespace Fougerite
             }
         }
 
+        /// <summary>
+        /// Clears all globally restricted commands. (Doesn't modify Player's own Restriction table)
+        /// </summary>
         public void CleanRestrictedConsoleCommands()
         {
             ConsoleCommandCancelList.Clear();
         }
 
+        /// <summary>
+        /// Returns all globally restricted commands.
+        /// </summary>
         public List<string> ConsoleCommandCancelList
         {
             get { return this._ConsoleCommandCancelList; }
@@ -407,6 +497,9 @@ namespace Fougerite
             get { return this.players; }
         } 
 
+        /// <summary>
+        /// Gets all the current sleepers on the server.
+        /// </summary>
         public List<Sleeper> Sleepers
         {
             get
@@ -416,21 +509,27 @@ namespace Fougerite
                 return query.ToList<Sleeper>();
             }
         }
-
+        
+        /// <summary>
+        /// Returns the Current Fougerite Version.
+        /// </summary>
         public string Version
         {
             get { return Bootstrap.Version; }
         }
 
-        /*
-         *  ETC....
-         */
-
+        /// <summary>
+        /// Checks If the current Server has Rust++
+        /// </summary>
         public bool HasRustPP 
         {
             get { return HRustPP; }
         }
 
+        /// <summary>
+        /// Tries to Grab the current Rust++ API.
+        /// </summary>
+        /// <returns></returns>
         public RustPPExtension GetRustPPAPI()
         {
             if (HasRustPP) 

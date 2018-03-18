@@ -11,6 +11,8 @@ namespace Fougerite.Patcher
     {
         private AssemblyDefinition rustAssembly = null;
         private AssemblyDefinition fougeriteAssembly = null;
+        private AssemblyDefinition unityAssembly = null;
+        private AssemblyDefinition mscorlib = null;
         private TypeDefinition hooksClass = null;
 
         public ILPatcher()
@@ -104,8 +106,10 @@ namespace Fougerite.Patcher
             siiLProcessor.InsertBefore(structmethod_0.Body.Instructions[si], Instruction.Create(OpCodes.Ldarg_2));
 
             //MethodDefinition method_124 = Class46.GetMethod("method_124");
-            MethodDefinition update = type.GetMethod("LateUpdate");
-            TypeDefinition logger = fougeriteAssembly.MainModule.GetType("Fougerite.Logger");
+            
+            //TODO: Removing most of the try catches from ulink for now.
+            //MethodDefinition update = type.GetMethod("LateUpdate");
+            //TypeDefinition logger = fougeriteAssembly.MainModule.GetType("Fougerite.Logger");
 
             method_277.IsPublic = true;
             method_270.IsPublic = true;
@@ -129,7 +133,8 @@ namespace Fougerite.Patcher
             method_275.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, ulink.MainModule.Import(method2)));
             method_275.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
 
-            TypeDefinition Network = ulink.MainModule.GetType("uLink.Network");
+            //TODO: Removing most of the try catches from ulink for now.
+            /*TypeDefinition Network = ulink.MainModule.GetType("uLink.Network");
             IEnumerable<MethodDefinition> CloseConnections = Network.GetMethods();
             MethodDefinition logex = logger.GetMethod("LogException");
             
@@ -150,7 +155,9 @@ namespace Fougerite.Patcher
             foreach (var x in CloseConnections.Where(x => x.Name == "CloseConnection"))
             {
                 WrapMethod(x, logex, ulink, false);
-            }
+            }*/
+            
+            
             /*List<Instruction> ls = method_124.Body.Instructions.Where(x => x.ToString().Contains("ArgumentOutOfRangeException") || x.ToString().Contains("throw")).ToList();
             foreach (var x in ls)
             {
@@ -685,17 +692,17 @@ namespace Fougerite.Patcher
         private void ItemPickupHook()
         {
             TypeDefinition ItemPickup = rustAssembly.MainModule.GetType("ItemPickup");
+            ItemPickup.GetMethod("RemoveThis").SetPublic(true);
+            ItemPickup.GetMethod("UpdateItemInfo").SetPublic(true);
             MethodDefinition PlayerUse = ItemPickup.GetMethod("PlayerUse");
             MethodDefinition method = hooksClass.GetMethod("ItemPickup");
-
+            
             ILProcessor iLProcessor = PlayerUse.Body.GetILProcessor();
-            int Position = PlayerUse.Body.Instructions.Count - 26;
-            iLProcessor.InsertBefore(PlayerUse.Body.Instructions[Position],
-                Instruction.Create(OpCodes.Callvirt, this.rustAssembly.MainModule.Import(method)));
-            iLProcessor.InsertBefore(PlayerUse.Body.Instructions[Position], Instruction.Create(OpCodes.Ldloc_3));
-            iLProcessor.InsertBefore(PlayerUse.Body.Instructions[Position], Instruction.Create(OpCodes.Ldloc_1));
-            iLProcessor.InsertBefore(PlayerUse.Body.Instructions[Position], Instruction.Create(OpCodes.Ldloc_2));
-            iLProcessor.InsertBefore(PlayerUse.Body.Instructions[Position], Instruction.Create(OpCodes.Ldarg_1));
+            iLProcessor.Body.Instructions.Clear();
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(method)));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
         }
 
         private void FallDamageHook()
@@ -731,21 +738,80 @@ namespace Fougerite.Patcher
             TypeDefinition HumanController = rustAssembly.MainModule.GetType("HumanController");
             MethodDefinition method = hooksClass.GetMethod("ClientMove");
             MethodDefinition GetClientMove = HumanController.GetMethod("GetClientMove");
+            
             this.CloneMethod(GetClientMove);
+
+            int num = 0;
+            ParameterDefinition parameter = method.Parameters[0];
+            MethodReference reference =
+                this.rustAssembly.MainModule.GetType("IDLocalCharacter").GetMethod("get_netUser");
+            MethodReference reference2 = this.rustAssembly.MainModule.GetType("NetUser").GetMethod("Kick");
+            TypeDefinition self = this.unityAssembly.MainModule.GetType("UnityEngine.Vector3");
+            FieldReference field = this.rustAssembly.MainModule.Import(self.GetField("x"));
+            FieldReference reference4 = this.rustAssembly.MainModule.Import(self.GetField("y"));
+            FieldReference reference5 = this.rustAssembly.MainModule.Import(self.GetField("z"));
+            TypeDefinition definition7 = this.mscorlib.MainModule.GetType("System.Single");
+            MethodReference reference6 = this.rustAssembly.MainModule.Import(definition7.GetMethod("IsNaN"));
+            MethodReference reference7 = this.rustAssembly.MainModule.Import(definition7.GetMethod("IsInfinity"));
+            ILProcessor iLProcessor = GetClientMove.Body.GetILProcessor();
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Ldarga_S, parameter));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Ldfld, field));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Call, reference6));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Nop));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Ldarga_S, parameter));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Ldfld, field));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Call, reference7));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Nop));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Ldarga_S, parameter));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Ldfld, reference4));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Call, reference6));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Nop));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Ldarga_S, parameter));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Ldfld, reference4));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Call, reference7));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Nop));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Ldarga_S, parameter));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Ldfld, reference5));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Call, reference6));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Nop));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Ldarga_S, parameter));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Ldfld, reference5));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Call, reference7));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Nop));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Ldarg_0));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Call, reference));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Ldc_I4, 0x8d));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Ldc_I4_1));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Callvirt, reference2));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Pop));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Ret));
+            iLProcessor.Replace(GetClientMove.Body.Instructions[3],
+                Instruction.Create(OpCodes.Brtrue_S, GetClientMove.Body.Instructions[0x18]));
+            iLProcessor.Replace(GetClientMove.Body.Instructions[7],
+                Instruction.Create(OpCodes.Brtrue_S, GetClientMove.Body.Instructions[0x18]));
+            iLProcessor.Replace(GetClientMove.Body.Instructions[11],
+                Instruction.Create(OpCodes.Brtrue_S, GetClientMove.Body.Instructions[0x18]));
+            iLProcessor.Replace(GetClientMove.Body.Instructions[15],
+                Instruction.Create(OpCodes.Brtrue_S, GetClientMove.Body.Instructions[0x18]));
+            iLProcessor.Replace(GetClientMove.Body.Instructions[0x13],
+                Instruction.Create(OpCodes.Brtrue_S, GetClientMove.Body.Instructions[0x18]));
+            iLProcessor.Replace(GetClientMove.Body.Instructions[0x17],
+                Instruction.Create(OpCodes.Brfalse_S, GetClientMove.Body.Instructions[0x1f]));
+
+            
             Array a = GetClientMove.Parameters.ToArray();
             Array.Reverse(a);
-            ILProcessor iLProcessor = GetClientMove.Body.GetILProcessor();
-            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[0],
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[32],
                 Instruction.Create(OpCodes.Callvirt, this.rustAssembly.MainModule.Import(method)));
             foreach (ParameterDefinition p in a)
             {
-                iLProcessor.InsertBefore(GetClientMove.Body.Instructions[0], Instruction.Create(OpCodes.Ldarg_S, p));
+                iLProcessor.InsertBefore(GetClientMove.Body.Instructions[32], Instruction.Create(OpCodes.Ldarg_S, p));
             }
-            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[0], Instruction.Create(OpCodes.Ldarg_0));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[32], Instruction.Create(OpCodes.Ldarg_0));
 
-            TypeDefinition logger = fougeriteAssembly.MainModule.GetType("Fougerite.Logger");
-            MethodDefinition logex = logger.GetMethod("LogException");
-            WrapMethod(GetClientMove, logex, rustAssembly, false);
+            //TypeDefinition logger = fougeriteAssembly.MainModule.GetType("Fougerite.Logger");
+            //MethodDefinition logex = logger.GetMethod("LogException");
+            //WrapMethod(GetClientMove, logex, rustAssembly, false);
         }
 
         private void CraftingPatch()
@@ -814,41 +880,53 @@ namespace Fougerite.Patcher
 
         private void InventoryModifications()
         {
+            // ItemAdded part.
             TypeDefinition Inventory = rustAssembly.MainModule.GetType("Inventory");
+            TypeDefinition Payload = Inventory.GetNestedType("Payload");
+            TypeDefinition Assignment = Payload.GetNestedType("Assignment");
+            TypeDefinition collection = Inventory.GetNestedType("Collection`1");
+            collection.IsPublic = true;
+            Assignment.IsPublic = true;
+            Payload.IsPublic = true;
             Inventory.GetField("_netListeners").SetPublic(true);
-            MethodDefinition ItemRemoved = Inventory.GetMethod("ItemRemoved");
-            this.CloneMethod(ItemRemoved);
-
-            MethodDefinition method = hooksClass.GetMethod("ItemRemoved");
-            ILProcessor iLProcessor = ItemRemoved.Body.GetILProcessor();
-
-            iLProcessor.InsertBefore(ItemRemoved.Body.Instructions[0],
-                Instruction.Create(OpCodes.Callvirt, this.rustAssembly.MainModule.Import(method)));
-            iLProcessor.InsertBefore(ItemRemoved.Body.Instructions[0], Instruction.Create(OpCodes.Ldarg_2));
-            iLProcessor.InsertBefore(ItemRemoved.Body.Instructions[0], Instruction.Create(OpCodes.Ldarg_1));
-            iLProcessor.InsertBefore(ItemRemoved.Body.Instructions[0], Instruction.Create(OpCodes.Ldarg_0));
-            TypeDefinition logger = fougeriteAssembly.MainModule.GetType("Fougerite.Logger");
-            MethodDefinition logex = logger.GetMethod("LogException");
-            WrapMethod(ItemRemoved, logex, rustAssembly, false);
-        }
-
-        private void InventoryModifications2()
-        {
-            TypeDefinition Inventory = rustAssembly.MainModule.GetType("Inventory");
+            MethodDefinition CheckSlotFlagsAgainstSlot = Inventory.GetMethod("CheckSlotFlagsAgainstSlot");
+            CheckSlotFlagsAgainstSlot.SetPublic(true);
             MethodDefinition ItemAdded = Inventory.GetMethod("ItemAdded");
-            ILProcessor iLProcessor = ItemAdded.Body.GetILProcessor();
-            this.CloneMethod(ItemAdded);
+            ItemAdded.SetPublic(true);
+            
+            MethodDefinition ADDHOOK = hooksClass.GetMethod("ItemAdded");
+            MethodDefinition REMHOOK = hooksClass.GetMethod("ItemRemoved");
 
-            MethodDefinition method2 = hooksClass.GetMethod("ItemAdded");
+            MethodDefinition AssignItem = Payload.GetMethod("AssignItem");
+            ILProcessor iLProcessorASS = AssignItem.Body.GetILProcessor();
+            iLProcessorASS.Body.Instructions.Clear();
+            iLProcessorASS.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            iLProcessorASS.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, this.rustAssembly.MainModule.Import(ADDHOOK)));
+            iLProcessorASS.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+            
+            // Remove part.
+            Inventory.GetProperty("collection").GetMethod.SetPublic(true);
+            Inventory.GetMethod("ItemRemoved").SetPublic(true);
 
-            iLProcessor.InsertBefore(ItemAdded.Body.Instructions[0],
-                Instruction.Create(OpCodes.Callvirt, this.rustAssembly.MainModule.Import(method2)));
-            iLProcessor.InsertBefore(ItemAdded.Body.Instructions[0], Instruction.Create(OpCodes.Ldarg_2));
-            iLProcessor.InsertBefore(ItemAdded.Body.Instructions[0], Instruction.Create(OpCodes.Ldarg_1));
-            iLProcessor.InsertBefore(ItemAdded.Body.Instructions[0], Instruction.Create(OpCodes.Ldarg_0));
-            TypeDefinition logger = fougeriteAssembly.MainModule.GetType("Fougerite.Logger");
-            MethodDefinition logex = logger.GetMethod("LogException");
-            WrapMethod(ItemAdded, logex, rustAssembly, false);
+
+            MethodDefinition RemoveItem = null;
+            foreach (var x in Inventory.GetMethods())
+            {
+                if (x.Name == "RemoveItem" && x.Parameters.Count == 3)
+                {
+                    RemoveItem = x;
+                    break;
+                }
+            }
+            
+            ILProcessor iLProcessorREM = RemoveItem.Body.GetILProcessor();
+            iLProcessorREM.Body.Instructions.Clear();
+            iLProcessorREM.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            iLProcessorREM.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            iLProcessorREM.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
+            iLProcessorREM.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_3));
+            iLProcessorREM.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, this.rustAssembly.MainModule.Import(REMHOOK)));
+            iLProcessorREM.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
         }
 
         private void AirdropPatch()
@@ -1556,6 +1634,8 @@ namespace Fougerite.Patcher
                 bool flag = true;
 
                 fougeriteAssembly = AssemblyDefinition.ReadAssembly("Fougerite.dll");
+                unityAssembly = AssemblyDefinition.ReadAssembly("UnityEngine.dll");
+                mscorlib = AssemblyDefinition.ReadAssembly("mscorlib.dll");
                 hooksClass = fougeriteAssembly.MainModule.GetType("Fougerite.Hooks");
 
 
@@ -1597,7 +1677,6 @@ namespace Fougerite.Patcher
                     this.NavMeshPatch();
                     this.ResourceSpawned();
                     this.InventoryModifications();
-                    this.InventoryModifications2();
                     this.AirdropPatch();
                     this.ClientConnectionPatch();
                     this.ConnectionAcceptorPatch();

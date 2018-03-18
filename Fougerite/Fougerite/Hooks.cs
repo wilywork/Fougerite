@@ -26,60 +26,215 @@ namespace Fougerite
         public static System.Collections.Generic.List<object> decayList = new System.Collections.Generic.List<object>();
         public static Hashtable talkerTimers = new Hashtable();
 
+        /// <summary>
+        /// This delegate runs when a blueprint is being used.
+        /// </summary>
         public static event BlueprintUseHandlerDelegate OnBlueprintUse;
+        /// <summary>
+        /// This delegate runs when a chat message is received.
+        /// </summary>
         public static event ChatHandlerDelegate OnChat;
+        /// <summary>
+        /// This delegate runs when a chat message is received.
+        /// </summary>
         public static event ChatRawHandlerDelegate OnChatRaw;
+        /// <summary>
+        /// This delegate runs when a command is executed.
+        /// </summary>
         public static event CommandHandlerDelegate OnCommand;
+        /// <summary>
+        /// This delegate runs when a command is being executed
+        /// </summary>
         public static event CommandRawHandlerDelegate OnCommandRaw;
+        /// <summary>
+        /// This delegate runs when a console message is received.
+        /// </summary>
         public static event ConsoleHandlerDelegate OnConsoleReceived;
+        /// <summary>
+        /// This delegate runs when a door is opened/closed.
+        /// </summary>
         public static event DoorOpenHandlerDelegate OnDoorUse;
+        /// <summary>
+        /// This delegate runs when an entity is attacked by the default rust decay.
+        /// </summary>
         public static event EntityDecayDelegate OnEntityDecay;
         [System.Obsolete("Use OnEntityDeployedWithPlacer", false)]
         public static event EntityDeployedDelegate OnEntityDeployed;
+        /// <summary>
+        /// This delegate runs when an Entity is placed on the ground.
+        /// </summary>
         public static event EntityDeployedWithPlacerDelegate OnEntityDeployedWithPlacer;
+        /// <summary>
+        /// This delegate runs when an entity is damaged.
+        /// </summary>
         public static event EntityHurtDelegate OnEntityHurt;
+        /// <summary>
+        /// This delegate runs when an entity is destroyed.
+        /// </summary>
         public static event EntityDestroyedDelegate OnEntityDestroyed;
+        /// <summary>
+        /// This delegate runs when the item datablocks are loaded.
+        /// </summary>
         public static event ItemsDatablocksLoaded OnItemsLoaded;
+        /// <summary>
+        /// This delegate runs when an AI is hurt.
+        /// </summary>
         public static event HurtHandlerDelegate OnNPCHurt;
+        /// <summary>
+        /// This delegate runs when an AI is killed.
+        /// </summary>
         public static event KillHandlerDelegate OnNPCKilled;
+        /// <summary>
+        /// This delegate runs when a player is connecting to the server.
+        /// </summary>
         public static event ConnectionHandlerDelegate OnPlayerConnected;
+        /// <summary>
+        /// This delegate runs when a player disconnected from the server.
+        /// </summary>
         public static event DisconnectionHandlerDelegate OnPlayerDisconnected;
+        /// <summary>
+        /// This delegate runs when a player is gathering from an animal or from a resource.
+        /// </summary>
         public static event PlayerGatheringHandlerDelegate OnPlayerGathering;
+        /// <summary>
+        /// This delegate runs when a player is hurt.
+        /// </summary>
         public static event HurtHandlerDelegate OnPlayerHurt;
+        /// <summary>
+        /// This delegate runs when a player is killed
+        /// </summary>
         public static event KillHandlerDelegate OnPlayerKilled;
+        /// <summary>
+        /// This delegate runs when a player just spawned.
+        /// </summary>
         public static event PlayerSpawnHandlerDelegate OnPlayerSpawned;
+        /// <summary>
+        /// This delegate runs when a player is about to spawn.
+        /// </summary>
         public static event PlayerSpawnHandlerDelegate OnPlayerSpawning;
+        /// <summary>
+        /// This delegate runs when a plugin is loaded.
+        /// </summary>
         public static event PluginInitHandlerDelegate OnPluginInit;
+        /// <summary>
+        /// This delegate runs when a player is teleported using Fougerite API.
+        /// </summary>
         public static event TeleportDelegate OnPlayerTeleport;
+        /// <summary>
+        /// This delegate runs when the server started loading.
+        /// </summary>
         public static event ServerInitDelegate OnServerInit;
+        /// <summary>
+        /// This delegate runs when the server is stopping.
+        /// </summary>
         public static event ServerShutdownDelegate OnServerShutdown;
+        /// <summary>
+        /// This delegate runs when a player is talking through the microphone.
+        /// </summary>
         public static event ShowTalkerDelegate OnShowTalker;
+        /// <summary>
+        /// This delegate runs when the LootTables are loaded.
+        /// </summary>
         public static event LootTablesLoaded OnTablesLoaded;
+        /// <summary>
+        /// This delegate runs when all C# plugins loaded.
+        /// </summary>
         public static event ModulesLoadedDelegate OnModulesLoaded;
+        
+        [System.Obsolete("This method is no longer called since the rust api doesn't call It.", false)]
         public static event RecieveNetworkDelegate OnRecieveNetwork;
+        /// <summary>
+        /// This delegate runs when a player starts crafting.
+        /// </summary>
         public static event CraftingDelegate OnCrafting;
+        /// <summary>
+        /// This delegate runs when a resource object spawned.
+        /// </summary>
         public static event ResourceSpawnDelegate OnResourceSpawned;
+        /// <summary>
+        /// This delegate runs when an item is removed from a specific inventory.
+        /// </summary>
         public static event ItemRemovedDelegate OnItemRemoved;
+        /// <summary>
+        /// This delegate runs when an item is added to a specific inventory.
+        /// </summary>
         public static event ItemAddedDelegate OnItemAdded;
+        /// <summary>
+        /// This delegate runs when an airdrop is called.
+        /// </summary>
         public static event AirdropDelegate OnAirdropCalled;
         //public static event AirdropCrateDroppedDelegate OnAirdropCrateDropped;
+        /// <summary>
+        /// This delegate runs when a player is kicked by steam.
+        /// </summary>
         public static event SteamDenyDelegate OnSteamDeny;
+        /// <summary>
+        /// This delegate runs when a player is being approved.
+        /// </summary>
         public static event PlayerApprovalDelegate OnPlayerApproval;
+        /// <summary>
+        /// This delegate runs when a player is moving. (Even if standing at one place)
+        /// </summary>
         public static event PlayerMoveDelegate OnPlayerMove;
+        /// <summary>
+        /// This delegate runs when a player researched an item.
+        /// </summary>
         public static event ResearchDelegate OnResearch;
+        /// <summary>
+        /// This delegate runs when the server is being saved.
+        /// </summary>
         public static event ServerSavedDelegate OnServerSaved;
+        /// <summary>
+        /// This delegate runs when an item is picked up by a player.
+        /// </summary>
         public static event ItemPickupDelegate OnItemPickup;
+        /// <summary>
+        /// This delegate runs when a player received fall damage.
+        /// </summary>
         public static event FallDamageDelegate OnFallDamage;
+        /// <summary>
+        /// This delegate runs when a player is looting something.
+        /// </summary>
         public static event LootEnterDelegate OnLootUse;
+        /// <summary>
+        /// This delegate runs when a player is shooting a weapon.
+        /// </summary>
         public static event ShootEventDelegate OnShoot;
+        /// <summary>
+        /// This delegate runs when a player is shooting a shotgun.
+        /// </summary>
         public static event ShotgunShootEventDelegate OnShotgunShoot;
+        /// <summary>
+        /// This delegate runs when a player is shooting a bow.
+        /// </summary>
         public static event BowShootEventDelegate OnBowShoot;
+        /// <summary>
+        /// This delegate runs when a player throws a grenade.
+        /// </summary>
         public static event GrenadeThrowEventDelegate OnGrenadeThrow;
+        /// <summary>
+        /// This delegate runs when a player got banned.
+        /// </summary>
         public static event BanEventDelegate OnPlayerBan;
+        /// <summary>
+        /// This delegate runs when a player is using the repair bench.
+        /// </summary>
         public static event RepairBenchEventDelegate OnRepairBench;
+        /// <summary>
+        /// This delegate runs when an item is being moved in an inventory to a different slot / inventory.
+        /// </summary>
         public static event ItemMoveEventDelegate OnItemMove;
+        /// <summary>
+        /// This delegate runs when the ResourceSpawner loaded.
+        /// </summary>
         public static event GenericSpawnerLoadDelegate OnGenericSpawnerLoad;
+        /// <summary>
+        /// This delegate runs when the server finished loading.
+        /// </summary>
         public static event ServerLoadedDelegate OnServerLoaded;
+        /// <summary>
+        /// This value returns if the server is shutting down.
+        /// </summary>
         public static bool IsShuttingDown = false;
 
         public static readonly List<ulong> uLinkDCCache = new List<ulong>(); 
@@ -815,7 +970,7 @@ namespace Fougerite
             return blocks.ToArray();
         }
 
-        public static void ItemPickup(Controllable controllable, IInventoryItem item, Inventory local, Inventory.AddExistingItemResult result)
+        public static bool ItemPickup(ItemPickup pickup, Controllable controllable)
         {
             Stopwatch sw = null;
             if (Logger.showSpeed)
@@ -823,7 +978,29 @@ namespace Fougerite
                 sw = new Stopwatch();
                 sw.Start();
             }
-            ItemPickupEvent ipe = new ItemPickupEvent(controllable, item, local, result);
+
+            IInventoryItem item;
+            Inventory local = controllable.GetLocal<Inventory>();
+            if (local == null)
+            {
+                return false;
+            }
+
+            Inventory inventory2 = pickup.GetLocal<Inventory>();
+            if ((inventory2 == null) || object.ReferenceEquals(item = inventory2.firstItem, null))
+            {
+                pickup.RemoveThis();
+                return false;
+            }
+            
+            if (sw != null)
+            {
+                sw.Stop();
+                if (sw.Elapsed.TotalSeconds > 0)
+                    Logger.LogSpeed("ItemPickupEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
+            }
+            
+            ItemPickupEvent ipe = new ItemPickupEvent(controllable, item, local);
             try
             {
                 if (OnItemPickup != null)
@@ -835,9 +1012,39 @@ namespace Fougerite
             {
                 Logger.LogError("ItemPickupEvent Error: " + ex);
             }
-            if (sw == null) return;
-            sw.Stop();
-            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("ItemPickupEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
+
+            if (ipe.Cancelled)
+            {
+                return false;
+            }
+
+            Inventory.AddExistingItemResult result = local.AddExistingItem(item, false);
+            switch (result)
+            {
+                case Inventory.AddExistingItemResult.CompletlyStacked:
+                    inventory2.RemoveItem(item);
+                    break;
+
+                case Inventory.AddExistingItemResult.Moved:
+                    break;
+
+                case Inventory.AddExistingItemResult.PartiallyStacked:
+                    pickup.UpdateItemInfo(item);
+                    return true;
+
+                case Inventory.AddExistingItemResult.Failed:
+                    return false;
+
+                case Inventory.AddExistingItemResult.BadItemArgument:
+                    pickup.RemoveThis();
+                    return false;
+
+                default:
+                    throw new NotImplementedException();
+            }
+
+            pickup.RemoveThis();
+            return true;
         }
 
         public static void FallDamage(FallDamage fd, float speed, float num, bool flag, bool flag2)
@@ -1028,6 +1235,8 @@ namespace Fougerite
                 Logger.LogWarning("[WeirdDisconnect] Player was null at the disconnection. Something might be wrong? OPT: " + Fougerite.Bootstrap.CR);
                 return;
             }
+
+            player.DisconnectTime = DateTime.UtcNow.Ticks;
             player.IsDisconnecting = true;
             Fougerite.Server.GetServer().RemovePlayer(uid);
             //if (Fougerite.Server.GetServer().Players.Contains(player)) { Fougerite.Server.GetServer().Players.Remove(player); }
@@ -1750,6 +1959,7 @@ namespace Fougerite
                     // Call the code on the main thread, ServerSaveManager.Get(false) uses Findobjectsoftype which doesnt like threading.
                     Loom.QueueOnMainThread(() =>
                     {
+                        Logger.LogDebug("[Fougerite WorldSave] Preparing Builder...");
                         ServerSaveManager s;
                         WorldSave.Builder builder;
                         using (Recycler<WorldSave, WorldSave.Builder> recycler = WorldSave.Recycler())
@@ -1757,9 +1967,11 @@ namespace Fougerite
                             builder = recycler.OpenBuilder();
                             s = ServerSaveManager.Get(false); // Once this execution is finished, call a new thread to finish up the writing.
                         }
-
+                        
+                        Logger.LogDebug("[Fougerite WorldSave] Builder finished, executing new thread.");
                         new Thread(() =>
                         {
+                            Logger.LogDebug("[Fougerite WorldSave] Preparing Timestamps...");
                             Thread.CurrentThread.IsBackground = true;
                             timestamp2 = SystemTimestamp.Restart;
                             s.DoSave(ref builder);
@@ -1767,6 +1979,7 @@ namespace Fougerite
                             timestamp3 = SystemTimestamp.Restart;
                             fsave = builder.Build();
                             timestamp3.Stop();
+                            Logger.LogDebug("[Fougerite WorldSave] Writing.");
                             int num = fsave.SceneObjectCount + fsave.InstanceObjectCount;
                             if (save.friendly)
                             {
@@ -1777,6 +1990,7 @@ namespace Fougerite
                                     writer.WriteMessage(fsave);
                                 }
                             }
+                            Logger.LogDebug("[Fougerite WorldSave] Writing finished, renaming.");
 
                             SystemTimestamp timestamp5 = timestamp4 = SystemTimestamp.Restart;
                             using (FileStream stream2 = File.Open(path + ".new", FileMode.Create, FileAccess.Write))
@@ -1784,6 +1998,7 @@ namespace Fougerite
                                 fsave.WriteTo(stream2);
                                 stream2.Flush();
                             }
+                            Logger.LogDebug("[Fougerite WorldSave] Stream flushed.");
 
                             timestamp4.Stop();
                             if (File.Exists(path + ".old.5"))
@@ -1811,6 +2026,7 @@ namespace Fougerite
 
                             timestamp5.Stop();
                             restart.Stop();
+                            Logger.LogDebug("[Fougerite WorldSave] All done, printing.");
                             Loom.QueueOnMainThread(() =>
                             {
                                 if (save.profile)
@@ -1840,7 +2056,7 @@ namespace Fougerite
             }
         }
 
-        public static void ItemRemoved(Inventory inventory, int slot, IInventoryItem item)
+        public static bool ItemRemoved(Inventory inv, int slot, InventoryItem match, bool mustMatch)
         {
             Stopwatch sw = null;
             if (Logger.showSpeed)
@@ -1848,42 +2064,107 @@ namespace Fougerite
                 sw = new Stopwatch();
                 sw.Start();
             }
+            Collection<InventoryItem> collection = inv.collection;
+            InventoryItem inventoryItem;
+            if (mustMatch && (!collection.Get(slot, out inventoryItem) || !object.ReferenceEquals((object) inventoryItem, (object) match)) || !collection.Evict(slot, out inventoryItem))
+            {
+                return false;
+            }
+
+            Fougerite.Events.InventoryModEvent e = null;
             try
             {
-                /*foreach (var x in RPOS.AllWindows)
-                {
-                    Server.GetServer().Broadcast(x.name);
-                }*/
-                //RPOS.Get().
+                e = new Fougerite.Events.InventoryModEvent(inv, slot, inventoryItem.iface, "Remove");
                 if (OnItemRemoved != null)
                 {
-                    Fougerite.Events.InventoryModEvent e = new Fougerite.Events.InventoryModEvent(inventory, slot, item, "Remove");
                     OnItemRemoved(e);
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                //Logger.LogError("InventoryRemoveEvent error: " + ex);
+                Logger.LogError("InventoryRemoveEvent Error: " + ex);
             }
-            if (sw == null) return;
-            sw.Stop();
-            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("ItemRemoved Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
+
+            if (e != null && e.Cancelled)
+            {
+                if (sw != null)
+                {
+                    sw.Stop();
+                    if (sw.Elapsed.TotalSeconds > 0)
+                        Logger.LogSpeed("ItemRemoved Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
+                }
+                return false;
+            }
+
+            if (inventoryItem == inv._activeItem)
+            {
+                inv.DeactivateItem();
+            }
+
+            inv.ItemRemoved(slot, inventoryItem.iface);
+            inv.MarkSlotDirty(slot);
+            if (sw != null)
+            {
+                sw.Stop();
+                if (sw.Elapsed.TotalSeconds > 0)
+                    Logger.LogSpeed("ItemRemoved Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
+            }
+            return true;
         }
 
-        public static void ItemAdded(Inventory inventory, int slot, IInventoryItem item)
+        public static bool ItemAdded(ref Inventory.Payload.Assignment args)
         {
+            Stopwatch sw = null;
+            if (Logger.showSpeed)
+            {
+                sw = new Stopwatch();
+                sw.Start();
+            }
+
+            Fougerite.Events.InventoryModEvent e = null;
             try
             {
+                e = new Fougerite.Events.InventoryModEvent(args.inventory, args.slot, args.item.iface, "Add");
                 if (OnItemAdded != null)
                 {
-                    Fougerite.Events.InventoryModEvent e = new Fougerite.Events.InventoryModEvent(inventory, slot, item, "Add");
                     OnItemAdded(e);
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                //Logger.LogError("InventoryAddEvent error: " + ex);
+                Logger.LogError("InventoryAddEvent Error: " + ex);
             }
+
+            if (e == null || (e != null && !e.Cancelled))
+            {
+                if (args.inventory.CheckSlotFlagsAgainstSlot(args.datablock._itemFlags, args.slot) &&
+                    args.item.CanMoveToSlot(args.inventory, args.slot))
+                {
+                    ++args.attemptsMade;
+                    if (args.collection.Occupy(args.slot, args.item))
+                    {
+                        if (!args.fresh && (bool) ((UnityEngine.Object) args.item.inventory))
+                            args.item.inventory.RemoveItem(args.item.slot);
+                        args.item.SetUses(args.uses);
+                        args.item.OnAddedTo(args.inventory, args.slot);
+                        args.inventory.ItemAdded(args.slot, args.item.iface);
+                        if (sw != null)
+                        {
+                            sw.Stop();
+                            if (sw.Elapsed.TotalSeconds > 0)
+                                Logger.LogSpeed("ItemAdded Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
+                        }
+                        return true;
+                    }
+                }
+            }
+            if (sw != null)
+            {
+                sw.Stop();
+                if (sw.Elapsed.TotalSeconds > 0)
+                    Logger.LogSpeed("ItemAdded Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
+            }
+            return false;
         }
 
         public static void Airdrop(Vector3 v)
@@ -2037,12 +2318,8 @@ namespace Fougerite
                         }
                     }
                 }
-                //new Thread(() =>
-                //{
-                //Thread.CurrentThread.IsBackground = true;
                 foreach (GameObject obj2 in objArray)
                 {
-                    //Logger.LogWarning(obj2.name);
                     try
                     {
                         if (obj2 != null)
@@ -2055,11 +2332,10 @@ namespace Fougerite
                         Logger.LogError("[uLink Error] Disconnect failure, report to DreTaX: " + ex);
                     }
                 }
-                //}).Start();
             }
-            catch //(Exception ex)
+            catch (Exception ex)
             {
-                //Logger.LogError("[uLink Error] Full Exception: " + ex);
+                Logger.LogDebug("[uLink Error] Full Exception: " + ex);
             }
             if (sw == null) return;
             sw.Stop();
