@@ -2,6 +2,8 @@
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Timers;
 using Facepunch.Clocks.Counters;
@@ -9,7 +11,6 @@ using Google.ProtocolBuffers.Serialization;
 using Rust;
 using RustProto;
 using RustProto.Helpers;
-using Shell32;
 
 namespace Fougerite
 {
@@ -232,12 +233,29 @@ namespace Fougerite
         /// This delegate runs when the server finished loading.
         /// </summary>
         public static event ServerLoadedDelegate OnServerLoaded;
+
         /// <summary>
         /// This value returns if the server is shutting down.
         /// </summary>
-        public static bool IsShuttingDown = false;
+        public static bool IsShuttingDown
+        {
+            get;
+            internal set;
+        }
+
+        /// <summary>
+        /// Tells if the server is saving the map.
+        /// </summary>
+        public static bool ServerIsSaving
+        {
+            get;
+            internal set;
+        }
 
         public static readonly List<ulong> uLinkDCCache = new List<ulong>(); 
+        private static Thread SavingThread = null;
+        
+        internal static Dictionary<IPAddress, Flood> FloodChecks = new Dictionary<IPAddress, Flood>();
 
         public static void BlueprintUse(IBlueprintItem item, BlueprintDataBlock bdb)
         {
@@ -1204,6 +1222,33 @@ namespace Fougerite
                 player.Message(string.Format("This server is powered by Fougerite v.{0}!", Bootstrap.Version));
             }
             Logger.LogDebug("User Connected: " + player.Name + " (" + player.SteamID + ")" + " (" + player.IP + ")");
+
+            IPAddress ip = IPAddress.Parse(player.IP);
+            if (!FloodChecks.ContainsKey(ip))
+            {
+                // Create the flood class.
+                Flood f = new Flood(ip);
+                FloodChecks[ip] = f;
+            }
+            else
+            {
+                var data = FloodChecks[ip];
+                if (data.Amount < Bootstrap.FloodConnections) // Allow 2 connections from the same IP / 3 secs.
+                {
+                    data.Increase();
+                    data.Reset();
+                }
+                else
+                {
+                    data.Stop();
+                    if (FloodChecks.ContainsKey(ip))
+                    {
+                        FloodChecks.Remove(ip);
+                    }
+                    Server.GetServer().BanPlayer(player, "Console", "Connection Flood");
+                }
+            }
+
             if (sw == null) return connected;
             sw.Stop();
             if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("PlayerConnectedEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
@@ -1810,13 +1855,17 @@ namespace Fougerite
             if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("GrenadeEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
+        /*public static void ActualAutoSave()
+        {
+            ServerSaved();
+        }*/
+
         public static bool ServerSaved()
         {
             if (ServerSaveManager._loading)
             {
                 return false;
             }
-            DataStore.GetInstance().Save();
             string path = ServerSaveManager.autoSavePath;
             try
             {
@@ -1842,6 +1891,17 @@ namespace Fougerite
 
         internal static void SaveAll(string path, bool shuttingdown = false)
         {
+            if (ServerIsSaving)
+            {
+                Logger.LogDebug("[Fougerite WorldSave] Server's thread is still saving. We are ignoring the save request.");
+                if (SavingThread != null)
+                {
+                    Logger.LogDebug("[Fougerite WorldSave] Thread Alive: " + SavingThread.IsAlive);
+                }
+                return;
+            }
+            ServerIsSaving = true;
+            DataStore.GetInstance().Save();
             SystemTimestamp restart = SystemTimestamp.Restart;
             if (path == string.Empty)
             {
@@ -1953,6 +2013,7 @@ namespace Fougerite
                         Logger.Log(string.Concat(new object[]
                             {" Saved ", num, " Object(s). Took ", restart.ElapsedSeconds, " seconds."}));
                     }
+                    ServerIsSaving = false;
                 }
                 else
                 {
@@ -1971,13 +2032,34 @@ namespace Fougerite
                         Logger.LogDebug("[Fougerite WorldSave] Builder finished, executing new thread.");
                         new Thread(() =>
                         {
+                            SavingThread = Thread.CurrentThread;
                             Logger.LogDebug("[Fougerite WorldSave] Preparing Timestamps...");
                             Thread.CurrentThread.IsBackground = true;
                             timestamp2 = SystemTimestamp.Restart;
-                            s.DoSave(ref builder);
+                            try
+                            {
+                                Logger.LogDebug("[Fougerite WorldSave] DoSave is going to execute...");
+                                s.DoSave(ref builder);
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.LogError("[Fougerite WorldSave] Error happened when DoSave. Ex: " + ex);
+                                return;
+                            }
+
                             timestamp2.Stop();
                             timestamp3 = SystemTimestamp.Restart;
-                            fsave = builder.Build();
+                            try
+                            {
+                                Logger.LogDebug("[Fougerite WorldSave] Building...");
+                                fsave = builder.Build();
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.LogError("[Fougerite WorldSave] Error happened when building. Ex: " + ex);
+                                return;
+                            }
+
                             timestamp3.Stop();
                             Logger.LogDebug("[Fougerite WorldSave] Writing.");
                             int num = fsave.SceneObjectCount + fsave.InstanceObjectCount;
@@ -2049,6 +2131,8 @@ namespace Fougerite
                                     Logger.Log(string.Concat(new object[]
                                         {" Saved ", num, " Object(s). Took ", restart.ElapsedSeconds, " seconds."}));
                                 }
+
+                                ServerIsSaving = false;
                             });
                         }).Start();
                     });
@@ -2600,7 +2684,7 @@ namespace Fougerite
                         }
                         catch (Exception exception)
                         {
-                            Debug.LogError(exception, lo);
+                            Logger.LogError("[SetLooter] Error: " + exception);
                             NetCull.RPC((UnityEngine.MonoBehaviour)lo, "StopLooting", uLink.RPCMode.Server);
                             lo.thisClientIsInWindow = false;
                             ply = uLink.NetworkPlayer.unassigned;
@@ -2634,12 +2718,13 @@ namespace Fougerite
             lo.SendCurrentLooter();
             lo.CancelInvokes();
             lo.InvokeRepeating("RadialCheck", 0f, 10f);
+            LootStartEvent lt = null;
             if (user != null)
             {
                 if (Fougerite.Server.Cache.ContainsKey(user.userID))
                 {
                     Fougerite.Player pl = Fougerite.Server.Cache[user.userID];
-                    LootStartEvent lt = new LootStartEvent(lo, pl, use, ulinkuser);
+                    lt = new LootStartEvent(lo, pl, use, ulinkuser);
                     try
                     {
                         if (OnLootUse != null)
@@ -2651,17 +2736,176 @@ namespace Fougerite
                     {
                         Logger.LogError("LootStartEvent Error: " + ex);
                     }
-
-                    /*if (lt.IsCancelled)
-                    {
-                        return;
-                    }*/
                 }
             }
-            if (sw == null) return;
-            sw.Stop();
-            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("ChestEnterEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
+
+            if (sw != null)
+            {
+                sw.Stop();
+                if (sw.Elapsed.TotalSeconds > 0)
+                    Logger.LogSpeed("ChestEnterEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
+            }
+
+            //return lt;
         }
+
+        /*public static UseResponse EnterHandler(Useable use, Character attempt, UseEnterRequest request)
+        {
+            LootableObject lootableObject = use.GetComponent<LootableObject>();
+            Logger.Log("null: " + lootableObject);
+
+            if (!use.canUse)
+            {
+                return UseResponse.Fail_NotIUseable;
+            }
+
+            Useable.EnsureServer();
+            if (((int) use.callState) != 0)
+            {
+                Logger.LogWarning(
+                    "Some how Enter got called from a call stack originating with " + use.callState +
+                    " fix your script to not do this.", use);
+                return UseResponse.Fail_InvalidOperation;
+            }
+
+            if (Useable.hasException)
+            {
+                Useable.ClearException(false);
+            }
+
+            if (attempt == null)
+            {
+                return UseResponse.Fail_NullOrMissingUser;
+            }
+
+            if (attempt.signaledDeath)
+            {
+                return UseResponse.Fail_UserDead;
+            }
+
+            if (use._user == null)
+            {
+                if (use.implementation != null)
+                {
+                    try
+                    {
+                        UseResponse response;
+                        use.callState = FunctionCallState.Enter;
+                        if (use.canCheck)
+                        {
+                            try
+                            {
+                                response = (UseResponse) use.useCheck.CanUse(attempt, request);
+                            }
+                            catch (Exception exception)
+                            {
+                                Useable.lastException = exception;
+                                return UseResponse.Fail_CheckException;
+                            }
+
+                            if (((int) response) != 1)
+                            {
+                                if (response.Succeeded())
+                                {
+                                    Logger.LogError(
+                                        "A IUseableChecked return a invalid value that should have cause success [" +
+                                        response + "], but it was not UseCheck.Success! fix your script.",
+                                        use.implementation);
+                                    return UseResponse.Fail_Checked_BadResult;
+                                }
+
+                                if (use.wantDeclines)
+                                {
+                                    try
+                                    {
+                                        use.useDecline.OnUseDeclined(attempt, response, request);
+                                    }
+                                    catch (Exception exception2)
+                                    {
+                                        Logger.LogError(
+                                            string.Concat(new object[]
+                                            {
+                                                "Caught exception in OnUseDeclined \r\n (response was ", response, ")",
+                                                exception2
+                                            }), use.implementation);
+                                    }
+                                }
+
+                                return response;
+                            }
+                        }
+                        else
+                        {
+                            response = UseResponse.Pass_Unchecked;
+                        }
+
+                        try
+                        {
+                            use._user = attempt;
+                            OnUseEnter(lootableObject, use);
+                            //use.use.OnUseEnter(use);
+                        }
+                        catch (Exception exception3)
+                        {
+                            use._user = null;
+                            Logger.LogError(
+                                "Exception thrown during Useable.Enter. Object not set as used!\r\n" + exception3,
+                                attempt);
+                            Useable.lastException = exception3;
+                            return UseResponse.Fail_EnterException;
+                        }
+
+                        if (response.Succeeded())
+                        {
+                            use.LatchUse();
+                        }
+
+                        return response;
+                    }
+                    finally
+                    {
+                        use.callState = FunctionCallState.None;
+                    }
+                }
+
+                return UseResponse.Fail_Destroyed;
+            }
+
+            if (use._user == attempt)
+            {
+                if (use.wantDeclines && (use.implementation != null))
+                {
+                    try
+                    {
+                        use.useDecline.OnUseDeclined(attempt, UseResponse.Fail_Redundant, request);
+                    }
+                    catch (Exception exception4)
+                    {
+                        Logger.LogError(
+                            "Caught exception in OnUseDeclined \r\n (response was Fail_Redundant)" + exception4,
+                            use.implementation);
+                    }
+                }
+
+                return UseResponse.Fail_Redundant;
+            }
+
+            if (use.wantDeclines && (use.implementation != null))
+            {
+                try
+                {
+                    use.useDecline.OnUseDeclined(attempt, UseResponse.Fail_Vacancy, request);
+                }
+                catch (Exception exception5)
+                {
+                    Logger.LogError("Caught exception in OnUseDeclined \r\n (response was Fail_Vacancy)" + exception5,
+                        use.implementation);
+                }
+            }
+
+            return UseResponse.Fail_Vacancy;
+        }*/
+
 
         public static void RPCFix(Class48 c48, Class5 class5_0, uLink.NetworkPlayer networkPlayer_1)
         {
