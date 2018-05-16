@@ -3246,7 +3246,7 @@ namespace Fougerite
                     return;
                 }
 
-                if (float.IsNaN(beltNum) || float.IsInfinity(beltNum) || beltNum < 1 || beltNum > 6)
+                if (float.IsNaN(beltNum) || float.IsInfinity(beltNum) || beltNum < 0 || beltNum > 6)
                 {
                     Logger.LogWarning("[DoBeltUse] Belt number is different. " + beltNum);
                     return;
