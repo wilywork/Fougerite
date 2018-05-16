@@ -258,6 +258,7 @@ namespace Fougerite.Patcher
         private void LooterPatch()
         {
             TypeDefinition type = rustAssembly.MainModule.GetType("LootableObject");
+            TypeDefinition Useable = rustAssembly.MainModule.GetType("Useable");
             MethodDefinition ClearLooter = type.GetMethod("ClearLooter");
             ClearLooter.SetPublic(true);
             type.GetField("_currentlyUsingPlayer").SetPublic(true);
@@ -268,6 +269,18 @@ namespace Fougerite.Patcher
             type.GetMethod("DestroyInExit").SetPublic(true);
             type.GetMethod("StopLooting").SetPublic(true);
 
+            // TODO: Requires further testing, some reason that method cannot be patched even while deobfuscated.
+            /*Useable.GetMethod("EnsureServer").SetPublic(true);
+            Useable.GetMethod("ClearException").SetPublic(true);
+            Useable.GetField("hasException").SetPublic(true);
+            Useable.GetField("implementation").SetPublic(true);
+            Useable.GetField("useCheck").SetPublic(true);
+            Useable.GetField("useDecline").SetPublic(true);
+            Useable.GetField("wantDeclines").SetPublic(true);
+            Useable.GetField("lastException").SetPublic(true);
+            Useable.GetField("canCheck").SetPublic(true);
+            Useable.GetField("use").SetPublic(true);*/
+
             MethodDefinition SetLooter = type.GetMethod("SetLooter");
             MethodDefinition method = hooksClass.GetMethod("SetLooter");
             ILProcessor iLProcessor = SetLooter.Body.GetILProcessor();
@@ -276,7 +289,19 @@ namespace Fougerite.Patcher
             iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
             iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, this.rustAssembly.MainModule.Import(method)));
             iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
-
+            
+            // TODO: Requires further testing, some reason that method cannot be patched even while deobfuscated.
+            /*MethodDefinition method2 = hooksClass.GetMethod("EnterHandler");
+            MethodDefinition Enter = Useable.GetMethod("Enter");
+            ILProcessor iLProcessor2 = Enter.Body.GetILProcessor();
+            iLProcessor2.Body.Instructions.Clear();
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, this.rustAssembly.MainModule.Import(method2)));
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));*/
+            
+            
             MethodDefinition OnUseEnter = type.GetMethod("OnUseEnter");
             MethodDefinition method2 = hooksClass.GetMethod("OnUseEnter");
             ILProcessor iLProcessor2 = OnUseEnter.Body.GetILProcessor();
@@ -1348,10 +1373,18 @@ namespace Fougerite.Patcher
 
             MethodDefinition AutoSave = type.GetMethod("AutoSave");
 
+
+            MethodReference import = this.rustAssembly.MainModule.Import(method);
             ILProcessor iLProcessor = AutoSave.Body.GetILProcessor();
             iLProcessor.Body.Instructions.Clear();
-            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, this.rustAssembly.MainModule.Import(method)));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, import));
             iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+
+            /*MethodDefinition ActualAutoSave = hooksClass.GetMethod("ActualAutoSave");
+            ILProcessor iLProcessor2 = type.GetMethod("Save").Body.GetILProcessor();
+            iLProcessor2.Body.Instructions.Clear();
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, this.rustAssembly.MainModule.Import(ActualAutoSave)));
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));*/
         }
 
         private void PlayerKilledPatch()
@@ -1574,6 +1607,22 @@ namespace Fougerite.Patcher
             iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
         }
 
+        private void BeltPatch()
+        {
+            TypeDefinition InventoryHolder = rustAssembly.MainModule.GetType("InventoryHolder");
+            InventoryHolder.GetMethod("ValidateAntiBeltSpam").SetPublic(true);
+            MethodDefinition DoBeltUse = InventoryHolder.GetMethod("DoBeltUse");
+
+            MethodDefinition method = hooksClass.GetMethod("DoBeltUseHook");
+
+            ILProcessor iLProcessor = DoBeltUse.Body.GetILProcessor();
+            iLProcessor.Body.Instructions.Clear();
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(method)));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+        }
+
         public bool FirstPass()
         {
             try
@@ -1701,6 +1750,7 @@ namespace Fougerite.Patcher
                     this.DecayStopPatch();
                     this.GenericSpawnerPatch();
                     this.ServerLoadedPatch();
+                    this.BeltPatch();
                 }
                 catch (Exception ex)
                 {

@@ -255,7 +255,8 @@ namespace Fougerite
         public static readonly List<ulong> uLinkDCCache = new List<ulong>(); 
         private static Thread SavingThread = null;
         
-        internal static Dictionary<IPAddress, Flood> FloodChecks = new Dictionary<IPAddress, Flood>();
+        internal static Dictionary<string, Flood> FloodChecks = new Dictionary<string, Flood>();
+        internal static Dictionary<string, DateTime> FloodCooldown = new Dictionary<string, DateTime>();
 
         public static void BlueprintUse(IBlueprintItem item, BlueprintDataBlock bdb)
         {
@@ -1223,17 +1224,16 @@ namespace Fougerite
             }
             Logger.LogDebug("User Connected: " + player.Name + " (" + player.SteamID + ")" + " (" + player.IP + ")");
 
-            IPAddress ip = IPAddress.Parse(player.IP);
-            if (!FloodChecks.ContainsKey(ip))
+            if (!FloodChecks.ContainsKey(player.IP))
             {
                 // Create the flood class.
-                Flood f = new Flood(ip);
-                FloodChecks[ip] = f;
+                Flood f = new Flood(player.IP);
+                FloodChecks[player.IP] = f;
             }
             else
             {
-                var data = FloodChecks[ip];
-                if (data.Amount < Bootstrap.FloodConnections) // Allow 2 connections from the same IP / 3 secs.
+                var data = FloodChecks[player.IP];
+                if (data.Amount < Bootstrap.FloodConnections) // Allow n connections from the same IP / 3 secs.
                 {
                     data.Increase();
                     data.Reset();
@@ -1241,11 +1241,11 @@ namespace Fougerite
                 else
                 {
                     data.Stop();
-                    if (FloodChecks.ContainsKey(ip))
+                    if (FloodChecks.ContainsKey(player.IP))
                     {
-                        FloodChecks.Remove(ip);
+                        FloodChecks.Remove(player.IP);
                     }
-                    Server.GetServer().BanPlayer(player, "Console", "Connection Flood");
+                    FloodCooldown[player.IP] = DateTime.Now;
                 }
             }
 
@@ -1537,7 +1537,10 @@ namespace Fougerite
         internal static DateTime LasTime = DateTime.Now;
         public static void RecieveNetwork(Metabolism m, float cal, float water, float rad, float anti, float temp, float poison)
         {
-            if (LasTime.AddMinutes(5) > DateTime.UtcNow)
+            DateTime now = DateTime.Now;
+            DateTime then = LasTime;
+            double diff = (now - then).TotalMinutes;
+            if (diff > 5)
             {
                 LasTime = DateTime.Now;
                 Logger.LogWarning("[RecieveNetwork] A metabolism hack was prevented.");
@@ -2450,6 +2453,19 @@ namespace Fougerite
                 ulong uid = clientConnection.UserID;
                 string ip = approval.ipAddress;
                 string name = clientConnection.UserName;
+
+                if (FloodCooldown.ContainsKey(ip))
+                {
+                    DateTime now = DateTime.Now;
+                    DateTime then = FloodCooldown[ip];
+                    double diff = (now - then).TotalMinutes;
+                    if (diff >= 15)
+                    {
+                        Logger.LogWarning("[Flood Protection] " + ip + " was removed from the cooldown.");
+                        FloodCooldown.Remove(ip);
+                    }
+                }
+
                 if (clientConnection.Protocol != 1069)
                 {
                     Debug.Log((object)("Denying entry to client with invalid protocol version (" + ip + ")"));
@@ -2517,6 +2533,10 @@ namespace Fougerite
                     }
                     Debug.Log((object)("Denying entry to " + uid.ToString() + " because they're already connected"));
                     approval.Deny(uLink.NetworkConnectionError.AlreadyConnectedToAnotherServer);
+                }
+                else if (FloodCooldown.ContainsKey(ip))
+                {
+                    approval.Deny(uLink.NetworkConnectionError.CreateSocketOrThreadFailure);
                 }
                 else
                 {
@@ -3208,6 +3228,43 @@ namespace Fougerite
             Logger.Log("Server Initialized.");
             UnityEngine.Object.Destroy(init.gameObject);
             yield break;
+        }
+        
+        public static void DoBeltUseHook(InventoryHolder holder, int beltNum)
+        {
+            try
+            {
+                if (holder == null)
+                {
+                    Logger.LogWarning("[DoBeltUse] Holder is null.");
+                    return;
+                }
+                
+                if (holder.inventory == null)
+                {
+                    Logger.LogWarning("[DoBeltUse] Inventory is null.");
+                    return;
+                }
+
+                if (float.IsNaN(beltNum) || float.IsInfinity(beltNum) || beltNum < 1 || beltNum > 6)
+                {
+                    Logger.LogWarning("[DoBeltUse] Belt number is different. " + beltNum);
+                    return;
+                }
+
+                PlayerInventory inventory;
+                IInventoryItem item;
+                if ((!holder.dead && (holder.GetPlayerInventory(out inventory) &&
+                                      holder.ValidateAntiBeltSpam(NetCull.timeInMillis))) &&
+                    inventory.GetItem(30 + beltNum, out item))
+                {
+                    item.OnBeltUse();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("[DoBeltUse Error] " + ex);
+            }
         }
         
         public static void ResetHooks()

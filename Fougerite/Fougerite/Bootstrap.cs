@@ -11,7 +11,7 @@ namespace Fougerite
         /// <summary>
         /// Returns the Current Fougerite Version
         /// </summary>
-        public const string Version = "1.6.4";
+        public const string Version = "1.6.4B";
         /// <summary>
         /// This value decides wheather we should remove the player classes from the cache upon disconnect.
         /// </summary>
@@ -31,7 +31,7 @@ namespace Fougerite
         /// <summary>
         /// This value decides how many connections can be made from the same ip per seconds.
         /// </summary>
-        public static int FloodConnections = 2;
+        public static int FloodConnections = 3;
         
         internal static readonly Thread CurrentThread = Thread.CurrentThread;
 

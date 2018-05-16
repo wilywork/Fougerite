@@ -8,9 +8,9 @@ namespace Fougerite
     {
         private ExtendedTimedEvent _te;
         private int _count = 1;
-        private IPAddress _ip;
+        private string _ip;
             
-        public Flood(IPAddress ip)
+        public Flood(string ip)
         {
             _ip = ip;
             _te = new ExtendedTimedEvent(3000);
