@@ -11,7 +11,7 @@ namespace Fougerite
         /// <summary>
         /// Returns the Current Fougerite Version
         /// </summary>
-        public const string Version = "1.6.3";
+        public const string Version = "1.6.4B";
         /// <summary>
         /// This value decides wheather we should remove the player classes from the cache upon disconnect.
         /// </summary>
@@ -28,6 +28,11 @@ namespace Fougerite
         /// This value decides wheather we should enable the default rust decay.
         /// </summary>
         public static bool EnableDefaultRustDecay = true;
+        /// <summary>
+        /// This value decides how many connections can be made from the same ip per seconds.
+        /// </summary>
+        public static int FloodConnections = 3;
+        
         internal static readonly Thread CurrentThread = Thread.CurrentThread;
 
         public static void AttachBootstrap()
@@ -70,6 +75,16 @@ namespace Fougerite
             {
                 AutoBanCraft = Fougerite.Config.GetBoolValue("Fougerite", "AutoBanCraft");
             }
+            if (Fougerite.Config.GetValue("Fougerite", "FloodConnections") != null)
+            {
+                int v = int.Parse(Fougerite.Config.GetValue("Fougerite", "FloodConnections"));
+                if (v <= 0)
+                {
+                    v = 2;
+                }
+                FloodConnections = v + 1;
+            }
+            
             if (!Fougerite.Config.GetBoolValue("Fougerite", "deployabledecay") && !Fougerite.Config.GetBoolValue("Fougerite", "decay"))
             {
                 decay.decaytickrate = float.MaxValue / 2;

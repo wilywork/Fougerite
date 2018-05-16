@@ -1,4 +1,5 @@
 ﻿
+using System;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 
@@ -9,6 +10,31 @@ namespace Fougerite
 
     public class Web
     {
+        /// <summary>
+        /// SSL Protocols.
+        /// </summary>
+        [Flags]
+        public enum MySecurityProtocolType
+        {
+            //
+            // Summary:
+            //     Specifies the Secure Socket Layer (SSL) 3.0 security protocol.
+            Ssl3 = 48,
+            //
+            // Summary:
+            //     Specifies the Transport Layer Security (TLS) 1.0 security protocol.
+            Tls = 192,
+            //
+            // Summary:
+            //     Specifies the Transport Layer Security (TLS) 1.1 security protocol.
+            Tls11 = 768,
+            //
+            // Summary:
+            //     Specifies the Transport Layer Security (TLS) 1.2 security protocol.
+            Tls12 = 3072
+        }
+
+        
         /// <summary>
         /// Does a GET request to the specified URL.
         /// </summary>
@@ -45,6 +71,7 @@ namespace Fougerite
         /// <returns></returns>
         public string GETWithSSL(string url)
         {
+            System.Net.ServicePointManager.SecurityProtocol = (SecurityProtocolType)(MySecurityProtocolType.Tls12 | MySecurityProtocolType.Tls11 | MySecurityProtocolType.Tls);
             ServicePointManager.ServerCertificateValidationCallback = new System.Net.Security.RemoteCertificateValidationCallback(AcceptAllCertifications);
             using (System.Net.WebClient client = new System.Net.WebClient())
             {
@@ -60,6 +87,7 @@ namespace Fougerite
         /// <returns></returns>
         public string POSTWithSSL(string url, string data)
         {
+            System.Net.ServicePointManager.SecurityProtocol = (SecurityProtocolType)(MySecurityProtocolType.Tls12 | MySecurityProtocolType.Tls11 | MySecurityProtocolType.Tls);
             ServicePointManager.ServerCertificateValidationCallback = new System.Net.Security.RemoteCertificateValidationCallback(AcceptAllCertifications);
             using (System.Net.WebClient client = new System.Net.WebClient())
             {

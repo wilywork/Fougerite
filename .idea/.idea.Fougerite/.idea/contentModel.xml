@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ContentModelStore">
-    <e p="C:\Users\DreTaX\.Rider2017.3\system\resharper-host\local\Transient\ReSharperHost\v11\SolutionCaches\_Fougerite.-825522248.00" t="ExcludeRecursive" />
+    <e p="C:\Users\DreTaX\.Rider2018.1\system\resharper-host\local\Transient\ReSharperHost\v12\SolutionCaches\_Fougerite.-825522248.00" t="ExcludeRecursive" />
     <e p="E:\Users\DreTaX\Documents\Visual Studio 2013\Projects\FougeriteProject" t="IncludeFlat">
       <e p="bin" t="ExcludeRecursive" />
       <e p="Fougerite" t="IncludeRecursive">
@@ -24,6 +24,7 @@
             <e p="DecayEvent.cs" t="Include" />
             <e p="DestroyEvent.cs" t="Include" />
             <e p="DoorEvent.cs" t="Include" />
+            <e p="ExtendedTimedEvent.cs" t="Include" />
             <e p="FallDamageEvent.cs" t="Include" />
             <e p="GatherEvent.cs" t="Include" />
             <e p="GrenadeThrowEvent.cs" t="Include" />
@@ -42,6 +43,7 @@
             <e p="TimedEvent.cs" t="Include" />
           </e>
           <e p="FInventory.cs" t="Include" />
+          <e p="Flood.cs" t="Include" />
           <e p="FougeriteEx.cs" t="Include" />
           <e p="GlobalPluginCollector.cs" t="Include" />
           <e p="Hooks.cs" t="Include" />
@@ -75,6 +77,7 @@
         <e p="Global.cs" t="Include" />
         <e p="IniParser.cs" t="Include" />
         <e p="obj" t="ExcludeRecursive" />
+        <e p="packages.config" t="Include" />
       </e>
       <e p="Fougerite.Patcher" t="IncludeRecursive">
         <e p="AssemblyInfo.cs" t="Include" />
