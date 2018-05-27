@@ -11,7 +11,7 @@ namespace Fougerite
         /// <summary>
         /// Returns the Current Fougerite Version
         /// </summary>
-        public const string Version = "1.6.4B";
+        public const string Version = "1.6.5";
         /// <summary>
         /// This value decides wheather we should remove the player classes from the cache upon disconnect.
         /// </summary>
@@ -77,13 +77,31 @@ namespace Fougerite
             }
             if (Fougerite.Config.GetValue("Fougerite", "FloodConnections") != null)
             {
-                int v = int.Parse(Fougerite.Config.GetValue("Fougerite", "FloodConnections"));
+                int v;
+                int.TryParse(Fougerite.Config.GetValue("Fougerite", "FloodConnections"), out v);
                 if (v <= 0)
                 {
                     v = 2;
                 }
                 FloodConnections = v + 1;
             }
+            if (Fougerite.Config.GetValue("Fougerite", "SaveTime") != null)
+            {
+                int v;
+                int.TryParse(Fougerite.Config.GetValue("Fougerite", "SaveTime"), out v);
+                if (v <= 0)
+                {
+                    v = 10;
+                }
+                ServerSaveHandler.ServerSaveTime = v;
+            }
+            else
+            {
+                ServerSaveHandler.ServerSaveTime = 10;
+            }
+
+            // Remove the default rust saving methods.
+            save.autosavetime = int.MaxValue;
             
             if (!Fougerite.Config.GetBoolValue("Fougerite", "deployabledecay") && !Fougerite.Config.GetBoolValue("Fougerite", "decay"))
             {

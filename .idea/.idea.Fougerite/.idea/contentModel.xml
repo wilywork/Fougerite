@@ -62,6 +62,7 @@
           <e p="RustPPExtension.cs" t="Include" />
           <e p="SerializableDictionary.cs" t="Include" />
           <e p="Server.cs" t="Include" />
+          <e p="ServerSaveHandler.cs" t="Include" />
           <e p="ShutdownCatcher.cs" t="Include" />
           <e p="Sleeper.cs" t="Include" />
           <e p="SQLiteConnector.cs" t="Include" />

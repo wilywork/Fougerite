@@ -243,17 +243,7 @@ namespace Fougerite
             internal set;
         }
 
-        /// <summary>
-        /// Tells if the server is saving the map.
-        /// </summary>
-        public static bool ServerIsSaving
-        {
-            get;
-            internal set;
-        }
-
         public static readonly List<ulong> uLinkDCCache = new List<ulong>(); 
-        private static Thread SavingThread = null;
         
         internal static Dictionary<string, Flood> FloodChecks = new Dictionary<string, Flood>();
         internal static Dictionary<string, DateTime> FloodCooldown = new Dictionary<string, DateTime>();
@@ -1858,52 +1848,47 @@ namespace Fougerite
             if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("GrenadeEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
-        /*public static void ActualAutoSave()
+        public static void OnServerSaveEvent()
         {
-            ServerSaved();
-        }*/
-
-        public static bool ServerSaved()
-        {
-            if (ServerSaveManager._loading)
-            {
-                return false;
-            }
-            string path = ServerSaveManager.autoSavePath;
             try
             {
-                if (OnServerSaved != null)
+                if (Hooks.OnServerSaved != null)
                 {
-                    OnServerSaved();
+                    Hooks.OnServerSaved();
                 }
             }
             catch (Exception ex)
             {
                 Logger.LogError("ServerSavedEvent Error: " + ex);
             }
-            if (IsShuttingDown)
+        }
+        
+        public static bool ServerSaved()
+        {
+            if (!IsShuttingDown)
             {
-                SaveAll(path, true);
+                Logger.LogWarning("[Fougerite WorldSaver] Default Rust Save activated the saving method. Please set the time to maximum to avoid this.");
             }
-            else
+
+            if (ServerSaveManager._loading)
             {
-                SaveAll(path);
+                return false;
             }
+            string path = ServerSaveManager.autoSavePath;
+            SaveAll(path);
+            
+            OnServerSaveEvent();
             return true;
         }
 
-        internal static void SaveAll(string path, bool shuttingdown = false)
+        internal static void SaveAll(string path)
         {
-            if (ServerIsSaving)
+            if (ServerSaveHandler.ServerIsSaving)
             {
                 Logger.LogDebug("[Fougerite WorldSave] Server's thread is still saving. We are ignoring the save request.");
-                if (SavingThread != null)
-                {
-                    Logger.LogDebug("[Fougerite WorldSave] Thread Alive: " + SavingThread.IsAlive);
-                }
                 return;
             }
-            ServerIsSaving = true;
+            ServerSaveHandler.ServerIsSaving = true;
             DataStore.GetInstance().Save();
             SystemTimestamp restart = SystemTimestamp.Restart;
             if (path == string.Empty)
@@ -1936,9 +1921,6 @@ namespace Fougerite
                     }
                     ServerSaveManager._loadedOnce = true;
                 }
-                // If the server is shutting down, we shouldn't start tricking with the threads, just simply save it as it is.
-                if (shuttingdown)
-                {
                     ServerSaveManager s;
                     WorldSave.Builder builder;
                     using (Recycler<WorldSave, WorldSave.Builder> recycler = WorldSave.Recycler())
@@ -2016,131 +1998,8 @@ namespace Fougerite
                         Logger.Log(string.Concat(new object[]
                             {" Saved ", num, " Object(s). Took ", restart.ElapsedSeconds, " seconds."}));
                     }
-                    ServerIsSaving = false;
+                    ServerSaveHandler.ServerIsSaving = false;
                 }
-                else
-                {
-                    // Call the code on the main thread, ServerSaveManager.Get(false) uses Findobjectsoftype which doesnt like threading.
-                    Loom.QueueOnMainThread(() =>
-                    {
-                        Logger.LogDebug("[Fougerite WorldSave] Preparing Builder...");
-                        ServerSaveManager s;
-                        WorldSave.Builder builder;
-                        using (Recycler<WorldSave, WorldSave.Builder> recycler = WorldSave.Recycler())
-                        {
-                            builder = recycler.OpenBuilder();
-                            s = ServerSaveManager.Get(false); // Once this execution is finished, call a new thread to finish up the writing.
-                        }
-                        
-                        Logger.LogDebug("[Fougerite WorldSave] Builder finished, executing new thread.");
-                        new Thread(() =>
-                        {
-                            SavingThread = Thread.CurrentThread;
-                            Logger.LogDebug("[Fougerite WorldSave] Preparing Timestamps...");
-                            Thread.CurrentThread.IsBackground = true;
-                            timestamp2 = SystemTimestamp.Restart;
-                            try
-                            {
-                                Logger.LogDebug("[Fougerite WorldSave] DoSave is going to execute...");
-                                s.DoSave(ref builder);
-                            }
-                            catch (Exception ex)
-                            {
-                                Logger.LogError("[Fougerite WorldSave] Error happened when DoSave. Ex: " + ex);
-                                return;
-                            }
-
-                            timestamp2.Stop();
-                            timestamp3 = SystemTimestamp.Restart;
-                            try
-                            {
-                                Logger.LogDebug("[Fougerite WorldSave] Building...");
-                                fsave = builder.Build();
-                            }
-                            catch (Exception ex)
-                            {
-                                Logger.LogError("[Fougerite WorldSave] Error happened when building. Ex: " + ex);
-                                return;
-                            }
-
-                            timestamp3.Stop();
-                            Logger.LogDebug("[Fougerite WorldSave] Writing.");
-                            int num = fsave.SceneObjectCount + fsave.InstanceObjectCount;
-                            if (save.friendly)
-                            {
-                                using (FileStream stream = File.Open(path + ".json", FileMode.Create, FileAccess.Write))
-                                {
-                                    JsonFormatWriter writer = JsonFormatWriter.CreateInstance(stream);
-                                    writer.Formatted();
-                                    writer.WriteMessage(fsave);
-                                }
-                            }
-                            Logger.LogDebug("[Fougerite WorldSave] Writing finished, renaming.");
-
-                            SystemTimestamp timestamp5 = timestamp4 = SystemTimestamp.Restart;
-                            using (FileStream stream2 = File.Open(path + ".new", FileMode.Create, FileAccess.Write))
-                            {
-                                fsave.WriteTo(stream2);
-                                stream2.Flush();
-                            }
-                            Logger.LogDebug("[Fougerite WorldSave] Stream flushed.");
-
-                            timestamp4.Stop();
-                            if (File.Exists(path + ".old.5"))
-                            {
-                                File.Delete(path + ".old.5");
-                            }
-
-                            for (int i = 4; i >= 0; i--)
-                            {
-                                if (File.Exists(path + ".old." + i))
-                                {
-                                    File.Move(path + ".old." + i, path + ".old." + (i + 1));
-                                }
-                            }
-
-                            if (File.Exists(path))
-                            {
-                                File.Move(path, path + ".old.0");
-                            }
-
-                            if (File.Exists(path + ".new"))
-                            {
-                                File.Move(path + ".new", path);
-                            }
-
-                            timestamp5.Stop();
-                            restart.Stop();
-                            Logger.LogDebug("[Fougerite WorldSave] All done, printing.");
-                            Loom.QueueOnMainThread(() =>
-                            {
-                                if (save.profile)
-                                {
-                                    object[] args = new object[]
-                                    {
-                                        num, timestamp2.ElapsedSeconds,
-                                        timestamp2.ElapsedSeconds / restart.ElapsedSeconds, timestamp3.ElapsedSeconds,
-                                        timestamp3.ElapsedSeconds / restart.ElapsedSeconds, timestamp4.ElapsedSeconds,
-                                        timestamp4.ElapsedSeconds / restart.ElapsedSeconds, timestamp5.ElapsedSeconds,
-                                        timestamp5.ElapsedSeconds / restart.ElapsedSeconds, restart.ElapsedSeconds,
-                                        restart.ElapsedSeconds / restart.ElapsedSeconds
-                                    };
-                                    Logger.Log(string.Format(
-                                        " Saved {0} Object(s) [times below are in elapsed seconds]\r\n  Logic:\t{1,-16:0.000000}\t{2,7:0.00%}\r\n  Build:\t{3,-16:0.000000}\t{4,7:0.00%}\r\n  Stream:\t{5,-16:0.000000}\t{6,7:0.00%}\r\n  All IO:\t{7,-16:0.000000}\t{8,7:0.00%}\r\n  Total:\t{9,-16:0.000000}\t{10,7:0.00%}",
-                                        args));
-                                }
-                                else
-                                {
-                                    Logger.Log(string.Concat(new object[]
-                                        {" Saved ", num, " Object(s). Took ", restart.ElapsedSeconds, " seconds."}));
-                                }
-
-                                ServerIsSaving = false;
-                            });
-                        }).Start();
-                    });
-                }
-            }
         }
 
         public static bool ItemRemoved(Inventory inv, int slot, InventoryItem match, bool mustMatch)
@@ -3225,6 +3084,10 @@ namespace Fougerite
             {
                 Logger.Log("ServerLoaded Error: " + ex);
             }
+            GameObject go = new GameObject();
+            ServerSaveHandler h = go.AddComponent<ServerSaveHandler>();
+            UnityEngine.Object.DontDestroyOnLoad(go);
+            World.GetWorld().ServerSaveHandler = h;
             Logger.Log("Server Initialized.");
             UnityEngine.Object.Destroy(init.gameObject);
             yield break;
@@ -3246,7 +3109,7 @@ namespace Fougerite
                     return;
                 }
 
-                if (float.IsNaN(beltNum) || float.IsInfinity(beltNum) || beltNum < 1 || beltNum > 6)
+                if (float.IsNaN(beltNum) || float.IsInfinity(beltNum) || beltNum < 0 || beltNum > 6)
                 {
                     Logger.LogWarning("[DoBeltUse] Belt number is different. " + beltNum);
                     return;
