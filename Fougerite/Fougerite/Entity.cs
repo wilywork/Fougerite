@@ -210,7 +210,7 @@ namespace Fougerite
             {
                 if (this.IsDeployableObject())
                 {
-                    if (this.GetObject<DeployableObject>() != null) NetCull.Destroy(this.GetObject<DeployableObject>().networkViewID);
+                    if (this.GetObject<DeployableObject>() != null) NetCull.Destroy(this.GetObject<DeployableObject>().gameObject);
                 }
                 else if (this.IsStructureMaster())
                 {
