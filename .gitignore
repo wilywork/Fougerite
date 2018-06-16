@@ -223,3 +223,9 @@ $RECYCLE.BIN/
 *.msm
 *.msp
 *.userprefs
+*.ide
+*.lock
+*.csproj
+*.csproj
+*.csproj
+Fougerite/Fougerite.csproj
