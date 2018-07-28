@@ -6,6 +6,12 @@ using System.Timers;
 
 namespace Fougerite.Events
 {
+    public enum PickupEventType
+    {
+        Before,
+        After
+    }
+    
     /// <summary>
     /// This class is created when an item is picked up.
     /// </summary>
@@ -15,13 +21,16 @@ namespace Fougerite.Events
         private readonly IInventoryItem _item;
         private readonly Inventory _inv;
         private bool _cancelled;
-        private Timer _delayer = null;
+        private Inventory.AddExistingItemResult _result;
+        private PickupEventType _type;
 
-        public ItemPickupEvent(Controllable controllable, IInventoryItem item, Inventory local)
+        public ItemPickupEvent(Controllable controllable, IInventoryItem item, Inventory local, Inventory.AddExistingItemResult result, PickupEventType type)
         {
             _player = Fougerite.Server.Cache[controllable.netUser.userID];
             _item = item;
             _inv = local;
+            _result = result;
+            _type = type;
         }
 
         /// <summary>
@@ -54,6 +63,23 @@ namespace Fougerite.Events
         public bool Cancelled
         {
             get { return _cancelled; }
+        }
+
+        /// <summary>
+        /// Inventory result. THIS DOESN'T WORK IF THE EVENT'S PickupEventType IS BEFORE.
+        /// </summary>
+        public Inventory.AddExistingItemResult Result
+        {
+            get { return _result; }
+        }
+        
+        /// <summary>
+        /// Gets if the event ran before the item got placed in the inventory, or after.
+        /// Cancel doesn't work at the "After" event.
+        /// </summary>
+        public PickupEventType PickupEventType
+        {
+            get { return _type; }
         }
 
         /// <summary>

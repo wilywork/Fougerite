@@ -532,6 +532,11 @@ namespace IronPythonModule {
 		{
 			this.Invoke("On_ServerLoaded");
 		}
+		
+		public void OnSupplySignalExploded(SupplySignalExplosionEvent evt)
+		{
+			this.Invoke("On_SupplySignalExploded", new object[] { evt });
+		}
 
         /*public void OnTimerCB(IPTimedEvent evt) {
 			if (Globals.Contains(evt.Name + "Callback")) {

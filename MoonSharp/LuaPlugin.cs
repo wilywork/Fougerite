@@ -332,6 +332,11 @@ namespace MoonSharpModule
         {
             this.Invoke("On_ServerLoaded");
         }
+        
+        public void OnSupplySignalExploded(SupplySignalExplosionEvent evt)
+        {
+            this.Invoke("On_SupplySignalExploded", new object[] { evt });
+        }
 
         public void OnTimerCB(MoonSharpTE evt)
         {

@@ -23,25 +23,31 @@ namespace Fougerite
         public Entity(object Obj)
         {
             this._obj = Obj;
-            if (Obj is StructureMaster)
+            if (this.IsStructureMaster())
             {
                 this._ownerid = (Obj as StructureMaster).ownerID;
                 this._creatorid = (Obj as StructureMaster).creatorID;
                 this._name = "Structure Master";
             }
 
-            if (Obj is StructureComponent)
+            if (this.IsStructure())
             {
-                this._ownerid = (Obj as StructureComponent)._master.ownerID;
-                this._creatorid = (Obj as StructureComponent)._master.creatorID;
+                StructureComponent comp = Obj as StructureComponent;
+
+                if (comp != null && comp._master != null)
+                {
+                    this._ownerid = comp._master.ownerID;
+                    this._creatorid = comp._master.creatorID;
+                }
                 string clone = this.GetObject<StructureComponent>().ToString();
                 var index = clone.IndexOf("(Clone)");
                 this._name = clone.Substring(0, index);
             }
-            if (Obj is DeployableObject)
+            if (this.IsDeployableObject())
             {
-                this._ownerid = (Obj as DeployableObject).ownerID;
-                this._creatorid = (Obj as DeployableObject).creatorID;
+                DeployableObject dobj = Obj as DeployableObject;
+                this._ownerid = dobj.ownerID;
+                this._creatorid = dobj.creatorID;
                 string clone = this.GetObject<DeployableObject>().ToString();
                 if (clone.Contains("Barricade"))
                 {
@@ -65,7 +71,7 @@ namespace Fougerite
                     this.hasInventory = false;
                 }
             }
-            else if (Obj is LootableObject)
+            else if (this.IsLootableObject())
             {
                 this._ownerid = 76561198095992578UL;
                 this._creatorid = 76561198095992578UL;
@@ -82,7 +88,7 @@ namespace Fougerite
                     this.hasInventory = false;
                 }
             }
-            else if (Obj is SupplyCrate)
+            else if (this.IsSupplyCrate())
             {
                 this._ownerid = 76561198095992578UL;
                 this._creatorid = 76561198095992578UL;
@@ -99,7 +105,7 @@ namespace Fougerite
                     this.hasInventory = false;
                 }
             }
-            else if (Obj is ResourceTarget)
+            else if (IsResourceTarget())
             {
                 var x = (ResourceTarget) Obj;
                 this._ownerid = 76561198095992578UL;
@@ -210,7 +216,7 @@ namespace Fougerite
             {
                 if (this.IsDeployableObject())
                 {
-                    if (this.GetObject<DeployableObject>() != null) NetCull.Destroy(this.GetObject<DeployableObject>().networkViewID);
+                    if (this.GetObject<DeployableObject>() != null) NetCull.Destroy(this.GetObject<DeployableObject>().gameObject);
                 }
                 else if (this.IsStructureMaster())
                 {
@@ -301,7 +307,28 @@ namespace Fougerite
         /// <returns>Returns true if it is.</returns>
         public bool IsResourceTarget()
         {
-            return (this.Object is ResourceTarget);
+            ResourceTarget str = this.Object as ResourceTarget;
+            return str != null;
+        }
+
+        /// <summary>
+        /// Checks if the object is a BasicDoor
+        /// </summary>
+        /// <returns></returns>
+        public bool IsBasicDoor()
+        {
+            BasicDoor str = this.Object as BasicDoor;
+            return str != null;
+        }
+        
+        /// <summary>
+        /// Checks if the object is a LootableObject
+        /// </summary>
+        /// <returns></returns>
+        public bool IsLootableObject()
+        {
+            LootableObject str = this.Object as LootableObject;
+            return str != null;
         }
 
         /// <summary>
@@ -310,7 +337,8 @@ namespace Fougerite
         /// <returns>Returns true if it is.</returns>
         public bool IsDeployableObject()
         {
-            return (this.Object is DeployableObject);
+            DeployableObject str = this.Object as DeployableObject;
+            return str != null;
         }
 
         /// <summary>
@@ -331,7 +359,8 @@ namespace Fougerite
         /// <returns>Returns true if it is.</returns>
         public bool IsStructure()
         {
-            return (this.Object is StructureComponent);
+            StructureComponent str = this.Object as StructureComponent;
+            return str != null;
         }
 
         /// <summary>
@@ -340,7 +369,8 @@ namespace Fougerite
         /// <returns>Returns true if it is.</returns>
         public bool IsStructureMaster()
         {
-            return (this.Object is StructureMaster);
+            StructureMaster str = this.Object as StructureMaster;
+            return str != null;
         }
 
         /// <summary>
@@ -373,7 +403,8 @@ namespace Fougerite
         /// <returns>Returns true if it is.</returns>
         public bool IsSupplyCrate()
         {
-            return (this.Object is SupplyCrate);
+            SupplyCrate str = this.Object as SupplyCrate;
+            return str != null;
         }
 
         /// <summary>
@@ -608,12 +639,16 @@ namespace Fougerite
             {
                 if (this.IsDeployableObject())
                     return this.GetObject<DeployableObject>().transform.position;
-
                 if (this.IsStructure())
                     return this.GetObject<StructureComponent>().transform.position;
-
                 if (this.IsStructureMaster())
                     return this.GetObject<StructureMaster>().containedBounds.center;
+                if (this.IsBasicDoor())
+                    return this.GetObject<BasicDoor>().transform.position;
+                if (this.IsLootableObject())
+                    return this.GetObject<LootableObject>().transform.position;
+                if (this.IsResourceTarget())
+                    return this.GetObject<ResourceTarget>().transform.position;
 
                 return Vector3.zero;
             }
@@ -631,6 +666,12 @@ namespace Fougerite
 
                 if (this.IsStructure())
                     return this.GetObject<StructureComponent>().transform.rotation;
+                if (this.IsBasicDoor())
+                    return this.GetObject<BasicDoor>().transform.rotation;
+                if (this.IsLootableObject())
+                    return this.GetObject<LootableObject>().transform.rotation;
+                if (this.IsResourceTarget())
+                    return this.GetObject<ResourceTarget>().transform.rotation;
 
                 return new Quaternion(0, 0, 0, 0);
             }
@@ -656,7 +697,6 @@ namespace Fougerite
             {
                 return this.Location.y;
             }
-
         }
 
         /// <summary>

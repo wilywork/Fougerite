@@ -1623,6 +1623,23 @@ namespace Fougerite.Patcher
             iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
         }
 
+        private void SupplySignalExplosion()
+        {
+            TypeDefinition SignalGrenade = rustAssembly.MainModule.GetType("SignalGrenade");
+            MethodDefinition OnDone = SignalGrenade.GetMethod("OnDone");
+
+            MethodDefinition method = hooksClass.GetMethod("OnSupplySignalExplosion");
+
+            ILProcessor iLProcessor = OnDone.Body.GetILProcessor();
+            iLProcessor.Body.Instructions.Clear();
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(method)));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+        }
+        
+        // uLink Class56.method_36 has been patched here: https://i.imgur.com/WIEQXhX.png
+        // I modified using dynspy to avoid the struggle.
+
         public bool FirstPass()
         {
             try
@@ -1751,6 +1768,7 @@ namespace Fougerite.Patcher
                     this.GenericSpawnerPatch();
                     this.ServerLoadedPatch();
                     this.BeltPatch();
+                    this.SupplySignalExplosion();
                 }
                 catch (Exception ex)
                 {

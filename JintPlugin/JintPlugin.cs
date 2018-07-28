@@ -308,6 +308,9 @@ namespace JintModule
                 case "On_ServerLoaded":
                     Hooks.OnServerLoaded += OnServerLoaded;
                     break;
+                case "On_SupplySignalExploded":
+                    Hooks.OnSupplySignalExpode += OnSupplySignalExploded;
+                    break;
                 }
             }
         }
@@ -453,6 +456,9 @@ namespace JintModule
                     break;
                 case "On_ServerLoaded":
                     Hooks.OnServerLoaded -= OnServerLoaded;
+                    break;
+                case "On_SupplySignalExploded":
+                    Hooks.OnSupplySignalExpode -= OnSupplySignalExploded;
                     break;
                 }
             }
@@ -957,6 +963,11 @@ namespace JintModule
         public void OnServerLoaded()
         {
             this.Invoke("On_ServerLoaded");
+        }
+        
+        public void OnSupplySignalExploded(SupplySignalExplosionEvent evt)
+        {
+            this.Invoke("On_SupplySignalExploded", evt);
         }
 
         public void OnPluginShutdown()
