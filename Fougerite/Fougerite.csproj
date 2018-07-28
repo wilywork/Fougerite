@@ -53,6 +53,7 @@
     <Compile Include="Fougerite\Events\RepairEvent.cs" />
     <Compile Include="Fougerite\Events\ShootEvent.cs" />
     <Compile Include="Fougerite\Events\ShotgunShootEvent.cs" />
+    <Compile Include="Fougerite\Events\SupplySignalExplosionEvent.cs" />
     <Compile Include="Fougerite\Flood.cs" />
     <Compile Include="Fougerite\JsonAPI.cs" />
     <Compile Include="Fougerite\Loom.cs" />

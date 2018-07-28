@@ -25,7 +25,7 @@
         }
         public override Version Version
         {
-            get { return new Version("1.1.8.0"); }
+            get { return new Version("1.1.8.1"); }
         }
 
         public static string GetAbsoluteFilePath(string fileName)
@@ -91,6 +91,7 @@
             Fougerite.Hooks.OnChatRaw += ChatReceived;
             Fougerite.Hooks.OnChat += Chat;
             Fougerite.Hooks.OnFallDamage += OnFallDamage;
+            Fougerite.Hooks.OnServerSaved += OnServerSaved;
             Server.GetServer().LookForRustPP();
         }
 
@@ -109,8 +110,14 @@
             Fougerite.Hooks.OnChatRaw -= ChatReceived;
             Fougerite.Hooks.OnChat -= Chat;
             Fougerite.Hooks.OnFallDamage -= OnFallDamage;
+            Fougerite.Hooks.OnServerSaved -= OnServerSaved;
             TimedEvents.timer.Stop();
             Logger.LogDebug("DeInitialized RPP");
+        }
+
+        void OnServerSaved()
+        {
+            Helper.CreateSaves();
         }
 
         void TimeEvent(object x, ElapsedEventArgs y)

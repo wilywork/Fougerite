@@ -321,10 +321,60 @@
             return this.Spawn(prefab, new Vector3(x, y, z), 1);
         }
 
+        public Entity SpawnEntity(string prefab, Vector3 location, Quaternion rotation, int rep = 1)
+        {
+            Entity obj2 = null;
+            prefab = prefab.Trim();
+            try 
+            {
+                for (int i = 0; i < rep; i++)
+                {
+                    GameObject obj3 = NetCull.InstantiateStatic(prefab, location, rotation);
+                    StructureComponent build = obj3.GetComponent<StructureComponent>();
+                    if (build != null)
+                    {
+                        
+                        obj2 = new Entity(build);
+                    } 
+                    else if (obj3.GetComponent<LootableObject>())
+                    {
+                        obj2 = new Entity(obj3.GetComponent<LootableObject>());
+                    }
+                    else if (obj3.GetComponent<SupplyCrate>())
+                    {
+                        obj2 = new Entity(obj3.GetComponent<SupplyCrate>());
+                    }
+                    else if (obj3.GetComponent<ResourceTarget>())
+                    {
+                        obj2 = new Entity(obj3.GetComponent<ResourceTarget>());
+                    }
+                    else
+                    {
+                        DeployableObject obj4 = obj3.GetComponent<DeployableObject>();
+                        if (obj4 != null)
+                        {
+                            obj4.ownerID = 0L;
+                            obj4.creatorID = 0L;
+                            obj4.CacheCreator();
+                            obj4.CreatorSet();
+                            obj2 = new Entity(obj4);
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError("SpawnEntity error: " + e.ToString());
+            }
+            return obj2;
+        }
+
         private object Spawn(string prefab, Vector3 location, Quaternion rotation, int rep)
         {
+            prefab = prefab.Trim();
             object obj2 = null;
-            try { 
+            try 
+            {
                 for (int i = 0; i < rep; i++)
                 {
                     if (prefab == ":player_soldier")
@@ -373,7 +423,7 @@
             }
             catch (Exception e)
             {
-                Logger.LogDebug("Spawn Method error: " + e.ToString());
+                Logger.LogError("Spawn error: " + e.ToString());
             }
             return obj2;
         }

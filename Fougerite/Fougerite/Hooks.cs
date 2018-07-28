@@ -233,6 +233,10 @@ namespace Fougerite
         /// This delegate runs when the server finished loading.
         /// </summary>
         public static event ServerLoadedDelegate OnServerLoaded;
+        /// <summary>
+        /// This delegate runs when a supply signal explodes at a position.
+        /// </summary>
+        public static event SupplySignalDelegate OnSupplySignalExpode;
 
         /// <summary>
         /// This value returns if the server is shutting down.
@@ -240,7 +244,7 @@ namespace Fougerite
         public static bool IsShuttingDown
         {
             get;
-            internal set;
+            set;
         }
 
         public static readonly List<ulong> uLinkDCCache = new List<ulong>(); 
@@ -516,8 +520,7 @@ namespace Fougerite
             }
             else if (a.Class.Equals("fougerite", ic) && a.Function.Equals("save", ic))
             {
-                AvatarSaveProc.SaveAll();
-                ServerSaveManager.AutoSave();
+                World.GetWorld().ServerSaveHandler.ManualBackGroundSave();
                 if (Fougerite.Server.GetServer().HasRustPP)
                 {
                     Fougerite.Server.GetServer().GetRustPPAPI().RustPPSave();
@@ -1002,14 +1005,7 @@ namespace Fougerite
                 return false;
             }
             
-            if (sw != null)
-            {
-                sw.Stop();
-                if (sw.Elapsed.TotalSeconds > 0)
-                    Logger.LogSpeed("ItemPickupEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
-            }
-            
-            ItemPickupEvent ipe = new ItemPickupEvent(controllable, item, local);
+            ItemPickupEvent ipe = new ItemPickupEvent(controllable, item, local, Inventory.AddExistingItemResult.BadItemArgument, PickupEventType.Before);
             try
             {
                 if (OnItemPickup != null)
@@ -1024,10 +1020,17 @@ namespace Fougerite
 
             if (ipe.Cancelled)
             {
+                if (sw != null)
+                {
+                    sw.Stop();
+                    if (sw.Elapsed.TotalSeconds > 0)
+                        Logger.LogSpeed("ItemPickupEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
+                }
                 return false;
             }
 
             Inventory.AddExistingItemResult result = local.AddExistingItem(item, false);
+            ItemPickupEvent aftercall = new ItemPickupEvent(controllable, item, local, result, PickupEventType.After);
             switch (result)
             {
                 case Inventory.AddExistingItemResult.CompletlyStacked:
@@ -1039,20 +1042,70 @@ namespace Fougerite
 
                 case Inventory.AddExistingItemResult.PartiallyStacked:
                     pickup.UpdateItemInfo(item);
+                    try
+                    {
+                        if (OnItemPickup != null)
+                        {
+                            OnItemPickup(aftercall);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError("ItemPickupEvent Error: " + ex);
+                    }
                     return true;
 
                 case Inventory.AddExistingItemResult.Failed:
+                    try
+                    {
+                        if (OnItemPickup != null)
+                        {
+                            OnItemPickup(aftercall);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError("ItemPickupEvent Error: " + ex);
+                    }
                     return false;
 
                 case Inventory.AddExistingItemResult.BadItemArgument:
                     pickup.RemoveThis();
+                    try
+                    {
+                        if (OnItemPickup != null)
+                        {
+                            OnItemPickup(aftercall);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError("ItemPickupEvent Error: " + ex);
+                    }
                     return false;
 
                 default:
                     throw new NotImplementedException();
             }
+            if (sw != null)
+            {
+                sw.Stop();
+                if (sw.Elapsed.TotalSeconds > 0)
+                    Logger.LogSpeed("ItemPickupEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
+            }
 
             pickup.RemoveThis();
+            try
+            {
+                if (OnItemPickup != null)
+                {
+                    OnItemPickup(aftercall);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("ItemPickupEvent Error: " + ex);
+            }
             return true;
         }
 
@@ -3129,6 +3182,32 @@ namespace Fougerite
                 Logger.LogError("[DoBeltUse Error] " + ex);
             }
         }
+
+        public static void OnSupplySignalExplosion(SignalGrenade grenade)
+        {
+            Vector3 randompos = grenade.rigidbody.position +
+                                new Vector3(UnityEngine.Random.Range((float) -20f, (float) 20f), 75f,
+                                    UnityEngine.Random.Range((float) -20f, (float) 20f));
+            SupplySignalExplosionEvent sg = new SupplySignalExplosionEvent(grenade, randompos);
+
+            try
+            {
+                if (OnSupplySignalExpode != null)
+                {
+                    OnSupplySignalExpode(sg);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("[SupplySignalExplosion Error] " + ex);
+            }
+          
+            if (sg.Cancelled)
+            {
+                return;
+            }
+            SupplyDropZone.CallAirDropAt(randompos);
+        }
         
         public static void ResetHooks()
         {
@@ -3287,6 +3366,9 @@ namespace Fougerite
             {
             };
             OnServerLoaded = delegate ()
+            {
+            };
+            OnSupplySignalExpode = delegate (SupplySignalExplosionEvent param0)
             {
             };
             foreach (Fougerite.Player player in Fougerite.Server.GetServer().Players)
@@ -3489,6 +3571,7 @@ namespace Fougerite
         public delegate void ItemMoveEventDelegate(ItemMoveEvent itemMoveEvent);
         public delegate void GenericSpawnerLoadDelegate(GenericSpawner genericSpawner);
         public delegate void ServerLoadedDelegate();
+        public delegate void SupplySignalDelegate(SupplySignalExplosionEvent supplySignalExplosionEvent);
 
         //public delegate void AirdropCrateDroppedDelegate(GameObject go);
     }

@@ -161,6 +161,7 @@ namespace MagmaModule
                     case "On_ItemMove": Hooks.OnItemMove += OnItemMove; break;
                     case "On_GenericSpawnLoad": Hooks.OnGenericSpawnerLoad += OnGenericSpawnLoad; break;
                     case "On_ServerLoaded": Hooks.OnServerLoaded += OnServerLoaded; break;
+                    case "On_SupplySignalExploded": Hooks.OnSupplySignalExpode += OnSupplySignalExploded; break;
                 }
             }
         }
@@ -225,6 +226,7 @@ namespace MagmaModule
                     case "On_ItemMove": Hooks.OnItemMove -= OnItemMove; break;
                     case "On_GenericSpawnLoad": Hooks.OnGenericSpawnerLoad -= OnGenericSpawnLoad; break;
                     case "On_ServerLoaded": Hooks.OnServerLoaded -= OnServerLoaded; break;
+                    case "On_SupplySignalExploded": Hooks.OnSupplySignalExpode -= OnSupplySignalExploded; break;
                 }
             }
         }
@@ -711,6 +713,11 @@ namespace MagmaModule
         public void OnServerLoaded()
         {
             Invoke("On_ServerLoaded");
+        }
+        
+        public void OnSupplySignalExploded(SupplySignalExplosionEvent evt)
+        {
+            this.Invoke("On_SupplySignalExploded", evt);
         }
 
         public void OnTimerCBArgs(string name, object[] args)

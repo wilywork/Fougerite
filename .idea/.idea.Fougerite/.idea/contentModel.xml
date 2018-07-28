@@ -40,6 +40,7 @@
             <e p="ShotgunShootEvent.cs" t="Include" />
             <e p="SpawnEvent.cs" t="Include" />
             <e p="SteamDenyEvent.cs" t="Include" />
+            <e p="SupplySignalExplosionEvent.cs" t="Include" />
             <e p="TimedEvent.cs" t="Include" />
           </e>
           <e p="FInventory.cs" t="Include" />
@@ -426,14 +427,6 @@
           <e p="FriendList.cs" t="Include" />
         </e>
         <e p="TimedEvents.cs" t="Include" />
-      </e>
-      <e p="ServerTests" t="IncludeRecursive">
-        <e p="obj" t="ExcludeRecursive" />
-        <e p="Properties" t="Include">
-          <e p="AssemblyInfo.cs" t="Include" />
-        </e>
-        <e p="ServerTests.cs" t="Include" />
-        <e p="ServerTests.csproj" t="IncludeRecursive" />
       </e>
     </e>
   </component>

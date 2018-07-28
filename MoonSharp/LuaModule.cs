@@ -277,6 +277,7 @@ namespace MoonSharpModule
                     case "On_ItemMove": Hooks.OnItemMove += new Hooks.ItemMoveEventDelegate(plugin.OnItemMove); break;
                     case "On_GenericSpawnLoad": Hooks.OnGenericSpawnerLoad += new Hooks.GenericSpawnerLoadDelegate(plugin.OnGenericSpawnLoad); break;
                     case "On_ServerLoaded": Hooks.OnServerLoaded += new Hooks.ServerLoadedDelegate(plugin.OnServerLoaded); break;
+                    case "On_SupplySignalExploded": Hooks.OnSupplySignalExpode += new Hooks.SupplySignalDelegate(plugin.OnSupplySignalExploded); break;
                 }
             }
         }
@@ -334,6 +335,7 @@ namespace MoonSharpModule
                     case "On_ItemMove": Hooks.OnItemMove -= new Hooks.ItemMoveEventDelegate(plugin.OnItemMove); break;
                     case "On_GenericSpawnLoad": Hooks.OnGenericSpawnerLoad -= new Hooks.GenericSpawnerLoadDelegate(plugin.OnGenericSpawnLoad); break;
                     case "On_ServerLoaded": Hooks.OnServerLoaded -= new Hooks.ServerLoadedDelegate(plugin.OnServerLoaded); break;
+                    case "On_SupplySignalExploded": Hooks.OnSupplySignalExpode -= new Hooks.SupplySignalDelegate(plugin.OnSupplySignalExploded); break;
                 }
             }
         }
