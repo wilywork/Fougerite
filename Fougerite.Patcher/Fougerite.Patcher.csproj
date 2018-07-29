@@ -43,11 +43,6 @@
     <Compile Include="Fougerite.Patcher\FieldDefinitionExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Mono.Cecil">
-      <HintPath>..\References\Mono.Cecil.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
       <Visible>False</Visible>
       <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
@@ -61,5 +56,10 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="g3115-6.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Mono.Cecil, Version=0.9.5.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756">
+      <HintPath>PatcherReferences\Mono.Cecil.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

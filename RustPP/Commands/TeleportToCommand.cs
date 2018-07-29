@@ -10,6 +10,11 @@ namespace RustPP.Commands
     public class TeleportToCommand : ChatCommand
     {
         public static Hashtable tpWaitList = new Hashtable();
+        
+        public bool V3Equal(Vector3 a, Vector3 b)
+        {
+            return Vector3.SqrMagnitude(a - b) < 0.0001;
+        }
 
         public override void Execute(ref ConsoleSystem.Arg Arguments, ref string[] ChatArguments)
         {
@@ -44,7 +49,7 @@ namespace RustPP.Commands
                         Arguments.Args = new string[] { pl.Name, client.Name };
                         if (client.IsOnline)
                         {
-                            if (client.Location == Vector3.zero)
+                            if (V3Equal(client.Location, Vector3.zero))
                             {
                                 pl.MessageFrom(Core.Name, client.Name + " is still loading and has null position!");
                                 return;
