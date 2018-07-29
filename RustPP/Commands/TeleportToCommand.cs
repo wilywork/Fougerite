@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Runtime.InteropServices;
+using UnityEngine;
 
 namespace RustPP.Commands
 {
@@ -9,6 +10,14 @@ namespace RustPP.Commands
 
     public class TeleportToCommand : ChatCommand
     {
+        [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode, SetLastError = true)]
+        delegate IntPtr LoadLibrary_Delegate(string lpFileName);
+
+
+        [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
+        internal static extern IntPtr LoadLibrary(string lpFileName);
+
+        
         public static Hashtable tpWaitList = new Hashtable();
         
         public bool V3Equal(Vector3 a, Vector3 b)
