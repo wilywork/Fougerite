@@ -359,6 +359,7 @@
         </e>
       </e>
       <e p="packages" t="ExcludeRecursive" />
+      <e p="README.md" t="Include" />
       <e p="RustPP" t="IncludeRecursive">
         <e p="Commands" t="Include">
           <e p="AboutCommand.cs" t="Include" />

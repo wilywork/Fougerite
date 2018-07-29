@@ -40,39 +40,28 @@
     <Compile Include="Data.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Fougerite\Fougerite.csproj">
-      <Project>{BD30E9D1-3322-48A4-B846-A969E32DC3F3}</Project>
-      <Name>Fougerite</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>..\References\Assembly-CSharp.dll</HintPath>
-      <Private>False</Private>
+    <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\Fougerite\References\PatchedRustDlls\Assembly-CSharp.dll</HintPath>
     </Reference>
-    <Reference Include="Facepunch.ID">
-      <HintPath>..\References\Facepunch.ID.dll</HintPath>
-      <Private>False</Private>
+    <Reference Include="Facepunch.MeshBatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\Fougerite\References\PatchedRustDlls\Facepunch.MeshBatch.dll</HintPath>
     </Reference>
-    <Reference Include="Google.ProtocolBuffers">
-      <HintPath>..\References\Google.ProtocolBuffers.dll</HintPath>
-      <Private>False</Private>
+    <Reference Include="Fougerite, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\bin\Fougerite.dll</HintPath>
+    </Reference>
+    <Reference Include="Jint, Version=0.9.3.0, Culture=neutral, PublicKeyToken=973cde3f1cafed03">
+      <HintPath>..\Fougerite\References\FougeriteExtraReferences\Jint.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
       <HintPath>..\References\System.Core.dll</HintPath>
     </Reference>
-    <Reference Include="uLink">
-      <HintPath>..\References\uLink.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine">
-      <HintPath>..\References\UnityEngine.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="System.Xml" />
-    <Reference Include="Jint">
-      <HintPath>References\Jint.dll</HintPath>
+    <Reference Include="uLink, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\Fougerite\References\PatchedRustDlls\uLink.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\Fougerite\References\OriginalRustDLLs\UnityEngine.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

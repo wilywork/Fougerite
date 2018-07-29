@@ -29,26 +29,27 @@
     <ConsolePause>false</ConsolePause>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Fougerite, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\..\Fougerite\References\PatchedRustDlls\Assembly-CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Facepunch.ID, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\..\Fougerite\References\OriginalRustDLLs\Facepunch.ID.dll</HintPath>
+    </Reference>
+    <Reference Include="Facepunch.MeshBatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\..\Fougerite\References\PatchedRustDlls\Facepunch.MeshBatch.dll</HintPath>
+    </Reference>
+    <Reference Include="Fougerite, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\..\bin\Fougerite.dll</HintPath>
     </Reference>
-    <Reference Include="IronPython.Deps, Version=2.7.0.40, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>ref\IronPython.Deps.dll</HintPath>
+    <Reference Include="IronPython.Deps, Version=2.7.0.40, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\..\Fougerite\References\FougeriteExtraReferences\IronPython.Deps.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="Assembly-CSharp">
-      <HintPath>ref\Assembly-CSharp.dll</HintPath>
+    <Reference Include="uLink, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\..\Fougerite\References\PatchedRustDlls\uLink.dll</HintPath>
     </Reference>
-    <Reference Include="Facepunch.ID">
-      <HintPath>ref\Facepunch.ID.dll</HintPath>
-    </Reference>
-    <Reference Include="uLink">
-      <HintPath>ref\uLink.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine">
-      <HintPath>ref\UnityEngine.dll</HintPath>
+    <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\..\Fougerite\References\OriginalRustDLLs\UnityEngine.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

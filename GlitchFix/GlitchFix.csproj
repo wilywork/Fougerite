@@ -38,29 +38,33 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Fougerite\Fougerite.csproj">
-      <Project>{BD30E9D1-3322-48A4-B846-A969E32DC3F3}</Project>
-      <Name>Fougerite</Name>
-      <Private>False</Private>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>..\bin\Assembly-CSharp.dll</HintPath>
+    <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\Fougerite\References\PatchedRustDlls\Assembly-CSharp.dll</HintPath>
     </Reference>
-    <Reference Include="Facepunch.HitBox">
-      <HintPath>..\References\Facepunch.HitBox.dll</HintPath>
+    <Reference Include="Assembly-UnityScript-firstpass, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\Fougerite\References\OriginalRustDLLs\Assembly-UnityScript-firstpass.dll</HintPath>
     </Reference>
-    <Reference Include="Facepunch.MeshBatch">
-      <HintPath>..\References\Facepunch.MeshBatch.dll</HintPath>
+    <Reference Include="Facepunch.HitBox, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\Fougerite\References\OriginalRustDLLs\Facepunch.HitBox.dll</HintPath>
+    </Reference>
+    <Reference Include="Facepunch.ID, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\Fougerite\References\OriginalRustDLLs\Facepunch.ID.dll</HintPath>
+    </Reference>
+    <Reference Include="Facepunch.MeshBatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\Fougerite\References\PatchedRustDlls\Facepunch.MeshBatch.dll</HintPath>
+    </Reference>
+    <Reference Include="Facepunch.Utility, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\Fougerite\References\OriginalRustDLLs\Facepunch.Utility.dll</HintPath>
+    </Reference>
+    <Reference Include="Fougerite, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\bin\Fougerite.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="UnityEngine">
-      <HintPath>..\References\UnityEngine.dll</HintPath>
-      <Private>False</Private>
+    <Reference Include="uLink, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\Fougerite\References\PatchedRustDlls\uLink.dll</HintPath>
     </Reference>
-    <Reference Include="Facepunch.ID">
-      <HintPath>..\References\Facepunch.ID.dll</HintPath>
+    <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\Fougerite\References\OriginalRustDLLs\UnityEngine.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
