@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
+using System.Reflection;
 
 namespace Fougerite.Patcher
 {
@@ -15,6 +15,8 @@ namespace Fougerite.Patcher
 
             Environment.CurrentDirectory = Path.GetFullPath(CommandLine.GetSwitch(new[] { "dir", "d", "cd", "current-directory" },
                 Environment.CurrentDirectory));
+
+            AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolve;
 
             Logger.Clear();
 
@@ -102,5 +104,7 @@ namespace Fougerite.Patcher
                 Console.ReadKey(true);
             }
         }
+
+        private static Assembly AssemblyResolve(object sender, ResolveEventArgs e) => Assembly.LoadFile(Environment.CurrentDirectory);
     }
 }
