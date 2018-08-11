@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 
 namespace Fougerite.Patcher
@@ -105,6 +106,21 @@ namespace Fougerite.Patcher
             }
         }
 
-        private static Assembly AssemblyResolve(object sender, ResolveEventArgs e) => Assembly.LoadFile(Environment.CurrentDirectory);
+        private static readonly string[] WhitelistedAssemblies = new[] {"Mono.Cecil"};
+
+        private static Assembly AssemblyResolve(object sender, ResolveEventArgs e)
+        {
+            var an = new AssemblyName(e.Name);
+
+            if (!WhitelistedAssemblies.Contains(an.Name))
+            {
+                return null;
+            }
+
+            var fp = Path.Combine(Environment.CurrentDirectory, $"{an.Name}.dll");
+
+
+            return File.Exists(fp) ? Assembly.LoadFile(fp) : null;
+        }
     }
 }
