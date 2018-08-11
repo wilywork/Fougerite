@@ -229,3 +229,11 @@ $RECYCLE.BIN/
 *.csproj
 *.csproj
 Fougerite/Fougerite.csproj
+/.vs/Fougerite/DesignTimeBuild/.dtbcache
+/.vs/Fougerite/v15/Server/sqlite3/storage.ide-shm
+/.vs/Fougerite/v15/Server/sqlite3/storage.ide-wal
+/.vs/ProjectSettings.json
+/.vs/slnx.sqlite
+/.vs/VSWorkspaceState.json
+/Fougerite/packages.config
+/Fougerite.Patcher/packages.config
