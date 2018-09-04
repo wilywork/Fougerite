@@ -108,8 +108,8 @@ namespace Fougerite.Patcher
             //MethodDefinition method_124 = Class46.GetMethod("method_124");
             
             //TODO: Removing most of the try catches from ulink for now.
-            //MethodDefinition update = type.GetMethod("LateUpdate");
-            //TypeDefinition logger = fougeriteAssembly.MainModule.GetType("Fougerite.Logger");
+            MethodDefinition update = type.GetMethod("LateUpdate");
+            TypeDefinition logger = fougeriteAssembly.MainModule.GetType("Fougerite.Logger");
 
             method_277.IsPublic = true;
             method_270.IsPublic = true;
@@ -134,7 +134,7 @@ namespace Fougerite.Patcher
             method_275.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
 
             //TODO: Removing most of the try catches from ulink for now.
-            /*TypeDefinition Network = ulink.MainModule.GetType("uLink.Network");
+            TypeDefinition Network = ulink.MainModule.GetType("uLink.Network");
             IEnumerable<MethodDefinition> CloseConnections = Network.GetMethods();
             MethodDefinition logex = logger.GetMethod("LogException");
             
@@ -155,7 +155,7 @@ namespace Fougerite.Patcher
             foreach (var x in CloseConnections.Where(x => x.Name == "CloseConnection"))
             {
                 WrapMethod(x, logex, ulink, false);
-            }*/
+            }
             
             
             /*List<Instruction> ls = method_124.Body.Instructions.Where(x => x.ToString().Contains("ArgumentOutOfRangeException") || x.ToString().Contains("throw")).ToList();
@@ -762,7 +762,15 @@ namespace Fougerite.Patcher
         {
             TypeDefinition HumanController = rustAssembly.MainModule.GetType("HumanController");
             MethodDefinition method = hooksClass.GetMethod("ClientMove");
+            MethodDefinition ProcessGetClientMove = hooksClass.GetMethod("ProcessGetClientMove");
             MethodDefinition GetClientMove = HumanController.GetMethod("GetClientMove");
+            
+            HumanController.GetField("clockTest").SetPublic(true);
+            HumanController.GetField("thatsRightPatWeDontNeedComments").SetPublic(true);
+            HumanController.GetField("serverLastTimestamp").SetPublic(true);
+            HumanController.GetField("clientMoveDropped").SetPublic(true);
+            HumanController.GetField("clockTest").SetPublic(true);
+
             
             this.CloneMethod(GetClientMove);
 
@@ -779,6 +787,7 @@ namespace Fougerite.Patcher
             MethodReference reference6 = this.rustAssembly.MainModule.Import(definition7.GetMethod("IsNaN"));
             MethodReference reference7 = this.rustAssembly.MainModule.Import(definition7.GetMethod("IsInfinity"));
             ILProcessor iLProcessor = GetClientMove.Body.GetILProcessor();
+            
             iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Ldarga_S, parameter));
             iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Ldfld, field));
             iLProcessor.InsertBefore(GetClientMove.Body.Instructions[num++], Instruction.Create(OpCodes.Call, reference6));
@@ -833,6 +842,12 @@ namespace Fougerite.Patcher
                 iLProcessor.InsertBefore(GetClientMove.Body.Instructions[32], Instruction.Create(OpCodes.Ldarg_S, p));
             }
             iLProcessor.InsertBefore(GetClientMove.Body.Instructions[32], Instruction.Create(OpCodes.Ldarg_0));
+            
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[0], Instruction.Create(OpCodes.Ret));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[0], Instruction.Create(OpCodes.Brtrue_S, GetClientMove.Body.Instructions[1]));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[0], Instruction.Create(OpCodes.Call, this.rustAssembly.MainModule.Import(ProcessGetClientMove)));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[0], Instruction.Create(OpCodes.Ldarg_S, GetClientMove.Parameters[GetClientMove.Parameters.Count - 1]));
+            iLProcessor.InsertBefore(GetClientMove.Body.Instructions[0], Instruction.Create(OpCodes.Ldarg_0));
 
             //TypeDefinition logger = fougeriteAssembly.MainModule.GetType("Fougerite.Logger");
             //MethodDefinition logex = logger.GetMethod("LogException");
@@ -1622,6 +1637,22 @@ namespace Fougerite.Patcher
             iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(method)));
             iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
         }
+        
+        private void TossPatch()
+        {
+            TypeDefinition InventoryHolder = rustAssembly.MainModule.GetType("InventoryHolder");
+            MethodDefinition TOSS = InventoryHolder.GetMethod("TOSS");
+
+            MethodDefinition method = hooksClass.GetMethod("TossBypass");
+
+            ILProcessor iLProcessor = TOSS.Body.GetILProcessor();
+            iLProcessor.Body.Instructions.Clear();
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(method)));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+        }
 
         private void SupplySignalExplosion()
         {
@@ -1769,6 +1800,7 @@ namespace Fougerite.Patcher
                     this.ServerLoadedPatch();
                     this.BeltPatch();
                     this.SupplySignalExplosion();
+                    this.TossPatch();
                 }
                 catch (Exception ex)
                 {

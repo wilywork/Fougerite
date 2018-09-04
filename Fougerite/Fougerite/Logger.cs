@@ -14,11 +14,13 @@ namespace Fougerite
 
         private static string LogsFolder = Path.Combine(Config.GetPublicFolder(), "Logs");
         private static StreamWriter SpeedLogWriter;
+        private static StreamWriter RPCLogWriter;
         private static Writer LogWriter;
         private static Writer ChatWriter;
         private static bool showDebug = false;
         private static bool showErrors = false;
         private static bool showException = false;
+        private static bool showRPC = false;
         internal static bool showSpeed = false;
 
         public static void Init()
@@ -29,16 +31,19 @@ namespace Fougerite
                 showErrors = Config.GetBoolValue("Logging", "error");
                 showException = Config.GetBoolValue("Logging", "exception");
                 showSpeed = Config.GetBoolValue("Logging", "speed");
+                showRPC = Config.GetBoolValue("Logging", "rpctracer");
+                Debug.Log(showRPC.ToString());
             }
             catch (Exception ex)
             {
-                Debug.LogException(ex);
+                Debug.LogError("Failed to parse logging values: " + ex);
             }
 
             try
             {
                 Directory.CreateDirectory(LogsFolder);
                 if (!File.Exists(Path.Combine(LogsFolder, "HookSpeed.log"))) { File.Create(Path.Combine(LogsFolder, "HookSpeed.log")).Dispose(); }
+                if (!File.Exists(Path.Combine(LogsFolder, "RPCTracer.log"))) { File.Create(Path.Combine(LogsFolder, "RPCTracer.log")).Dispose(); }
                 LogWriterInit();
                 ChatWriterInit();
             }
@@ -121,6 +126,16 @@ namespace Fougerite
             Debug.Log(Message, Context);
             Message = "[Console] " + Message;
             WriteLog(Message);
+        }
+        
+        public static void LogRPC(string Message)
+        {
+            if (!showRPC) { return;}
+            Message = "[RPC Debug] " + Message;
+            Message = "[" + DateTime.Now + "] " + Message;
+            RPCLogWriter = new System.IO.StreamWriter(Path.Combine(LogsFolder, "RPCTracer.log"), true);
+            RPCLogWriter.WriteLine(Message);
+            RPCLogWriter.Close();
         }
 
         public static void LogSpeed(string Message)
