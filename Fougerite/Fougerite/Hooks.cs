@@ -8,6 +8,7 @@ using System.Threading;
 using System.Timers;
 using Facepunch.Clocks.Counters;
 using Google.ProtocolBuffers.Serialization;
+using MoPhoGames.USpeak.Core.Utils;
 using Rust;
 using RustProto;
 using RustProto.Helpers;
@@ -1918,23 +1919,23 @@ namespace Fougerite
         
         public static bool ServerSaved()
         {
-            if (!IsShuttingDown)
+            if (!ServerSaveManager._loading && !IsShuttingDown)
             {
-                Logger.LogWarning("[Fougerite WorldSaver] Default Rust Save activated the saving method. Please set the time to maximum to avoid this.");
+                World.GetWorld().ServerSaveHandler.ManualSave();
             }
 
-            if (ServerSaveManager._loading)
+            /*if (ServerSaveManager._loading)
             {
                 return false;
             }
             string path = ServerSaveManager.autoSavePath;
             SaveAll(path);
             
-            OnServerSaveEvent();
+            OnServerSaveEvent();*/
             return true;
         }
 
-        internal static void SaveAll(string path)
+        /*internal static void SaveAll(string path)
         {
             if (ServerSaveHandler.ServerIsSaving)
             {
@@ -2053,7 +2054,7 @@ namespace Fougerite
                     }
                     ServerSaveHandler.ServerIsSaving = false;
                 }
-        }
+        }*/
 
         public static bool ItemRemoved(Inventory inv, int slot, InventoryItem match, bool mustMatch)
         {
@@ -2467,6 +2468,15 @@ namespace Fougerite
             ca.m_Connections.Add(clientConnection);
             ca.StartCoroutine(clientConnection.AuthorisationRoutine(approval));
             approval.Wait();
+        }
+
+        public static bool ProcessGetClientMove(HumanController hc, uLink.NetworkMessageInfo info)
+        {
+            if (info.sender != hc.networkView.owner)
+            {
+                return false;
+            }
+            return true;
         }
 
         public static void ClientMove(HumanController hc, Vector3 origin, int encoded, ushort stateFlags, uLink.NetworkMessageInfo info)
@@ -3380,8 +3390,7 @@ namespace Fougerite
         public static void ServerShutdown()
         {
             IsShuttingDown = true;
-            DataStore.GetInstance().Save();
-            //ServerSaveManager.AutoSave();
+            World.GetWorld().ServerSaveHandler.ManualSave();
             try
             {
                 if (OnServerShutdown != null)
@@ -3453,6 +3462,31 @@ namespace Fougerite
                 Array.Clear(data, 0, data.Length);
                 return false;
             }
+
+            for (uint i = 0; i < data.Length;)
+            {
+                try
+                {
+                    uint conversion = (uint) BitConverter.ToInt32(data, (int) i);
+                    if (conversion > 2350)
+                    {
+                        Logger.LogWarning(
+                            "[VoiceByteOverflown] Received a huge amount of byte, clearing. " + conversion);
+                        Array.Clear(data, 0, data.Length);
+                        return false;
+                    }
+
+                    i += conversion + 6;
+                }
+                catch
+                {
+                    Logger.LogDebug(
+                        "[VoiceByteOverflown] Seems like an error occured while reading the voice bytes. Someone is trying to send false packets?");
+                    Array.Clear(data, 0, data.Length);
+                    return false;
+                }
+            }
+            
             return true;
         }
 
@@ -3506,6 +3540,36 @@ namespace Fougerite
             if (sw == null) return;
             sw.Stop();
             if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("ModulesLoadedEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
+        }
+        
+        public static void TossBypass(InventoryHolder holder, uLink.BitStream stream, uLink.NetworkMessageInfo info)
+        {
+            if (info == null || info.sender == null)
+            {
+                return;
+            }
+            Inventory inventory = holder.inventory;
+            Facepunch.NetworkView networkView = holder.networkView;
+            
+            if (networkView.owner != info.networkView.owner)
+            {
+                return;
+            }
+            if (networkView.owner != info.sender)
+            {
+                return;
+            }
+
+            int data;
+            try
+            {
+                data = (int) Inventory.RPCInteger(stream);
+            }
+            catch
+            {
+                return;
+            }
+            DropHelper.DropItem(inventory, data);
         }
 
         public static Dictionary<string, LootSpawnList> TablesLoaded(Dictionary<string, LootSpawnList> lists)
