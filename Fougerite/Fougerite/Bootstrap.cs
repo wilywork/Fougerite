@@ -39,8 +39,8 @@ namespace Fougerite
         {
             try
             {
-                Bootstrap bootstrap = new Bootstrap();
-                new GameObject(bootstrap.GetType().FullName).AddComponent(bootstrap.GetType());
+                var type = typeof(Bootstrap);
+                new GameObject(type.FullName).AddComponent(type);
                 Debug.Log(string.Format("<><[ Fougerite v{0} ]><>", Version));
             }
             catch (Exception ex)
