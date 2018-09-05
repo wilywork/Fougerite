@@ -521,25 +521,41 @@ namespace Fougerite
             }
             else if (a.Class.Equals("fougerite", ic) && a.Function.Equals("save", ic))
             {
-                World.GetWorld().ServerSaveHandler.ManualBackGroundSave();
-                if (Fougerite.Server.GetServer().HasRustPP)
+                if (adminRights)
                 {
-                    Fougerite.Server.GetServer().GetRustPPAPI().RustPPSave();
+                    World.GetWorld().ServerSaveHandler.ManualSave();
+                    if (Fougerite.Server.GetServer().HasRustPP)
+                    {
+                        Fougerite.Server.GetServer().GetRustPPAPI().RustPPSave();
+                    }
+
+                    a.ReplyWith("Fougerite: Saved!");
                 }
-                a.ReplyWith("Fougerite: Saved!");
             }
             else if (a.Class.Equals("fougerite", ic) && a.Function.Equals("rustpp", ic))
             {
-                foreach (var module in Fougerite.ModuleManager.Modules)
+                if (adminRights)
                 {
-                    if (module.Plugin.Name.Equals("RustPPModule"))
+                    foreach (var module in Fougerite.ModuleManager.Modules)
                     {
-                        module.DeInitialize();
-                        module.Initialize();
-                        break;
+                        if (module.Plugin.Name.Equals("RustPPModule"))
+                        {
+                            module.DeInitialize();
+                            module.Initialize();
+                            break;
+                        }
                     }
+
+                    a.ReplyWith("Rust++ Reloaded!");
                 }
-                a.ReplyWith("Rust++ Reloaded!");
+            }
+            else if (a.Class.Equals("fougerite", ic) && a.Function.Equals("rpctracer", ic))
+            {
+                if (adminRights)
+                {
+                    Logger.showRPC = !Logger.showRPC;
+                    a.ReplyWith("Toggled rpctracer to:" + Logger.showRPC);
+                }
             }
             else if (OnConsoleReceived != null)
             {

@@ -20,7 +20,7 @@ namespace Fougerite
         private static bool showDebug = false;
         private static bool showErrors = false;
         private static bool showException = false;
-        private static bool showRPC = false;
+        internal static bool showRPC = false;
         internal static bool showSpeed = false;
 
         public static void Init()
