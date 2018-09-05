@@ -375,7 +375,7 @@ namespace Fougerite
         /// </summary>
         public void Save()
         {
-            World.GetWorld().ServerSaveHandler.ManualBackGroundSave();
+            World.GetWorld().ServerSaveHandler.ManualSave();
         }
 
         /// <summary>
