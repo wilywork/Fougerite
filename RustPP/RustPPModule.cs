@@ -115,7 +115,7 @@
             Logger.LogDebug("DeInitialized RPP");
         }
 
-        void OnServerSaved()
+        void OnServerSaved(int amount, double seconds)
         {
             Helper.CreateSaves();
         }

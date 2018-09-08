@@ -523,12 +523,15 @@ namespace Fougerite
             {
                 if (adminRights)
                 {
+                    World.GetWorld().ServerSaveHandler.ManualBackGroundSave();
+                    a.ReplyWith("Fougerite: Saved!");
+                }
+            }
+            else if (a.Class.Equals("fougerite", ic) && a.Function.Equals("urgentsave", ic))
+            {
+                if (adminRights)
+                {
                     World.GetWorld().ServerSaveHandler.ManualSave();
-                    if (Fougerite.Server.GetServer().HasRustPP)
-                    {
-                        Fougerite.Server.GetServer().GetRustPPAPI().RustPPSave();
-                    }
-
                     a.ReplyWith("Fougerite: Saved!");
                 }
             }
@@ -1918,13 +1921,13 @@ namespace Fougerite
             if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("GrenadeEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
-        public static void OnServerSaveEvent()
+        public static void OnServerSaveEvent(int amount, double seconds)
         {
             try
             {
                 if (Hooks.OnServerSaved != null)
                 {
-                    Hooks.OnServerSaved();
+                    Hooks.OnServerSaved(amount, seconds);
                 }
             }
             catch (Exception ex)
@@ -3638,7 +3641,7 @@ namespace Fougerite
         public delegate void PlayerApprovalDelegate(PlayerApprovalEvent e);
         public delegate void PlayerMoveDelegate(HumanController hc, Vector3 origin, int encoded, ushort stateFlags, uLink.NetworkMessageInfo info, Util.PlayerActions action);
         public delegate void ResearchDelegate(ResearchEvent re);
-        public delegate void ServerSavedDelegate();
+        public delegate void ServerSavedDelegate(int Amount, double Seconds);
         public delegate void ItemPickupDelegate(ItemPickupEvent itemPickupEvent);
         public delegate void FallDamageDelegate(FallDamageEvent fallDamageEvent);
         public delegate void LootEnterDelegate(LootStartEvent lootStartEvent);
