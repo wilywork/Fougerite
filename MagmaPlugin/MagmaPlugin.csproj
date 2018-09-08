@@ -43,6 +43,9 @@
     <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\Fougerite\References\PatchedRustDlls\Assembly-CSharp.dll</HintPath>
     </Reference>
+    <Reference Include="Facepunch.ID, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\Fougerite\References\OriginalRustDLLs\Facepunch.ID.dll</HintPath>
+    </Reference>
     <Reference Include="Facepunch.MeshBatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\Fougerite\References\PatchedRustDlls\Facepunch.MeshBatch.dll</HintPath>
     </Reference>

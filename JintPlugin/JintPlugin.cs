@@ -915,9 +915,9 @@ namespace JintModule
             Invoke("On_ServerShutdown");
         }
 
-        public void OnServerSaved()
+        public void OnServerSaved(int amount, double seconds)
         {
-            Invoke("On_ServerSaved");
+            Invoke("On_ServerSaved", amount, seconds);
         }
 
         public void OnTablesLoaded(Dictionary<string, LootSpawnList> lists)

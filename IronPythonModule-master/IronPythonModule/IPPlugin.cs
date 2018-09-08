@@ -438,9 +438,9 @@ namespace IronPythonModule {
 			this.Invoke("On_ServerShutdown", new object[0]);
 		}
 
-	    public void OnServerSaved()
+	    public void OnServerSaved(int amount, double seconds)
 	    {
-            this.Invoke("On_ServerSaved", new object[0]);
+            this.Invoke("On_ServerSaved", new object[] {amount, seconds});
         }
 
         public void OnCrafting(CraftingEvent e)
