@@ -14,6 +14,7 @@ namespace Fougerite.Patcher
         private AssemblyDefinition unityAssembly = null;
         private AssemblyDefinition mscorlib = null;
         private TypeDefinition hooksClass = null;
+        private TypeDefinition SaveHandlerClass = null;
 
         public ILPatcher()
         {
@@ -1381,6 +1382,8 @@ namespace Fougerite.Patcher
 
             type.GetField("_loadedOnce").SetPublic(true);
             type.GetField("_loading").SetPublic(true);
+            type.GetField("keys").SetPublic(true);
+            type.GetField("values").SetPublic(true);
             type.GetMethod("DateTimeFileString").SetPublic(true);
             type.GetMethod("Get").SetPublic(true);
             type.GetMethod("DoSave").SetPublic(true);
@@ -1399,6 +1402,13 @@ namespace Fougerite.Patcher
             iLProcessor2.Body.Instructions.Clear();
             iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, this.rustAssembly.MainModule.Import(GlobalQuit)));
             iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+            
+            TypeDefinition Instances = type.GetNestedType("Instances");
+            Instances.IsPublic = true;
+            
+            TypeDefinition ServerSave = rustAssembly.MainModule.GetType("ServerSave");
+            ServerSave.GetNestedType("Reged").IsPublic = true;
+            ServerSave.GetProperty("REGED").GetMethod.SetPublic(true);
 
             //MethodDefinition ActualAutoSave = hooksClass.GetMethod("ActualAutoSave");
             //ILProcessor iLProcessor3 = type.GetMethod("Save").Body.GetILProcessor();
@@ -1739,6 +1749,7 @@ namespace Fougerite.Patcher
                 unityAssembly = AssemblyDefinition.ReadAssembly("UnityEngine.dll");
                 mscorlib = AssemblyDefinition.ReadAssembly("mscorlib.dll");
                 hooksClass = fougeriteAssembly.MainModule.GetType("Fougerite.Hooks");
+                SaveHandlerClass = fougeriteAssembly.MainModule.GetType("Fougerite.ServerSaveHandler");
 
 
                 if (rustAssembly.MainModule.GetType("Fougerite_Patched_SecondPass") != null)

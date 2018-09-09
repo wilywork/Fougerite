@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using Facepunch.Clocks.Counters;
@@ -23,7 +24,7 @@ namespace Fougerite
         internal SystemTimestamp timestamp2;
         internal SystemTimestamp timestamp3;
         internal SystemTimestamp timestamp4;
-        internal ServerSaveManager s;
+        internal static ServerSaveManager s;
         internal WorldSave.Builder builder;
         internal WorldSave fsave;
         internal SystemTimestamp restart = SystemTimestamp.Restart;
@@ -224,12 +225,14 @@ namespace Fougerite
                 Logger.LogError("[ServerSaveHandler Error2] " + ex);
             }
         }
-
+        
         private void SaveServer(object sender, DoWorkEventArgs e)
         {
             try
             {
-                s.DoSave(ref builder);
+                //s.DoSave(ref builder);
+                SaveScene(ref builder);
+                SaveInstances(ref builder);
                 timestamp2.Stop();
                 timestamp3 = SystemTimestamp.Restart;
                 fsave = builder.Build();
@@ -321,6 +324,58 @@ namespace Fougerite
             catch (Exception ex)
             {
                 Logger.LogError("[ServerSaveHandler Error] " + ex);
+            }
+        }
+        
+        private void SaveScene(ref WorldSave.Builder save)
+        {
+            if (s.keys != null)
+            {
+                using (Recycler<SavedObject, SavedObject.Builder> recycler = SavedObject.Recycler())
+                {
+                    SavedObject.Builder saveobj = recycler.OpenBuilder();
+                    for (int i = 0; i < s.keys.Length; i++)
+                    {
+                        int num2 = s.keys[i];
+                        ServerSave save2 = s.values[i];
+                        if (save2 != null)
+                        {
+                            saveobj.Clear();
+                            saveobj.SetId(num2);
+                            save2.SaveServerSaveables(ref saveobj);
+                            save.AddSceneObject(saveobj);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void SaveInstances(ref WorldSave.Builder save)
+        {
+            using (Recycler<SavedObject, SavedObject.Builder> recycler = SavedObject.Recycler())
+            {
+                SavedObject.Builder builder = recycler.OpenBuilder();
+                int num = -2147483648;
+                List<ServerSave> CopiedList = new List<ServerSave>(ServerSaveManager.Instances.All);
+                foreach (ServerSave save2 in CopiedList)
+                {
+                    bool flag;
+                    builder.Clear();
+                    if ((flag = ((int) save2.REGED) == 1) || (((int) save2.REGED) == 2))
+                    {
+                        num++;
+                        int sortOrder = num;
+                        if (flag)
+                        {
+                            save2.SaveInstance_NetworkView(ref builder, sortOrder);
+                        }
+                        else
+                        {
+                            save2.SaveInstance_NGC(ref builder, sortOrder);
+                        }
+                    }
+                    save.AddInstanceObject(builder);
+                }
             }
         }
     }
