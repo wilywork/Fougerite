@@ -1377,7 +1377,7 @@ namespace Fougerite.Patcher
         {
             TypeDefinition type = rustAssembly.MainModule.GetType("ServerSaveManager");
             rustAssembly.MainModule.GetType("save").IsPublic = true;
-            MethodDefinition method = hooksClass.GetMethod("ServerSaved");
+            //MethodDefinition method = hooksClass.GetMethod("ServerSaved");
 
             type.GetField("_loadedOnce").SetPublic(true);
             type.GetField("_loading").SetPublic(true);
@@ -1386,20 +1386,25 @@ namespace Fougerite.Patcher
             type.GetMethod("DoSave").SetPublic(true);
             type.GetMethod("DateTimeFileString").SetPublic(true);
 
-            MethodDefinition AutoSave = type.GetMethod("AutoSave");
-
-
-            MethodReference import = this.rustAssembly.MainModule.Import(method);
-            ILProcessor iLProcessor = AutoSave.Body.GetILProcessor();
-            iLProcessor.Body.Instructions.Clear();
-            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, import));
-            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
-
-            /*MethodDefinition ActualAutoSave = hooksClass.GetMethod("ActualAutoSave");
-            ILProcessor iLProcessor2 = type.GetMethod("Save").Body.GetILProcessor();
+            //MethodDefinition AutoSave = type.GetMethod("AutoSave");
+            //MethodReference import = this.rustAssembly.MainModule.Import(method);
+            //ILProcessor iLProcessor = AutoSave.Body.GetILProcessor();
+            //iLProcessor.Body.Instructions.Clear();
+            //iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, import));
+            //iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+            
+            MethodDefinition GlobalQuit = hooksClass.GetMethod("GlobalQuit");
+            TypeDefinition global = rustAssembly.MainModule.GetType("global");
+            ILProcessor iLProcessor2 = global.GetMethod("quit").Body.GetILProcessor();
             iLProcessor2.Body.Instructions.Clear();
-            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, this.rustAssembly.MainModule.Import(ActualAutoSave)));
-            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));*/
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, this.rustAssembly.MainModule.Import(GlobalQuit)));
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+
+            //MethodDefinition ActualAutoSave = hooksClass.GetMethod("ActualAutoSave");
+            //ILProcessor iLProcessor3 = type.GetMethod("Save").Body.GetILProcessor();
+            //iLProcessor3.Body.Instructions.Clear();
+            //iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, this.rustAssembly.MainModule.Import(ActualAutoSave)));
+            //iLProcessor3.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
         }
 
         private void PlayerKilledPatch()

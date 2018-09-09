@@ -1935,23 +1935,17 @@ namespace Fougerite
                 Logger.LogError("ServerSavedEvent Error: " + ex);
             }
         }
-        
-        public static bool ServerSaved()
-        {
-            if (!ServerSaveManager._loading && !IsShuttingDown)
-            {
-                World.GetWorld().ServerSaveHandler.ManualSave();
-            }
 
-            /*if (ServerSaveManager._loading)
-            {
-                return false;
-            }
-            string path = ServerSaveManager.autoSavePath;
-            SaveAll(path);
-            
-            OnServerSaveEvent();*/
-            return true;
+        public static void GlobalQuit()
+        {
+            Logger.Log("Detecting quit. Saving...");
+            ConsoleSystem.Run("server.close", false);
+            //ConsoleSystem.Run("save.all", false);
+            global.Console_AllowClose();
+            ServerShutdown();
+            //Application.Quit();
+            LibRust.Shutdown();            
+            Process.GetCurrentProcess().Kill();
         }
 
         /*internal static void SaveAll(string path)
@@ -3409,7 +3403,6 @@ namespace Fougerite
         public static void ServerShutdown()
         {
             IsShuttingDown = true;
-            World.GetWorld().ServerSaveHandler.ManualSave();
             try
             {
                 if (OnServerShutdown != null)
@@ -3419,6 +3412,7 @@ namespace Fougerite
             {
                 Logger.LogError("ServerShutdownEvent Error: " + ex.ToString());
             }
+            World.GetWorld().ServerSaveHandler.ManualSave();
         }
 
         public static void ServerStarted()
