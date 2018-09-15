@@ -1597,7 +1597,7 @@ namespace Fougerite
             if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("TeleportEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
-        internal static DateTime LasTime = DateTime.Now;
+        private static DateTime LasTime = DateTime.Now;
         public static void RecieveNetwork(Metabolism m, float cal, float water, float rad, float anti, float temp, float poison)
         {
             DateTime now = DateTime.Now;
@@ -3462,16 +3462,29 @@ namespace Fougerite
             if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("MicUseEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }*/
 
+        private static DateTime LasTime2 = DateTime.Now;
         public static bool ConfirmVoice(byte[] data)
         {
+            DateTime now = DateTime.Now;
+            DateTime then = LasTime2;
+            double diff = (now - then).TotalMinutes;
             if (data == null)
             {
-                Logger.LogWarning("[VoiceByteOverflown] Received null value.");
+                if (diff > 5)
+                {
+                    LasTime = DateTime.Now;
+                    Logger.LogWarning("[VoiceByteOverflown] Received null value.");
+                }
                 return false;
             }
             if (data.Length > 2350)
             {
-                Logger.LogWarning("[VoiceByteOverflown] Received a huge amount of byte, clearing. " + data.Length);
+                if (diff > 5)
+                {
+                    LasTime = DateTime.Now;
+                    Logger.LogWarning("[VoiceByteOverflown] Received a huge amount of byte, clearing. " + data.Length);
+                }
+
                 Array.Clear(data, 0, data.Length);
                 return false;
             }
@@ -3483,8 +3496,12 @@ namespace Fougerite
                     uint conversion = (uint) BitConverter.ToInt32(data, (int) i);
                     if (conversion > 2350)
                     {
-                        Logger.LogWarning(
-                            "[VoiceByteOverflown] Received a huge amount of byte, clearing. " + conversion);
+                        if (diff > 5)
+                        {
+                            LasTime = DateTime.Now;
+                            Logger.LogWarning("[VoiceByteOverflown] Received a huge amount of byte, clearing. " +
+                                              conversion);
+                        }
                         Array.Clear(data, 0, data.Length);
                         return false;
                     }
@@ -3493,8 +3510,13 @@ namespace Fougerite
                 }
                 catch
                 {
-                    Logger.LogDebug(
-                        "[VoiceByteOverflown] Seems like an error occured while reading the voice bytes. Someone is trying to send false packets?");
+                    if (diff > 5)
+                    {
+                        LasTime = DateTime.Now;
+                        Logger.LogWarning(
+                            "[VoiceByteOverflown] Seems like an error occured while reading the voice bytes. Someone is trying to send false packets?");
+                    }
+
                     Array.Clear(data, 0, data.Length);
                     return false;
                 }

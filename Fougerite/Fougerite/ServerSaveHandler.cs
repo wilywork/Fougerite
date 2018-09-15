@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using Facepunch.Clocks.Counters;
 using Google.ProtocolBuffers.Serialization;
 using RustProto;
@@ -525,25 +526,35 @@ namespace Fougerite
             {
                 SavedObject.Builder builder = recycler.OpenBuilder();
                 int num = -2147483648;
-                List<ServerSave> CopiedList = new List<ServerSave>(ServerSaveManager.Instances.All);
-                foreach (ServerSave save2 in CopiedList)
+                //List<ServerSave> CopiedList = new List<ServerSave>(ServerSaveManager.Instances.All);
+                //foreach (ServerSave save2 in CopiedList)
+                int count = ServerSaveManager.Instances.All.Count;
+                for (int i = 0; i < count; i++)
                 {
-                    bool flag;
-                    builder.Clear();
-                    if ((flag = ((int) save2.REGED) == 1) || (((int) save2.REGED) == 2))
+                    // Ensure check, since the list can change during save.
+                    if (ServerSaveManager.Instances.All.Count <= i) break;
+                    
+                    ServerSave save2 = ServerSaveManager.Instances.All[i];
+                    if (save2 != null)
                     {
-                        num++;
-                        int sortOrder = num;
-                        if (flag)
+                        bool flag;
+                        builder.Clear();
+                        if ((flag = ((int) save2.REGED) == 1) || (((int) save2.REGED) == 2))
                         {
-                            save2.SaveInstance_NetworkView(ref builder, sortOrder);
+                            num++;
+                            int sortOrder = num;
+                            if (flag)
+                            {
+                                save2.SaveInstance_NetworkView(ref builder, sortOrder);
+                            }
+                            else
+                            {
+                                save2.SaveInstance_NGC(ref builder, sortOrder);
+                            }
                         }
-                        else
-                        {
-                            save2.SaveInstance_NGC(ref builder, sortOrder);
-                        }
+
+                        save.AddInstanceObject(builder);
                     }
-                    save.AddInstanceObject(builder);
                 }
             }
         }
