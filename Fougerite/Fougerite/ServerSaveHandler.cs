@@ -526,8 +526,8 @@ namespace Fougerite
             {
                 SavedObject.Builder builder = recycler.OpenBuilder();
                 int num = -2147483648;
-                //List<ServerSave> CopiedList = new List<ServerSave>(ServerSaveManager.Instances.All);
-                //foreach (ServerSave save2 in CopiedList)
+                List<ServerSave> CopiedList = new List<ServerSave>();
+
                 int count = ServerSaveManager.Instances.All.Count;
                 for (int i = 0; i < count; i++)
                 {
@@ -535,6 +535,14 @@ namespace Fougerite
                     if (ServerSaveManager.Instances.All.Count <= i) break;
                     
                     ServerSave save2 = ServerSaveManager.Instances.All[i];
+                    if (save2 != null)
+                    {
+                        CopiedList.Add(save2);
+                    }
+                }
+                
+                foreach (ServerSave save2 in CopiedList)
+                {
                     if (save2 != null)
                     {
                         bool flag;
