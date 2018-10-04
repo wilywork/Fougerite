@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Timers;
 using Facepunch.Clocks.Counters;
+using Facepunch.MeshBatch;
 using Google.ProtocolBuffers.Serialization;
 using MoPhoGames.USpeak.Core.Utils;
 using Rust;
@@ -3554,6 +3555,62 @@ namespace Fougerite
             //fd.SetLegInjury(v);
         }
 
+        public static bool RegisterHook(ServerSave save)
+        {
+            if (ServerSaveHandler.ServerIsSaving)
+            {
+                // Return false if the registers already contain our save class. (Tell that we have already added it)
+                if (ServerSaveManager.Instances.registers.Contains(save))
+                {
+                    return false;
+                }
+                // If we already added It to our temp dictionary, then return false. (Tell that we have already added it)
+                if (ServerSaveHandler.UnProcessedSaves.ContainsKey(save))
+                {
+                    return false;
+                }
+                
+                ServerSaveHandler.UnProcessedSaves.Add(save, 1);
+            }
+            else
+            {
+                if (!ServerSaveManager.Instances.registers.Add(save))
+                {
+                    return false;
+                }
+                ServerSaveManager.Instances.ordered.Add(save);
+            }
+            return true;
+        }
+
+        public static bool UnRegisterHook(ServerSave save)
+        {
+            if (ServerSaveHandler.ServerIsSaving)
+            {
+                // Return false if the registers doesn't contain our save class. (Tell that It doesn't exist)
+                if (!ServerSaveManager.Instances.registers.Contains(save))
+                {
+                    return false;
+                }
+                
+                // If we have already added the value for later processing return false (Tell that It doesn't exist)
+                if (ServerSaveHandler.UnProcessedSaves.ContainsKey(save))
+                {
+                    return false;
+                }
+                
+                ServerSaveHandler.UnProcessedSaves.Add(save, 2);
+            }
+            else
+            {
+                if (!ServerSaveManager.Instances.registers.Remove(save))
+                {
+                    return false;
+                }
+                ServerSaveManager.Instances.ordered.Remove(save);
+            }
+            return true;
+        }
 
         internal static void ModulesLoaded()
         {

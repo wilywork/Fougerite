@@ -31,6 +31,8 @@ namespace Fougerite
         internal SystemTimestamp restart = SystemTimestamp.Restart;
         internal string path;
         
+        internal static readonly Dictionary<ServerSave, byte> UnProcessedSaves = new Dictionary<ServerSave, byte>();
+        
         /// <summary>
         /// Returns the current saving filepath.
         /// </summary>
@@ -282,9 +284,16 @@ namespace Fougerite
 
                     using (Recycler<WorldSave, WorldSave.Builder> recycler = WorldSave.Recycler())
                     {
-                        builder = recycler.OpenBuilder();
-                        timestamp2 = SystemTimestamp.Restart;
-                        s = ServerSaveManager.Get(false);
+                        if (recycler != null)
+                        {
+                            builder = recycler.OpenBuilder();
+                            timestamp2 = SystemTimestamp.Restart;
+                            s = ServerSaveManager.Get(false);
+                        }
+                        else
+                        {
+                            Logger.LogError("SOMETHING IS FUCKED, RECYCLER IS NULL.");
+                        }
                     }
                     
 
@@ -351,9 +360,10 @@ namespace Fougerite
                 {
                     File.Move(path + ".new", path);
                 }
+
                 timestamp5.Stop();
                 restart.Stop();
-                
+
                 if (Hooks.IsShuttingDown)
                 {
                     ServerIsSaving = false;
@@ -385,18 +395,52 @@ namespace Fougerite
                             {" Saved ", num, " Object(s). Took ", restart.ElapsedSeconds, " seconds."}));
                     }
 
-                    if (e != null && sender != null)
+                    Hooks.OnServerSaveEvent(num, restart.ElapsedSeconds);
+                    ServerIsSaving = false;
+
+                    // Process the unprocessed hashset values here without causing HashSet modified error.
+                    List<ServerSave> RemovableKeys = new List<ServerSave>();
+
+                    foreach (ServerSave x in UnProcessedSaves.Keys)
                     {
-                        Invoke(nameof(StartBackGroundWorker), ServerSaveTime * 60);
+                        byte value = UnProcessedSaves[x];
+                        if (value == 1)
+                        {
+                            if (ServerSaveManager.Instances.registers.Add(x))
+                            {
+                                ServerSaveManager.Instances.ordered.Add(x);
+                            }
+
+                            ServerSaveManager.Instances.ordered.Add(x);
+                        }
+                        else
+                        {
+                            if (ServerSaveManager.Instances.registers.Remove(x))
+                            {
+                                ServerSaveManager.Instances.ordered.Remove(x);
+                            }
+                        }
+
+                        RemovableKeys.Add(x);
                     }
 
-                    Hooks.OnServerSaveEvent(num, restart.ElapsedSeconds);
+                    foreach (var x in RemovableKeys)
+                    {
+                        UnProcessedSaves.Remove(x);
+                    }
                 });
-                ServerIsSaving = false;
             }
             catch (Exception ex)
             {
                 Logger.LogError("[ServerSaveHandler Error] " + ex);
+                ServerIsSaving = false;
+            }
+            finally
+            {
+                if (e != null && sender != null)
+                {
+                    Invoke(nameof(StartBackGroundWorker), ServerSaveTime * 60);
+                }
             }
         }
         
@@ -488,12 +532,42 @@ namespace Fougerite
                     }
 
                     Hooks.OnServerSaveEvent(num, restart.ElapsedSeconds);
+                    ServerIsSaving = false;
+                    
+                    // Process the unprocessed hashset values here without causing HashSet modified error.
+                    List<ServerSave> RemovableKeys = new List<ServerSave>();
+                    
+                    foreach (ServerSave x in UnProcessedSaves.Keys)
+                    {
+                        byte value = UnProcessedSaves[x];
+                        if (value == 1)
+                        {
+                            if (ServerSaveManager.Instances.registers.Add(x))
+                            {
+                                ServerSaveManager.Instances.ordered.Add(x);
+                            }
+                            ServerSaveManager.Instances.ordered.Add(x);
+                        }
+                        else
+                        {
+                            if (ServerSaveManager.Instances.registers.Remove(x))
+                            {
+                                ServerSaveManager.Instances.ordered.Remove(x);
+                            }
+                        }
+                        RemovableKeys.Add(x);
+                    }
+
+                    foreach (var x in RemovableKeys)
+                    {
+                        UnProcessedSaves.Remove(x);
+                    }
                 });
-                ServerIsSaving = false;
             }
             catch (Exception ex)
             {
-                Logger.LogError("[ServerSaveHandler Error] " + ex);
+                Logger.LogError("[ServerSaveHandler Error 0x2] " + ex);
+                ServerIsSaving = false;
             }
         }
         
@@ -524,6 +598,11 @@ namespace Fougerite
         {
             using (Recycler<SavedObject, SavedObject.Builder> recycler = SavedObject.Recycler())
             {
+                if (recycler == null)
+                {
+                    Logger.LogError("[Fougerite WorldSave] Recycler is null, what the hell?");
+                    return;
+                }
                 SavedObject.Builder builder = recycler.OpenBuilder();
                 int num = -2147483648;
                 List<ServerSave> CopiedList = new List<ServerSave>();

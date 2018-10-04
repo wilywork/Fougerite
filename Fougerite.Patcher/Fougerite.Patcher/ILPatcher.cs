@@ -420,6 +420,12 @@ namespace Fougerite.Patcher
             TypeDefinition StructureMaster = rustAssembly.MainModule.GetType("StructureMaster");
             StructureMaster.GetField("_structureComponents").SetPublic(true);
             StructureMaster.GetField("_weightOnMe").SetPublic(true);
+            StructureMaster.GetField("meshBatchTargetPhysical").SetPublic(true);
+            StructureMaster.GetField("_materialType").SetPublic(true);
+            
+            TypeDefinition StructureComponent = rustAssembly.MainModule.GetType("StructureComponent");
+            StructureComponent.GetMethod("OnOwnedByMasterStructure").SetPublic(true);
+            StructureComponent.GetMethod("ClearMaster").SetPublic(true);
 
             TypeDefinition InventoryHolder = rustAssembly.MainModule.GetType("InventoryHolder");
             InventoryHolder.GetField("isPlayerInventory").SetPublic(true);
@@ -1405,6 +1411,23 @@ namespace Fougerite.Patcher
             
             TypeDefinition Instances = type.GetNestedType("Instances");
             Instances.IsPublic = true;
+            Instances.GetField("registers").SetPublic(true);
+            Instances.GetField("ordered").SetPublic(true);
+            
+            MethodDefinition RegisterHook = hooksClass.GetMethod("RegisterHook");
+            MethodDefinition UnRegisterHook = hooksClass.GetMethod("UnRegisterHook");
+            
+            ILProcessor iLProcessor3 = Instances.GetMethod("Register").Body.GetILProcessor();
+            iLProcessor3.Body.Instructions.Clear();
+            iLProcessor3.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            iLProcessor3.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, this.rustAssembly.MainModule.Import(RegisterHook)));
+            iLProcessor3.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+            
+            ILProcessor iLProcessor4 = Instances.GetMethod("Unregister").Body.GetILProcessor();
+            iLProcessor4.Body.Instructions.Clear();
+            iLProcessor4.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            iLProcessor4.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, this.rustAssembly.MainModule.Import(UnRegisterHook)));
+            iLProcessor4.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
             
             TypeDefinition ServerSave = rustAssembly.MainModule.GetType("ServerSave");
             ServerSave.GetNestedType("Reged").IsPublic = true;

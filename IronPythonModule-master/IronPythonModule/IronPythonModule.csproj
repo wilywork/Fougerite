@@ -41,8 +41,20 @@
     <Reference Include="Fougerite, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\..\bin\Fougerite.dll</HintPath>
     </Reference>
-    <Reference Include="IronPython.Deps, Version=2.7.0.40, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\Fougerite\References\FougeriteExtraReferences\IronPython.Deps.dll</HintPath>
+    <Reference Include="IronPython, Version=2.7.7.0, Culture=neutral, PublicKeyToken=7f709c5b713576e1">
+      <HintPath>IronPythonReferences\IronPython.dll</HintPath>
+    </Reference>
+    <Reference Include="IronPython.Modules, Version=2.7.7.0, Culture=neutral, PublicKeyToken=7f709c5b713576e1">
+      <HintPath>IronPythonReferences\IronPython.Modules.dll</HintPath>
+    </Reference>
+    <Reference Include="IronPython.SQLite, Version=2.7.7.0, Culture=neutral, PublicKeyToken=7f709c5b713576e1">
+      <HintPath>IronPythonReferences\IronPython.SQLite.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Dynamic, Version=1.1.2.22, Culture=neutral, PublicKeyToken=7f709c5b713576e1">
+      <HintPath>IronPythonReferences\Microsoft.Dynamic.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Scripting, Version=1.1.2.22, Culture=neutral, PublicKeyToken=7f709c5b713576e1">
+      <HintPath>IronPythonReferences\Microsoft.Scripting.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="uLink, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
