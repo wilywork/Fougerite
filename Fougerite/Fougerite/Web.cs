@@ -1,6 +1,9 @@
 ﻿
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Net.Security;
+using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 
 namespace Fougerite
@@ -100,6 +103,114 @@ namespace Fougerite
         private bool AcceptAllCertifications(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslpolicyerrors)
         {
             return true;
+        }
+        
+        /// <summary>
+        /// Creates an Async request for the specified URL, and headers.
+        /// The result will be passed to the specified callback's parameter.
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="callback"></param>
+        /// <param name="method"></param>
+        /// <param name="AdditionalHeaders"></param>
+        public void CreateAsyncHTTPRequest(string url, Action<string> callback, string method = "GET", Dictionary<string, string> AdditionalHeaders = null)
+        {
+            HttpWebRequest request = (HttpWebRequest) WebRequest.Create(url);
+            request.SetRawHeader("Content-Type", "application/json");
+            request.Method = method;
+            if (AdditionalHeaders != null)
+            {
+                foreach (var x in AdditionalHeaders.Keys)
+                {
+                    //request.Headers[x] = AdditionalHeaders[x];
+                    request.SetRawHeader(x, AdditionalHeaders[x]);
+                }
+            }
+            
+            DoWithResponse(request, (response) =>
+            {
+                Stream stream = response.GetResponseStream();
+                if (stream != null)
+                {
+                    string body = new StreamReader(stream).ReadToEnd();
+                    callback(body);
+                }
+                else
+                {
+                    callback("Failed");
+                }
+            });
+        }
+        
+        public void DoWithResponse(HttpWebRequest request, Action<HttpWebResponse> responseAction)
+        {
+            Action wrapperAction = () =>
+            {
+                request.BeginGetResponse(new AsyncCallback((iar) =>
+                {
+                    var response = (HttpWebResponse)((HttpWebRequest)iar.AsyncState).EndGetResponse(iar);
+                    responseAction(response);
+                }), request);
+            };
+            wrapperAction.BeginInvoke(new AsyncCallback((iar) =>
+            {
+                var action = (Action)iar.AsyncState;
+                action.EndInvoke(iar);
+            }), wrapperAction);
+        }
+    }
+    
+    // https://stackoverflow.com/questions/239725/cannot-set-some-http-headers-when-using-system-net-webrequest
+    public static class HttpWebRequestExtensions
+    {
+        static readonly string[] RestrictedHeaders = new string[] {
+            "Accept",
+            "Connection",
+            "Content-Length",
+            "Content-Type",
+            "Date",
+            "Expect",
+            "Host",
+            "If-Modified-Since",
+            "Keep-Alive",
+            "Proxy-Connection",
+            "Range",
+            "Referer",
+            "Transfer-Encoding",
+            "User-Agent"
+        };
+
+        static readonly Dictionary<string, PropertyInfo> HeaderProperties = new Dictionary<string, PropertyInfo>(StringComparer.OrdinalIgnoreCase);
+
+        static HttpWebRequestExtensions()
+        {
+            Type type = typeof(HttpWebRequest);
+            foreach (string header in RestrictedHeaders)
+            {
+                string propertyName = header.Replace("-", "");
+                PropertyInfo headerProperty = type.GetProperty(propertyName);
+                HeaderProperties[header] = headerProperty;
+            }
+        }
+
+        public static void SetRawHeader(this HttpWebRequest request, string name, string value)
+        {
+            if (HeaderProperties.ContainsKey(name))
+            {
+                PropertyInfo property = HeaderProperties[name];
+                if (property.PropertyType == typeof(DateTime))
+                    property.SetValue(request, DateTime.Parse(value), null);
+                else if (property.PropertyType == typeof(bool))
+                    property.SetValue(request, Boolean.Parse(value), null);
+                else if (property.PropertyType == typeof(long))
+                    property.SetValue(request, Int64.Parse(value), null);
+                else
+                    property.SetValue(request, value, null);
+            }
+            else
+            {
+                request.Headers[name] = value;
+            }
         }
     }
 }

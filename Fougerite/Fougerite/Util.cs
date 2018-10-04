@@ -742,6 +742,23 @@ namespace Fougerite
                 return t;
             throw new Exception("Type not found " + typeName);
         }
+        
+        /// <summary>
+        /// Deep Clones the specified object.
+        /// </summary>
+        /// <param name="item"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public T DeepCopy<T>(T item)
+        {
+            BinaryFormatter formatter = new BinaryFormatter();
+            MemoryStream stream = new MemoryStream();
+            formatter.Serialize(stream, item);
+            stream.Seek(0, SeekOrigin.Begin);
+            T result = (T)formatter.Deserialize(stream);
+            stream.Close();
+            return result;
+        }
 
         public bool ContainsString(string str, string key)
         {
