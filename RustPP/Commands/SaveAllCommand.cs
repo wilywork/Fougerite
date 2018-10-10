@@ -11,9 +11,9 @@
             var pl = Fougerite.Server.Cache[Arguments.argUser.userID];
             AvatarSaveProc.SaveAll();
             pl.MessageFrom(Core.Name, "Saved ALL Avatar files!");
-            ServerSaveManager.AutoSave();
+            World.GetWorld().ServerSaveHandler.ManualBackGroundSave();
             pl.MessageFrom(Core.Name, "Saved server global state!");
-            Helper.CreateSaves();
+            //Helper.CreateSaves();
             pl.MessageFrom(Core.Name, "Saved " + Core.Name + " data!");
         }
     }
