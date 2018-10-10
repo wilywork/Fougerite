@@ -11,7 +11,7 @@ namespace Fougerite
         /// <summary>
         /// Returns the Current Fougerite Version
         /// </summary>
-        public const string Version = "1.6.8";
+        public const string Version = "1.6.9";
         /// <summary>
         /// This value decides wheather we should remove the player classes from the cache upon disconnect.
         /// </summary>
@@ -98,6 +98,40 @@ namespace Fougerite
             else
             {
                 ServerSaveHandler.ServerSaveTime = 10;
+            }
+            if (Fougerite.Config.GetValue("Fougerite", "SaveCopies") != null)
+            {
+                int v;
+                int.TryParse(Fougerite.Config.GetValue("Fougerite", "SaveCopies"), out v);
+                if (v <= 4)
+                {
+                    v = 5;
+                }
+                ServerSaveHandler.SaveCopies = v;
+            }
+            else
+            {
+                ServerSaveHandler.SaveCopies = 5;
+            }
+            if (Fougerite.Config.GetValue("Fougerite", "StopServerOnSaveFail") != null)
+            {
+                bool v = false;
+                bool.TryParse(Fougerite.Config.GetValue("Fougerite", "StopServerOnSaveFail"), out v);
+                ServerSaveHandler.StopServerOnSaveFail = v;
+            }
+            else
+            {
+                ServerSaveHandler.StopServerOnSaveFail = false;
+            }
+            if (Fougerite.Config.GetValue("Fougerite", "CrucialSavePoint") != null)
+            {
+                int v = 2;
+                int.TryParse(Fougerite.Config.GetValue("Fougerite", "CrucialSavePoint"), out v);
+                ServerSaveHandler.CrucialSavePoint = v;
+            }
+            else
+            {
+                ServerSaveHandler.CrucialSavePoint = 2;
             }
 
             // Remove the default rust saving methods.

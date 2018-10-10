@@ -1429,6 +1429,10 @@ namespace Fougerite.Patcher
             iLProcessor4.Body.Instructions.Add(Instruction.Create(OpCodes.Callvirt, this.rustAssembly.MainModule.Import(UnRegisterHook)));
             iLProcessor4.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
             
+            ILProcessor iLProcessor5 = type.GetMethod("Save").Body.GetILProcessor();
+            iLProcessor5.Body.Instructions.Clear();
+            iLProcessor5.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+            
             TypeDefinition ServerSave = rustAssembly.MainModule.GetType("ServerSave");
             ServerSave.GetNestedType("Reged").IsPublic = true;
             ServerSave.GetProperty("REGED").GetMethod.SetPublic(true);

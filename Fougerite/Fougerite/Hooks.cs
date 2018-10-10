@@ -524,16 +524,36 @@ namespace Fougerite
             {
                 if (adminRights)
                 {
-                    World.GetWorld().ServerSaveHandler.ManualBackGroundSave();
-                    a.ReplyWith("Fougerite: Saved!");
+                    DateTime now = DateTime.Now;
+                    DateTime then = ServerSaveHandler.NextServerSaveTime;
+                    double diff = (then - now).TotalMinutes;
+                    if (ServerSaveHandler.CrucialSavePoint != 0 && diff <= ServerSaveHandler.CrucialSavePoint)
+                    {
+                        a.ReplyWith("Fougerite: " + ServerSaveHandler.CrucialSavePoint + " minutes before autosave. Please wait for It to finish.");
+                    }
+                    else
+                    {
+                        World.GetWorld().ServerSaveHandler.ManualBackGroundSave();
+                        a.ReplyWith("Fougerite: Saved!");
+                    }
                 }
             }
             else if (a.Class.Equals("fougerite", ic) && a.Function.Equals("urgentsave", ic))
             {
                 if (adminRights)
                 {
-                    World.GetWorld().ServerSaveHandler.ManualSave();
-                    a.ReplyWith("Fougerite: Saved!");
+                    DateTime now = DateTime.Now;
+                    DateTime then = ServerSaveHandler.NextServerSaveTime;
+                    double diff = (then - now).TotalMinutes;
+                    if (ServerSaveHandler.CrucialSavePoint != 0 && diff <= ServerSaveHandler.CrucialSavePoint)
+                    {
+                        a.ReplyWith("Fougerite: " + ServerSaveHandler.CrucialSavePoint + " minutes before autosave. Please wait for It to finish.");
+                    }
+                    else
+                    {
+                        World.GetWorld().ServerSaveHandler.ManualSave();
+                        a.ReplyWith("Fougerite: Saved!");
+                    }
                 }
             }
             else if (a.Class.Equals("fougerite", ic) && a.Function.Equals("rustpp", ic))

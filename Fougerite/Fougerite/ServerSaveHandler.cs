@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Facepunch.Clocks.Counters;
@@ -9,6 +10,7 @@ using RustProto;
 using RustProto.Helpers;
 using UnityEngine;
 using Avatar = RustProto.Avatar;
+using Debug = UnityEngine.Debug;
 
 namespace Fougerite
 {
@@ -16,7 +18,7 @@ namespace Fougerite
     /// This class uses MonoBehaviour's invoke method, and using
     /// BackGroundWorker to make sure that the server won't lagg when the server
     /// has a huge amount of objects, and doesn't cause thread problems.
-    /// Based on Salva's method, tested with a 59843 object count map.
+    /// Based on Salva's method, tested with a map that has 80007 objects.
     /// This is due to legacy's shitty saving system that caused a lot of troubles
     /// back in the official server's day too.
     /// </summary>
@@ -60,6 +62,53 @@ namespace Fougerite
             get;
             set;
         }
+
+        /// <summary>
+        /// How many save copies should we store on the server.
+        /// Do not set this below 5.
+        /// </summary>
+        public static int SaveCopies
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Returns you the last DateTime when the server was saved.
+        /// </summary>
+        public static DateTime LastSaveTime
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Returns the next DateTime when the server will be saved.
+        /// </summary>
+        public static DateTime NextServerSaveTime
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Stop the server if the try-catch block catches an error?
+        /// </summary>
+        public static bool StopServerOnSaveFail
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Ensure that manual save won't be executed, if the server is going to autosave? How many minutes should be the critical point
+        /// where the manual save won't run if less than X minutes is left before autosave? This should be LESS than 'SaveTime'. 0 to disable.
+        /// </summary>
+        public static int CrucialSavePoint
+        {
+            get;
+            set;
+        }
         
         /// <summary>
         /// Saves the server without BackgroundWorker.
@@ -80,9 +129,11 @@ namespace Fougerite
         /// <summary>
         /// Runs when the component loaded.
         /// </summary>
-        void Start()
+        private void Start()
         {
             ServerSavePath = ServerSaveManager.autoSavePath;
+            LastSaveTime = DateTime.Now;
+            NextServerSaveTime = LastSaveTime.AddMinutes(ServerSaveTime);
             Invoke(nameof(StartBackGroundWorker), ServerSaveTime * 60);
         }
         
@@ -338,12 +389,12 @@ namespace Fougerite
                 }
 
                 timestamp4.Stop();
-                if (File.Exists(path + ".old.5"))
+                if (File.Exists(path + ".old." + (SaveCopies + 1)))
                 {
-                    File.Delete(path + ".old.5");
+                    File.Delete(path + ".old." + (SaveCopies + 1));
                 }
 
-                for (int i = 4; i >= 0; i--)
+                for (int i = SaveCopies; i >= 0; i--)
                 {
                     if (File.Exists(path + ".old." + i))
                     {
@@ -397,31 +448,47 @@ namespace Fougerite
 
                     Hooks.OnServerSaveEvent(num, restart.ElapsedSeconds);
                     ServerIsSaving = false;
+                    LastSaveTime = DateTime.Now;
+                    NextServerSaveTime = LastSaveTime.AddMinutes(ServerSaveTime);
 
                     // Process the unprocessed hashset values here without causing HashSet modified error.
                     List<ServerSave> RemovableKeys = new List<ServerSave>();
 
                     foreach (ServerSave x in UnProcessedSaves.Keys)
                     {
-                        byte value = UnProcessedSaves[x];
-                        if (value == 1)
+                        try
                         {
-                            if (ServerSaveManager.Instances.registers.Add(x))
+                            if (UnProcessedSaves.ContainsKey(x))
                             {
-                                ServerSaveManager.Instances.ordered.Add(x);
-                            }
+                                byte value = UnProcessedSaves[x];
+                                if (value == 1)
+                                {
+                                    if (ServerSaveManager.Instances.registers.Add(x))
+                                    {
+                                        ServerSaveManager.Instances.ordered.Add(x);
+                                    }
 
-                            ServerSaveManager.Instances.ordered.Add(x);
+                                    ServerSaveManager.Instances.ordered.Add(x);
+                                }
+                                else
+                                {
+                                    if (ServerSaveManager.Instances.registers.Remove(x))
+                                    {
+                                        ServerSaveManager.Instances.ordered.Remove(x);
+                                    }
+                                }
+
+                                RemovableKeys.Add(x);
+                            }
                         }
-                        else
+                        catch (KeyNotFoundException ex)
                         {
-                            if (ServerSaveManager.Instances.registers.Remove(x))
-                            {
-                                ServerSaveManager.Instances.ordered.Remove(x);
-                            }
+                            Logger.LogError("[RegisterHook KeyNotFoundException] " + ex);
                         }
-
-                        RemovableKeys.Add(x);
+                        catch (Exception ex)
+                        {
+                            Logger.LogError("[RegisterHook Error] " + ex);
+                        }
                     }
 
                     foreach (var x in RemovableKeys)
@@ -434,6 +501,13 @@ namespace Fougerite
             {
                 Logger.LogError("[ServerSaveHandler Error] " + ex);
                 ServerIsSaving = false;
+                LastSaveTime = DateTime.Now;
+                NextServerSaveTime = LastSaveTime.AddMinutes(ServerSaveTime);
+                if (StopServerOnSaveFail)
+                {
+                    Logger.LogWarning("[Fougerite WorldSave] We have caught an error. Killing server as requested.");
+                    Process.GetCurrentProcess().Kill();
+                }
             }
             finally
             {
@@ -475,12 +549,12 @@ namespace Fougerite
                 }
 
                 timestamp4.Stop();
-                if (File.Exists(path + ".old.5"))
+                if (File.Exists(path + ".old." + (SaveCopies + 1)))
                 {
-                    File.Delete(path + ".old.5");
+                    File.Delete(path + ".old." + (SaveCopies + 1));
                 }
 
-                for (int i = 4; i >= 0; i--)
+                for (int i = SaveCopies; i >= 0; i--)
                 {
                     if (File.Exists(path + ".old." + i))
                     {
@@ -533,29 +607,46 @@ namespace Fougerite
 
                     Hooks.OnServerSaveEvent(num, restart.ElapsedSeconds);
                     ServerIsSaving = false;
+                    LastSaveTime = DateTime.Now;
                     
                     // Process the unprocessed hashset values here without causing HashSet modified error.
                     List<ServerSave> RemovableKeys = new List<ServerSave>();
                     
                     foreach (ServerSave x in UnProcessedSaves.Keys)
                     {
-                        byte value = UnProcessedSaves[x];
-                        if (value == 1)
+                        try 
                         {
-                            if (ServerSaveManager.Instances.registers.Add(x))
+                            if (UnProcessedSaves.ContainsKey(x))
                             {
-                                ServerSaveManager.Instances.ordered.Add(x);
+                                byte value = UnProcessedSaves[x];
+                                if (value == 1)
+                                {
+                                    if (ServerSaveManager.Instances.registers.Add(x))
+                                    {
+                                        ServerSaveManager.Instances.ordered.Add(x);
+                                    }
+
+                                    ServerSaveManager.Instances.ordered.Add(x);
+                                }
+                                else
+                                {
+                                    if (ServerSaveManager.Instances.registers.Remove(x))
+                                    {
+                                        ServerSaveManager.Instances.ordered.Remove(x);
+                                    }
+                                }
+
+                                RemovableKeys.Add(x);
                             }
-                            ServerSaveManager.Instances.ordered.Add(x);
                         }
-                        else
+                        catch (KeyNotFoundException ex)
                         {
-                            if (ServerSaveManager.Instances.registers.Remove(x))
-                            {
-                                ServerSaveManager.Instances.ordered.Remove(x);
-                            }
+                            Logger.LogError("[RegisterHook KeyNotFoundException] " + ex);
                         }
-                        RemovableKeys.Add(x);
+                        catch (Exception ex)
+                        {
+                            Logger.LogError("[RegisterHook Error] " + ex);
+                        }
                     }
 
                     foreach (var x in RemovableKeys)
@@ -568,6 +659,13 @@ namespace Fougerite
             {
                 Logger.LogError("[ServerSaveHandler Error 0x2] " + ex);
                 ServerIsSaving = false;
+                LastSaveTime = DateTime.Now;
+                NextServerSaveTime = LastSaveTime.AddMinutes(ServerSaveTime);
+                if (StopServerOnSaveFail)
+                {
+                    Logger.LogWarning("[Fougerite WorldSave] We have caught an error. Killing server as requested.");
+                    Process.GetCurrentProcess().Kill();
+                }
             }
         }
         
