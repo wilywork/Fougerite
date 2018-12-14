@@ -91,11 +91,22 @@ namespace Fougerite
         {
             get
             {
+                try
+                {
+                    float healt = this.Health;
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+                /*
                 if (this.IsOnline)
                 {
                     return this.Health > 0;
                 }
                 return false;
+                */
             }
         }
 
@@ -896,7 +907,7 @@ namespace Fougerite
         {
             get
             {
-                if (this.IsOnline)
+                if (this.IsOnline & this.IsAlive)
                 {
                     return this.ourPlayer.controllable.health;
                 }
