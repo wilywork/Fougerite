@@ -6,6 +6,9 @@ using System.Text;
 
 namespace Fougerite
 {
+    /// <summary>
+    /// This class listens for CTRL+C or kill executions against the rust server process.
+    /// </summary>
     internal class ShutdownCatcher
     {
         [DllImport("Kernel32")]

@@ -7,6 +7,9 @@ using System.Text;
 
 namespace Fougerite
 {
+    /// <summary>
+    /// This class handles SQLite support for the simple script plugins.
+    /// </summary>
     public class SQLiteConnector
     {
         private static SQLiteConnector _inst;
@@ -23,27 +26,50 @@ namespace Fougerite
             }
         }
 
+        /// <summary>
+        /// Creates a new connection to the Database.
+        /// You should check if Connection is null before calling this.
+        /// </summary>
+        /// <param name="extraarguments"></param>
+        /// <returns></returns>
         public SQLiteConnection Connect(string extraarguments = ";Version=3;New=False;Compress=True;Foreign Keys=True;")
         {
             _dbConnection = new SQLiteConnection("Data Source=" + SQLitePath + extraarguments);
             return _dbConnection;
         }
 
+        /// <summary>
+        /// Returns the current active connection to the database.
+        /// </summary>
         public SQLiteConnection Connection
         {
             get { return _dbConnection; }
         }
 
+        /// <summary>
+        /// Creates an sql command.
+        /// </summary>
+        /// <param name="command"></param>
+        /// <returns></returns>
         public SQLiteCommand CreateSQLiteCommand(string command)
         {
             return new SQLiteCommand(command);
         }
 
+        /// <summary>
+        /// Creates an sql command for the connection.
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="con"></param>
+        /// <returns></returns>
         public SQLiteCommand CreateSQLiteCommand(string command, SQLiteConnection con)
         {
             return new SQLiteCommand(command, con);
         }
 
+        /// <summary>
+        /// Returns the instance of the class.
+        /// </summary>
         public static SQLiteConnector GetInstance
         {
             get

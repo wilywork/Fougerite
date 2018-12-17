@@ -4,11 +4,14 @@ using Fougerite.Events;
 
 namespace Fougerite
 {
+    /// <summary>
+    /// This class is used by Fougerite to filter any flood connections to the server.
+    /// </summary>
     public class Flood
     {
         private ExtendedTimedEvent _te;
         private int _count = 1;
-        private string _ip;
+        private readonly string _ip;
             
         public Flood(string ip)
         {

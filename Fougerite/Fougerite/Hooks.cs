@@ -8,6 +8,7 @@ using System.Threading;
 using System.Timers;
 using Facepunch.Clocks.Counters;
 using Facepunch.MeshBatch;
+using Fougerite.PluginLoaders;
 using Google.ProtocolBuffers.Serialization;
 using MoPhoGames.USpeak.Core.Utils;
 using Rust;
@@ -29,6 +30,10 @@ namespace Fougerite
         public static System.Collections.Generic.List<object> decayList = new System.Collections.Generic.List<object>();
         public static Hashtable talkerTimers = new Hashtable();
 
+        /// <summary>
+        /// This delegate runs when all plugins loaded. (First time)
+        /// </summary>
+        public static event AllPluginsLoadedDelegate OnAllPluginsLoaded;
         /// <summary>
         /// This delegate runs when a blueprint is being used.
         /// </summary>
@@ -254,6 +259,21 @@ namespace Fougerite
         internal static Dictionary<string, Flood> FloodChecks = new Dictionary<string, Flood>();
         internal static Dictionary<string, DateTime> FloodCooldown = new Dictionary<string, DateTime>();
 
+        public static void AllPluginsLoaded()
+        {
+            try
+            {
+                if (OnAllPluginsLoaded != null)
+                {
+                    OnAllPluginsLoaded();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("AllPluginsLoadedEvent Error: " + ex);
+            }
+        }
+
         public static void BlueprintUse(IBlueprintItem item, BlueprintDataBlock bdb)
         {
             Stopwatch sw = null;
@@ -450,20 +470,19 @@ namespace Fougerite
                     if (a.HasArgs(1))
                     {
                         string plugin = a.ArgsStr;
-                        foreach (var x in ModuleManager.Modules)
+                        foreach (var x in PluginLoader.GetInstance().Plugins.Keys)
                         {
-                            if (string.Equals(x.Plugin.Name, plugin, StringComparison.CurrentCultureIgnoreCase))
+                            if (string.Equals(x, plugin, StringComparison.CurrentCultureIgnoreCase))
                             {
-                                if (x.Initialized) { x.DeInitialize(); }
-                                x.Initialize();
-                                a.ReplyWith("Fougerite: Reloaded " + x.Plugin.Name + "!");
+                                PluginLoader.GetInstance().ReloadPlugin(x);
+                                a.ReplyWith("Fougerite: Plugin " + x + " reloaded!");
                                 break;
                             }
                         }
                     }
                     else
                     {
-                        ModuleManager.ReloadModules();
+                        PluginLoader.GetInstance().ReloadPlugins();
                         a.ReplyWith("Fougerite: Reloaded!");
                     }
                 }
@@ -475,44 +494,18 @@ namespace Fougerite
                     if (a.HasArgs(1))
                     {
                         string plugin = a.ArgsStr;
-                        foreach (var x in ModuleManager.Modules)
+                        foreach (var x in PluginLoader.GetInstance().Plugins.Keys)
                         {
-                            if (string.Equals(x.Plugin.Name, plugin, StringComparison.CurrentCultureIgnoreCase))
+                            if (string.Equals(x, plugin, StringComparison.CurrentCultureIgnoreCase))
                             {
-                                if (x.Initialized)
+                                if (PluginLoader.GetInstance().Plugins[x].State == PluginState.Loaded)
                                 {
-                                    x.DeInitialize();
-                                    a.ReplyWith("Fougerite: UnLoaded " + x.Plugin.Name + "!");
+                                    PluginLoader.GetInstance().UnloadPlugin(x);
+                                    a.ReplyWith("Fougerite: UnLoaded " + x + "!");
                                 }
                                 else
                                 {
-                                    a.ReplyWith("Fougerite: " + x.Plugin.Name + " is already unloaded!");
-                                }
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            else if (a.Class.Equals("fougerite", ic) && a.Function.Equals("load", ic))
-            {
-                if (adminRights)
-                {
-                    if (a.HasArgs(1))
-                    {
-                        string plugin = a.ArgsStr;
-                        foreach (var x in ModuleManager.Modules)
-                        {
-                            if (string.Equals(x.Plugin.Name, plugin, StringComparison.CurrentCultureIgnoreCase))
-                            {
-                                if (!x.Initialized)
-                                {
-                                    x.Initialize();
-                                    a.ReplyWith("Fougerite: Loaded " + x.Plugin.Name + "!");
-                                }
-                                else
-                                {
-                                    a.ReplyWith("Fougerite: " + x.Plugin.Name + " is already unloaded!");
+                                    a.ReplyWith("Fougerite: " + x + " is already unloaded!");
                                 }
                                 break;
                             }
@@ -554,23 +547,6 @@ namespace Fougerite
                         World.GetWorld().ServerSaveHandler.ManualSave();
                         a.ReplyWith("Fougerite: Saved!");
                     }
-                }
-            }
-            else if (a.Class.Equals("fougerite", ic) && a.Function.Equals("rustpp", ic))
-            {
-                if (adminRights)
-                {
-                    foreach (var module in Fougerite.ModuleManager.Modules)
-                    {
-                        if (module.Plugin.Name.Equals("RustPPModule"))
-                        {
-                            module.DeInitialize();
-                            module.Initialize();
-                            break;
-                        }
-                    }
-
-                    a.ReplyWith("Rust++ Reloaded!");
                 }
             }
             else if (a.Class.Equals("fougerite", ic) && a.Function.Equals("rpctracer", ic))
@@ -3136,6 +3112,238 @@ namespace Fougerite
             return true;
         }
 
+        public static void Action1BHook(ItemRepresentation itr, byte[] data, uLink.NetworkMessageInfo info)
+        {
+            if (data == null)
+            {
+                return;
+            }
+
+            if (itr == null)
+            {
+                return;
+            }
+            
+            if (data.Length > 500)
+            {
+                Logger.LogDebug("[ActionDebug W] Conv2 length: " + data.Length + " ITR: " + itr + " | " + itr.datablock.name);
+                for (uint i = 0; i < data.Length;)
+                {
+                    try
+                    {
+                        uint conversion = (uint) BitConverter.ToInt32(data, (int) i);
+                        if (float.IsNaN(conversion) || float.IsInfinity(conversion))
+                        {
+                            return;
+                        }
+                        Logger.LogDebug("[ActionDebug W] Conv2: " + conversion);
+                        i += conversion + 6;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogDebug("[ActionDebug W] Err: " + ex);
+                        break;
+                    }
+                }
+                return;
+            }
+            
+            Logger.LogDebug("[ActionDebug] Conv length: " + data.Length + " ITR: " + itr + " | " + itr.datablock.name);
+            for (uint i = 0; i < data.Length;)
+            {
+                try
+                {
+                    uint conversion = (uint) BitConverter.ToInt32(data, (int) i);
+                    if (float.IsNaN(conversion) || float.IsInfinity(conversion))
+                    {
+                        return;
+                    }
+                    Logger.LogDebug("[ActionDebug] Conv: " + conversion + " i: " + i);
+                    i += conversion + 6;
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogDebug("[ActionDebug] NEW IGNOREABLE OR NOT: " + ex);
+                    break;
+                    //return;
+                }
+            }
+
+            try
+            {
+                uLink.BitStream stream = new uLink.BitStream(data, false);
+                Vector3 v = stream.ReadVector3();
+                Vector3 v2 = stream.ReadVector3();
+                if (v == null || v2 == null)
+                {
+                    Logger.LogDebug("[ActionDebug] Vectors are null1");
+                    Array.Clear(data, 0, data.Length);
+                    return;
+                }
+                if (float.IsNaN(v.x) || float.IsInfinity(v.x) || float.IsNaN(v.y) || float.IsInfinity(v.y) 
+                    || float.IsNaN(v.z) || float.IsInfinity(v.z))
+                {
+                    Logger.LogDebug("[ActionDebug] Vector1 verified.1");
+                    Array.Clear(data, 0, data.Length);
+                    return;
+                }
+                if (float.IsNaN(v2.x) || float.IsInfinity(v2.x) || float.IsNaN(v2.y) || float.IsInfinity(v2.y) 
+                    || float.IsNaN(v2.z) || float.IsInfinity(v2.z))
+                {
+                    Logger.LogDebug("[ActionDebug] Vector1 verified.2");
+                    Array.Clear(data, 0, data.Length);
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (!ex.ToString().Contains("Trying to read past the buffer size "))
+                {
+                    Logger.LogDebug("[ActionDebug] Action1B error: " + ex);
+                    return;
+                }
+            }
+
+            uLink.BitStream stream2 = new uLink.BitStream(data, false);
+            try
+            {
+                itr.RunServerAction(1, stream2, ref info);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogDebug("[ActionDebug] failed to call RunServerAction, view logs.");
+                Logger.LogDebug("Error: " + ex);
+            }
+        }
+
+        internal static readonly Dictionary<ulong, int> ActionCooldown = new Dictionary<ulong, int>();
+        public static void Action1Hook(ItemRepresentation itr, uLink.BitStream stream, uLink.NetworkMessageInfo info)
+        {
+            if (stream._data == null)
+            {
+                return;
+            }
+
+            if (itr == null)
+            {
+                return;
+            }
+            
+            if (stream._data.Length > 500)
+            {
+                Logger.LogDebug("[ActionDebug2 W] Conv2 length: " + stream._data.Length + " ITR: " + itr + " | " + itr.datablock.name);
+                for (uint i = 0; i < stream._data.Length;)
+                {
+                    try
+                    {
+                        uint conversion = (uint) BitConverter.ToInt32(stream._data, (int) i);
+                        if (float.IsNaN(conversion) || float.IsInfinity(conversion))
+                        {
+                            return;
+                        }
+                        Logger.LogDebug("[ActionDebug2 W] Conv2: " + conversion);
+                        i += conversion + 6;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogDebug("[ActionDebug2 W] Err: " + ex);
+                        break;
+                    }
+                }
+                return;
+            }
+
+            if (ServerSaveHandler.ServerIsSaving)
+            {
+                if (itr.networkViewOwner != null)
+                {
+                    NetUser user = itr.networkViewOwner.GetLocalData() as NetUser;
+                    if (user != null)
+                    {
+                        Fougerite.Player player = Fougerite.Server.GetServer().FindPlayer(user.userID.ToString());
+                        if (player != null)
+                        {
+                            if (!ActionCooldown.ContainsKey(player.UID))
+                            {
+                                ActionCooldown[player.UID] = 1;
+                            }
+                            else
+                            {
+                                ActionCooldown[player.UID] = ActionCooldown[player.UID] + 1;
+                            }
+
+                            if (ActionCooldown[player.UID] < 3)
+                            {
+                                player.Message(Bootstrap.SaveNotification);
+                            }
+                        }
+                    }
+                }
+                return;
+            }
+            ActionCooldown.Clear();
+
+            for (uint i = 0; i < stream._data.Length;)
+            {
+                try
+                {
+                    uint conversion = (uint) BitConverter.ToInt32(stream._data, (int) i);
+                    if (float.IsNaN(conversion) || float.IsInfinity(conversion))
+                    {
+                        return;
+                    }
+                    i += conversion + 6;
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogDebug("[ActionDebug2] Err: " + ex);
+                    break;
+                }
+            }
+            
+            try
+            {
+                uLink.BitStream stream2 = new uLink.BitStream(stream._data, false);
+                Vector3 v = stream2.ReadVector3();
+                Vector3 v2 = stream2.ReadVector3();
+                if (v == null || v2 == null)
+                {
+                    Logger.LogDebug("[ActionDebug] Vectors null");
+                    return;
+                }
+                if (float.IsNaN(v.x) || float.IsInfinity(v.x) || float.IsNaN(v.y) || float.IsInfinity(v.y) 
+                    || float.IsNaN(v.z) || float.IsInfinity(v.z))
+                {
+                    Logger.LogDebug("[ActionDebug2] Vector1 verified.");
+                    return;
+                }
+                if (float.IsNaN(v2.x) || float.IsInfinity(v2.x) || float.IsNaN(v2.y) || float.IsInfinity(v2.y) 
+                    || float.IsNaN(v2.z) || float.IsInfinity(v2.z))
+                {
+                    Logger.LogDebug("[ActionDebug2] Vector1 verified.");
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (!ex.ToString().Contains("Trying to read past the buffer size "))
+                {
+                    Logger.LogDebug("[ActionDebug2] Action1B error: " + ex);
+                    return;
+                }
+            }
+
+            try
+            {
+                itr.RunServerAction(1, stream, ref info);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogDebug("[ActionDebug2] failed to call RunServerAction, view logs.");
+                Logger.LogDebug("Error: " + ex);
+            }
+        }
+
         public static bool OnBanEventHandler(BanEvent be)
         {
             try
@@ -3748,6 +3956,7 @@ namespace Fougerite
         public delegate void GenericSpawnerLoadDelegate(GenericSpawner genericSpawner);
         public delegate void ServerLoadedDelegate();
         public delegate void SupplySignalDelegate(SupplySignalExplosionEvent supplySignalExplosionEvent);
+        public delegate void AllPluginsLoadedDelegate();
 
         //public delegate void AirdropCrateDroppedDelegate(GameObject go);
     }

@@ -28,8 +28,11 @@ namespace Fougerite
 
         //private static bool IsIgnoreVersion = true;
         private static readonly Dictionary<string, Assembly> LoadedAssemblies = new Dictionary<string, Assembly>();
+        
+        [Obsolete("Modules is obsolete, and might be removed in the future. Use PluginLoader.GetInstance().Plugins.Values", false)]
         public static readonly List<ModuleContainer> Modules = new List<ModuleContainer>();
-
+        
+        [Obsolete("Plugins is obsolete, and might be removed in the future. Use PluginLoader.GetInstance().Plugins.Values", false)]
         public static ReadOnlyCollection<ModuleContainer> Plugins
         {
             get { return new ReadOnlyCollection<ModuleContainer>(Modules); }

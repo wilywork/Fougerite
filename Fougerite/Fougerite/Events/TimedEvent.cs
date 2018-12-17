@@ -1,43 +1,36 @@
-﻿namespace Fougerite.Events
+﻿using System.Collections.Generic;
+
+namespace Fougerite.Events
 {
     using System;
     using System.Timers;
 
     public class TimedEvent
     {
-        private object[] _args;
+        private Dictionary<string, object> _args;
         private string _name;
         private System.Timers.Timer _timer;
         private long lastTick;
+        private int _elapsedCount;
 
+        public delegate void TimedEventFireDelegate(TimedEvent te);
         public event TimedEventFireDelegate OnFire;
-
-        public event TimedEventFireArgsDelegate OnFireArgs;
-
-        public TimedEvent(string name, double interval)
+        
+        public TimedEvent(string name, double interval, bool autoreset = false)
         {
             this._name = name;
-            this._timer = new System.Timers.Timer();
+            this._timer = new Timer();
             this._timer.Interval = interval;
             this._timer.Elapsed += new ElapsedEventHandler(this._timer_Elapsed);
+            this._elapsedCount = 0;
+            this._timer.AutoReset = autoreset;
         }
 
-        public TimedEvent(string name, double interval, object[] args)
+        public TimedEvent(string name, double interval, bool autoreset, Dictionary<string, object> args)
             : this(name, interval)
         {
-            this.Args = args;
-        }
-
-        public TimedEvent(string name, double interval, bool flag)
-            : this(name, interval)
-        {
-            this._timer.AutoReset = flag;
-        }
-
-        public TimedEvent(string name, double interval, object[] args, bool flag)
-            : this(name, interval, args)
-        {
-            this._timer.AutoReset = flag;
+            this._timer.AutoReset = autoreset;
+            _args = args;
         }
 
         private void _timer_Elapsed(object sender, ElapsedEventArgs e)
@@ -46,17 +39,14 @@
             {
                 if (this.OnFire != null)
                 {
-                    this.OnFire(this.Name);
-                }
-                if (this.OnFireArgs != null)
-                {
-                    this.OnFireArgs(this.Name, this.Args);
+                    this.OnFire(this);
                 }
                 this.lastTick = DateTime.UtcNow.Ticks;
+                this._elapsedCount += 1;
             }
             catch (Exception ex)
             {
-                Logger.LogDebug("Error occured at timer: " + this.Name + " Error: " + ex.ToString());
+                Logger.LogError("Error occured at timer: " + this.Name + " Error: " + ex.ToString());
                 this.Stop();
                 Logger.LogDebug("Trying to restart timer.");
                 this.Start();
@@ -87,7 +77,7 @@
             set { this._timer.AutoReset = value; }
         }
 
-        public object[] Args
+        public Dictionary<string, object> Args
         {
             get
             {
@@ -131,9 +121,13 @@
                 return (this.Interval - ((DateTime.UtcNow.Ticks - this.lastTick) / 0x2710L));
             }
         }
-
-        public delegate void TimedEventFireArgsDelegate(string name, object[] list);
-
-        public delegate void TimedEventFireDelegate(string name);
+        
+        public int ElapsedCount 
+        {
+            get
+            {
+                return this._elapsedCount;
+            }
+        }
     }
 }

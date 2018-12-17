@@ -7,6 +7,10 @@
     using System.Linq;
     using UnityEngine;
 
+    /// <summary>
+    /// Mostly containing functions that can modify the environment.
+    /// See below.
+    /// </summary>
     public class World
     {
         private static World world;
@@ -24,12 +28,19 @@
             this.zones = new Dictionary<string, Zone3D>();
         }
 
+        /// <summary>
+        /// Returns the Fougerite ServerSaveHandler class.
+        /// </summary>
         public ServerSaveHandler ServerSaveHandler
         {
             get;
             internal set;
         }
 
+        /// <summary>
+        /// Returns the instance of the class.
+        /// </summary>
+        /// <returns></returns>
         public static World GetWorld()
         {
             if (world == null)
@@ -39,11 +50,18 @@
             return world;
         }
 
+        /// <summary>
+        /// Calls an airdrop to a random position.
+        /// </summary>
         public void Airdrop()
         {
             this.Airdrop(1);
         }
 
+        /// <summary>
+        /// Calls an airdrop N times.
+        /// </summary>
+        /// <param name="rep"></param>
         public void Airdrop(int rep)
         {
             for (int i = 0; i < rep; i++)
@@ -121,19 +139,39 @@
             }
         }
 
+        /// <summary>
+        /// Calls an airdrop to the coordinates 'rep' times.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="z"></param>
+        /// <param name="rep"></param>
         public void AirdropAtOriginal(float x, float y, float z, int rep = 1)
         {
             this.AirdropAtOriginal(new Vector3(x, y, z), rep);
         }
 
+        /// <summary>
+        /// Calls an airdrop to the target player 'rep' times.
+        /// </summary>
+        /// <param name="p"></param>
+        /// <param name="rep"></param>
         public void AirdropAtOriginal(Fougerite.Player p, int rep = 1)
         {
             this.AirdropAtOriginal(p.Location, rep);
         }
 
+        /// <summary>
+        /// Calls an airdrop to the target vector 'rep' times.
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="rep"></param>
         public void AirdropAtOriginal(Vector3 target, int rep = 1)
         {
-            SupplyDropZone.CallAirDropAt(target);
+            for (int i = 0; i < rep; i++)
+            {
+                SupplyDropZone.CallAirDropAt(target);
+            }
         }
 
         private static void Jitter(ref Vector3 target)
@@ -143,6 +181,9 @@
             target.z += jitter.y * 100;
         }
 
+        /// <summary>
+        /// Puts out the current datablock values to a txt file.
+        /// </summary>
         public void Blocks()
         {
             foreach (ItemDataBlock block in DatablockDictionary.All)
@@ -193,16 +234,46 @@
             }
         }
 
+        /// <summary>
+        /// Creates a structuremaster.
+        /// A structuremaster in the game gets created when the first foundation is placed by a player.
+        /// Therefore an owner of the structuremaster must be specified.
+        /// </summary>
+        /// <param name="p"></param>
+        /// <returns></returns>
         public StructureMaster CreateSM(Fougerite.Player p)
         {
             return this.CreateSM(p, p.X, p.Y, p.Z, p.PlayerClient.transform.rotation);
         }
 
+        /// <summary>
+        /// Creates a structuremaster.
+        /// A structuremaster in the game gets created when the first foundation is placed by a player.
+        /// Therefore an owner of the structuremaster must be specified.
+        /// You may even specify the location, this is usually the foundation's position.
+        /// </summary>
+        /// <param name="p"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="z"></param>
+        /// <returns></returns>
         public StructureMaster CreateSM(Fougerite.Player p, float x, float y, float z)
         {
             return this.CreateSM(p, x, y, z, Quaternion.identity);
         }
-
+        
+        /// <summary>
+        /// Creates a structuremaster.
+        /// A structuremaster in the game gets created when the first foundation is placed by a player.
+        /// Therefore an owner of the structuremaster must be specified.
+        /// You may even specify the location, this is usually the foundation's position.
+        /// </summary>
+        /// <param name="p"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="z"></param>
+        /// <param name="rot"></param>
+        /// <returns></returns>
         public StructureMaster CreateSM(Fougerite.Player p, float x, float y, float z, Quaternion rot)
         {
             StructureMaster master = NetCull.InstantiateClassic<StructureMaster>(Bundling.Load<StructureMaster>("content/structures/StructureMasterPrefab"), new Vector3(x, y, z), rot, 0);
@@ -210,55 +281,109 @@
             return master;
         }
 
+        /// <summary>
+        /// Creates a zone with a specific name.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public Zone3D CreateZone(string name)
         {
             return new Zone3D(name);
         }
 
+        /// <summary>
+        /// Gets the ground Y position at the given X, Z coordinates.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="z"></param>
+        /// <returns></returns>
         public float GetGround(float x, float z)
         {
             Vector3 above = new Vector3(x, 2000f, z);
             return (float)((RaycastHit)Physics.RaycastAll(above, Vector3.down, 2000f)[0]).point.y;
         }
 
+        /// <summary>
+        /// Gets the ground Y position at the given Vector.
+        /// </summary>
+        /// <param name="target"></param>
+        /// <returns></returns>
         public float GetGround(Vector3 target)
         {
             Vector3 above = new Vector3(target.x, 2000f, target.z);
             return (float)((RaycastHit)Physics.RaycastAll(above, Vector3.down, 2000f)[0]).point.y;
         }
 
+        /// <summary>
+        /// Gets the TerrainHight at the given Vector.
+        /// </summary>
+        /// <param name="target"></param>
+        /// <returns></returns>
         public float GetTerrainHeight(Vector3 target)
         {
             return Terrain.activeTerrain.SampleHeight(target);
         }
 
+        /// <summary>
+        /// Gets the TerrainHight at the given coordinates.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="z"></param>
+        /// <returns></returns>
         public float GetTerrainHeight(float x, float y, float z)
         {
             return GetTerrainHeight(new Vector3(x, y, z));
         }
-
+        
+        /// <summary>
+        /// Gets the terrain steepness at the target vector.
+        /// </summary>
+        /// <param name="target"></param>
+        /// <returns></returns>
         public float GetTerrainSteepness(Vector3 target)
         {
             return Terrain.activeTerrain.terrainData.GetSteepness(target.x, target.z);
         }
 
+        /// <summary>
+        /// Gets the terrain steepness at the given X, Z coordinates.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="z"></param>
+        /// <returns></returns>
         public float GetTerrainSteepness(float x, float z)
         {
             return Terrain.activeTerrain.terrainData.GetSteepness(x, z);
         }
 
+        /// <summary>
+        /// Returns the Ground Distance from the specified coordinates.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="z"></param>
+        /// <returns></returns>
         public float GetGroundDist(float x, float y, float z)
         {
             float ground = GetGround(x, z);
             return y - ground;
         }
 
+        /// <summary>
+        /// Returns the Ground Distance from the specified Vector.
+        /// </summary>
+        /// <param name="target"></param>
+        /// <returns></returns>
         public float GetGroundDist(Vector3 target)
         {
             float ground = GetGround(target);
             return target.y - ground;
         }
 
+        /// <summary>
+        /// Lists all the lootspawnlist values to a txt file.
+        /// </summary>
         public void Lists()
         {
             foreach (LootSpawnList list in DatablockDictionary._lootSpawnLists.Values)
@@ -279,6 +404,9 @@
             }
         }
 
+        /// <summary>
+        /// Lists all the prefabs to a txt file.
+        /// </summary>
         public void Prefabs()
         {
             foreach (ItemDataBlock block in DatablockDictionary.All)
@@ -298,6 +426,9 @@
         }
 
 
+        /// <summary>
+        /// Loops through all the datablocks, and writes them to a txt file.
+        /// </summary>
         public void DataBlocks()
         {
             foreach (ItemDataBlock block in DatablockDictionary.All)
@@ -306,21 +437,55 @@
             }
         }
 
+        /// <summary>
+        /// Spawns a prefab at the vector position.
+        /// </summary>
+        /// <param name="prefab"></param>
+        /// <param name="location"></param>
+        /// <returns></returns>
         public object Spawn(string prefab, Vector3 location)
         {
             return this.Spawn(prefab, location, 1);
         }
 
+        /// <summary>
+        /// Spawns a prefab at the vector position N times.
+        /// </summary>
+        /// <param name="prefab"></param>
+        /// <param name="location"></param>
+        /// <param name="rep"></param>
+        /// <returns></returns>
         public object Spawn(string prefab, Vector3 location, int rep)
         {
             return this.Spawn(prefab, location, Quaternion.identity, rep);
         }
 
+        /// <summary>
+        /// Spawns a prefab at the coordinates.
+        /// </summary>
+        /// <param name="prefab"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="z"></param>
+        /// <returns></returns>
         public object Spawn(string prefab, float x, float y, float z)
         {
             return this.Spawn(prefab, new Vector3(x, y, z), 1);
         }
 
+        /// <summary>
+        /// Spawns a prefab at the given vector, rotation, N times.
+        /// IMPORTANT: Returns the prefab as an Entity class.
+        /// Entity class only supports specific types, like LootableObject
+        /// SupplyCrate, ResourceTarget, DeployableObject, StructureComponent,
+        /// StructureMaster.
+        /// The other spawn methods are returning the gameobject instead.
+        /// </summary>
+        /// <param name="prefab"></param>
+        /// <param name="location"></param>
+        /// <param name="rotation"></param>
+        /// <param name="rep"></param>
+        /// <returns></returns>
         public Entity SpawnEntity(string prefab, Vector3 location, Quaternion rotation, int rep = 1)
         {
             Entity obj2 = null;
@@ -428,31 +593,75 @@
             return obj2;
         }
 
+        /// <summary>
+        /// Spawns a prefab at the given coordinates, N times.
+        /// </summary>
+        /// <param name="prefab"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="z"></param>
+        /// <param name="rep"></param>
+        /// <returns></returns>
         public object Spawn(string prefab, float x, float y, float z, int rep)
         {
             return this.Spawn(prefab, new Vector3(x, y, z), Quaternion.identity, rep);
         }
 
+        /// <summary>
+        /// Spawns a prefab at the given coordinates, rotation.
+        /// </summary>
+        /// <param name="prefab"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="z"></param>
+        /// <param name="rot"></param>
+        /// <returns></returns>
         public object Spawn(string prefab, float x, float y, float z, Quaternion rot)
         {
             return this.Spawn(prefab, new Vector3(x, y, z), rot, 1);
         }
 
+        /// <summary>
+        /// Spawns a prefab at the given coordinates, rotation, N times.
+        /// </summary>
+        /// <param name="prefab"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="z"></param>
+        /// <param name="rot"></param>
+        /// <param name="rep"></param>
+        /// <returns></returns>
         public object Spawn(string prefab, float x, float y, float z, Quaternion rot, int rep)
         {
             return this.Spawn(prefab, new Vector3(x, y, z), rot, rep);
         }
 
+        /// <summary>
+        /// Spawns a prefab at the given player.
+        /// </summary>
+        /// <param name="prefab"></param>
+        /// <param name="p"></param>
+        /// <returns></returns>
         public object SpawnAtPlayer(string prefab, Fougerite.Player p)
         {
             return this.Spawn(prefab, p.Location, p.PlayerClient.transform.rotation, 1);
         }
-
+        
+        /// <summary>
+        /// Spawns a prefab at the given player, N times.
+        /// </summary>
+        /// <param name="prefab"></param>
+        /// <param name="p"></param>
+        /// <param name="rep"></param>
+        /// <returns></returns>
         public object SpawnAtPlayer(string prefab, Fougerite.Player p, int rep)
         {
             return this.Spawn(prefab, p.Location, p.PlayerClient.transform.rotation, rep);
         }
 
+        /// <summary>
+        /// Gets or Sets the DayLength.
+        /// </summary>
         public float DayLength
         {
             get { return env.daylength; }
@@ -609,6 +818,11 @@
             return this.structurems;
         }
 
+        /// <summary>
+        /// Returns all the LootableObjects.
+        /// THIS METHOD IS NOT SAFE TO CALL IN A SUBTHREAD DUE TO Object.FindObjectsOfType.
+        /// CONSIDER USING Util.FindClosestEntity or Util.FindEntitysAroundFast or Util.FindClosestObject or Util.FindObjectsAroundFast
+        /// </summary>
         public IEnumerable<Entity> LootableObjects
         {
             get
@@ -623,6 +837,11 @@
             }
         }
 
+        /// <summary>
+        /// Returns all the SupplyCrates.
+        /// THIS METHOD IS NOT SAFE TO CALL IN A SUBTHREAD DUE TO Object.FindObjectsOfType.
+        /// CONSIDER USING Util.FindClosestEntity or Util.FindEntitysAroundFast or Util.FindClosestObject or Util.FindObjectsAroundFast
+        /// </summary>
         public IEnumerable<Entity> SupplyCrates
         {
             get
@@ -637,6 +856,11 @@
             }
         }
 
+        /// <summary>
+        /// Returns all the Entities into a list.
+        /// THIS METHOD IS NOT SAFE TO CALL IN A SUBTHREAD DUE TO Object.FindObjectsOfType.
+        /// CONSIDER USING Util.FindClosestEntity or Util.FindEntitysAroundFast or Util.FindClosestObject or Util.FindObjectsAroundFast
+        /// </summary>
         public List<Entity> Entities
         {
             get
@@ -670,12 +894,18 @@
             }
         }
 
+        /// <summary>
+        /// Gets or Sets the NightLength
+        /// </summary>
         public float NightLength
         {
             get { return env.nightlength; }
             set { env.nightlength = value; }
         }
 
+        /// <summary>
+        /// Gets or Sets the current time.
+        /// </summary>
         public float Time
         {
             get

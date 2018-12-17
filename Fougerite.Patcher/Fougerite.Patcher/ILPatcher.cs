@@ -1709,6 +1709,37 @@ namespace Fougerite.Patcher
             iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(method)));
             iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
         }
+
+        private void ItemRepresentation()
+        {
+            TypeDefinition ItemRepresentation = rustAssembly.MainModule.GetType("ItemRepresentation");
+            ItemRepresentation.GetMethod("Action1").SetPublic(true);
+            ItemRepresentation.GetMethod("Action1B").SetPublic(true);
+            ItemRepresentation.GetMethod("RunServerAction").SetPublic(true);
+            
+            MethodDefinition Action1Hook = hooksClass.GetMethod("Action1Hook");
+            MethodDefinition Action1BHook = hooksClass.GetMethod("Action1BHook");
+            
+            
+            MethodDefinition Action1 = ItemRepresentation.GetMethod("Action1");
+            MethodDefinition Action1B = ItemRepresentation.GetMethod("Action1B");
+            
+            ILProcessor iLProcessor = Action1.Body.GetILProcessor();
+            iLProcessor.Body.Instructions.Clear();
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(Action1Hook)));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+            
+            ILProcessor iLProcessor2 = Action1B.Body.GetILProcessor();
+            iLProcessor2.Body.Instructions.Clear();
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(Action1BHook)));
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+        }
         
         // uLink Class56.method_36 has been patched here: https://i.imgur.com/WIEQXhX.png
         // I modified using dynspy to avoid the struggle.
@@ -1844,6 +1875,7 @@ namespace Fougerite.Patcher
                     this.BeltPatch();
                     this.SupplySignalExplosion();
                     this.TossPatch();
+                    this.ItemRepresentation();
                 }
                 catch (Exception ex)
                 {

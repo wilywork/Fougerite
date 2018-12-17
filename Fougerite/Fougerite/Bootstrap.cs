@@ -1,4 +1,7 @@
 
+using System.Collections.Generic;
+using Fougerite.PluginLoaders;
+
 namespace Fougerite
 {
     using System;
@@ -11,7 +14,7 @@ namespace Fougerite
         /// <summary>
         /// Returns the Current Fougerite Version
         /// </summary>
-        public const string Version = "1.6.9";
+        public const string Version = "1.7.0";
         /// <summary>
         /// This value decides wheather we should remove the player classes from the cache upon disconnect.
         /// </summary>
@@ -32,8 +35,29 @@ namespace Fougerite
         /// This value decides how many connections can be made from the same ip per seconds.
         /// </summary>
         public static int FloodConnections = 3;
+        /// <summary>
+        /// Contains the ignored plugin names.
+        /// </summary>
+        public static readonly List<string> IgnoredPlugins = new List<string>();
+        /// <summary>
+        /// Text to display to the player when the server is saving, and the building parts cannot be placed due the subthread.
+        /// </summary>
+        public static string SaveNotification = "The server is currently saving! You have to wait before placing an object.";
+        /// <summary>
+        /// Enable the default ChatSystem output for the Player.Message methods?
+        /// </summary>
+        public static bool RustChat = true;
+        /// <summary>
+        /// Send additional RPCPackets of the chat for the clients? (This is recommended for RustBuster Servers only.)
+        /// </summary>
+        public static bool RPCChat = false;
+        /// <summary>
+        /// Specify the client side's RPC method.
+        /// </summary>
+        public static string RPCChatMethod = "FougeriteChatSystem";
         
         internal static readonly Thread CurrentThread = Thread.CurrentThread;
+        private static readonly FileSystemWatcher IgnoredWatcher = new FileSystemWatcher(Path.Combine(Util.GetRootFolder(), "Save"), "IgnoredPlugins.txt");
 
         public static void AttachBootstrap()
         {
@@ -75,6 +99,28 @@ namespace Fougerite
             {
                 AutoBanCraft = Fougerite.Config.GetBoolValue("Fougerite", "AutoBanCraft");
             }
+            if (Fougerite.Config.GetValue("Fougerite", "SaveNotification") != null)
+            {
+                SaveNotification = Fougerite.Config.GetValue("Fougerite", "SaveNotification");
+            }
+            if (Fougerite.Config.GetValue("Fougerite", "RustChat") != null)
+            {
+                RustChat = Fougerite.Config.GetBoolValue("Fougerite", "RustChat");
+            }
+            if (Fougerite.Config.GetValue("Fougerite", "RPCChat") != null)
+            {
+                RPCChat = Fougerite.Config.GetBoolValue("Fougerite", "RPCChat");
+            }
+            if (Fougerite.Config.GetValue("Fougerite", "RPCChatMethod") != null)
+            {
+                RPCChatMethod = Fougerite.Config.GetValue("Fougerite", "RPCChatMethod");
+            }
+
+            if (!RustChat)
+            {
+                Logger.LogWarning("[RustChat] The default Rust Chat is disabled for the Player.Message methods.");
+            }
+            
             if (Fougerite.Config.GetValue("Fougerite", "FloodConnections") != null)
             {
                 int v;
@@ -134,6 +180,23 @@ namespace Fougerite
                 ServerSaveHandler.CrucialSavePoint = 2;
             }
 
+            if (!File.Exists(Util.GetRootFolder() + "\\Save\\IgnoredPlugins.txt"))
+            {
+                File.Create(Util.GetRootFolder() + "\\Save\\IgnoredPlugins.txt").Dispose();
+            }
+
+
+            string[] lines = File.ReadAllLines(Util.GetRootFolder() + "\\Save\\IgnoredPlugins.txt");
+            foreach (var x in lines)
+            {
+                if (!x.StartsWith(";"))
+                {
+                    IgnoredPlugins.Add(x.ToLower());
+                }
+            }
+            IgnoredWatcher.EnableRaisingEvents = true;
+            IgnoredWatcher.Changed += OnIgnoredChanged;
+
             // Remove the default rust saving methods.
             save.autosavetime = int.MaxValue;
             
@@ -171,6 +234,22 @@ namespace Fougerite
             return true;
         }
 
+        private void OnIgnoredChanged(object sender, FileSystemEventArgs e)
+        {
+            IgnoredPlugins.Clear();
+            string[] lines = File.ReadAllLines(Util.GetRootFolder() + "\\Save\\IgnoredPlugins.txt");
+            foreach (var x in lines)
+            {
+                if (!x.StartsWith(";"))
+                {
+                    IgnoredPlugins.Add(x.ToLower());
+                }
+            }
+            Loom.QueueOnMainThread(() => {
+                Logger.Log("[IgnoredPluginsWatcher] Detected IgnoredPlugins change, reloaded list. ");
+            });
+        }
+
         public void Start()
         {
             string FougeriteDirectoryConfig = Path.Combine(Util.GetServerFolder(), "FougeriteDirectory.cfg");
@@ -181,7 +260,11 @@ namespace Fougerite
             Rust.Steam.Server.Official = false;
 
             if (ApplyOptions()) {
-                ModuleManager.LoadModules();
+                //ModuleManager.LoadModules();
+                LuaPluginLoader.GetInstance();
+                CSharpPluginLoader.GetInstance();
+                JavaScriptPluginLoader.GetInstance();
+                PythonPluginLoader.GetInstance();
                 Fougerite.Hooks.ServerStarted();
                 Fougerite.ShutdownCatcher.Hook();
             }
