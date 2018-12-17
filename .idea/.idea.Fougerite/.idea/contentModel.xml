@@ -60,6 +60,25 @@
           <e p="Player.cs" t="Include" />
           <e p="PlayerInv.cs" t="Include" />
           <e p="PlayerItem.cs" t="Include" />
+          <e p="PluginLoaders" t="Include">
+            <e p="BasePlugin.cs" t="Include" />
+            <e p="CountedInstance.cs" t="Include" />
+            <e p="CSharpPluginLoader.cs" t="Include" />
+            <e p="CSPlugin.cs" t="Include" />
+            <e p="IPlugin.cs" t="Include" />
+            <e p="IPluginLoader.cs" t="Include" />
+            <e p="ISingleton.cs" t="Include" />
+            <e p="JavaScriptPlugin.cs" t="Include" />
+            <e p="JavaScriptPluginLoader.cs" t="Include" />
+            <e p="LuaPlugin.cs" t="Include" />
+            <e p="LuaPluginLoader.cs" t="Include" />
+            <e p="PluginLoader.cs" t="Include" />
+            <e p="PluginWatcher.cs" t="Include" />
+            <e p="PythonPlugin.cs" t="Include" />
+            <e p="PythonPluginLoader.cs" t="Include" />
+            <e p="Singleton.cs" t="Include" />
+          </e>
+          <e p="ReflectionExtensions.cs" t="Include" />
           <e p="RustPPExtension.cs" t="Include" />
           <e p="SerializableDictionary.cs" t="Include" />
           <e p="Server.cs" t="Include" />
@@ -67,6 +86,7 @@
           <e p="ShutdownCatcher.cs" t="Include" />
           <e p="Sleeper.cs" t="Include" />
           <e p="SQLiteConnector.cs" t="Include" />
+          <e p="Stopper.cs" t="Include" />
           <e p="Util.cs" t="Include" />
           <e p="Web.cs" t="Include" />
           <e p="World.cs" t="Include" />
@@ -102,258 +122,6 @@
         <e p="GlitchFix.cfg" t="Include" />
         <e p="GlitchFix.csproj" t="IncludeRecursive" />
         <e p="GlitchFixModule.cs" t="Include" />
-        <e p="obj" t="ExcludeRecursive" />
-        <e p="Properties" t="Include">
-          <e p="AssemblyInfo.cs" t="Include" />
-        </e>
-      </e>
-      <e p="IronPythonModule-master\IronPythonModule" t="IncludeRecursive">
-        <e p="FougeriteEx" t="Include">
-          <e p="Dump.cs" t="Include" />
-          <e p="Extensions.cs" t="Include" />
-          <e p="IPTimedEvent.cs" t="Include" />
-        </e>
-        <e p="IPModule.cs" t="Include" />
-        <e p="IPPlugin.cs" t="Include" />
-        <e p="IronPythonModule.csproj" t="IncludeRecursive" />
-        <e p="LookUp.cs" t="Include" />
-        <e p="obj" t="ExcludeRecursive" />
-        <e p="Properties" t="Include">
-          <e p="AssemblyInfo.cs" t="Include" />
-        </e>
-      </e>
-      <e p="JintPlugin" t="IncludeRecursive">
-        <e p="AdvancedTimer.cs" t="Include" />
-        <e p="Jint" t="Include">
-          <e p="DeclarationBindingType.cs" t="Include" />
-          <e p="Engine.cs" t="Include" />
-          <e p="EvalCodeScope.cs" t="Include" />
-          <e p="Jint.snk" t="Include" />
-          <e p="Native" t="Include">
-            <e p="Argument" t="Include">
-              <e p="ArgumentsObject.cs" t="Include" />
-            </e>
-            <e p="Array" t="Include">
-              <e p="ArrayConstructor.cs" t="Include" />
-              <e p="ArrayInstance.cs" t="Include" />
-              <e p="ArrayPrototype.cs" t="Include" />
-            </e>
-            <e p="Boolean" t="Include">
-              <e p="BooleanConstructor.cs" t="Include" />
-              <e p="BooleanInstance.cs" t="Include" />
-              <e p="BooleanPrototype.cs" t="Include" />
-            </e>
-            <e p="Date" t="Include">
-              <e p="DateConstructor.cs" t="Include" />
-              <e p="DateInstance.cs" t="Include" />
-              <e p="DatePrototype.cs" t="Include" />
-            </e>
-            <e p="Error" t="Include">
-              <e p="ErrorConstructor.cs" t="Include" />
-              <e p="ErrorInstance.cs" t="Include" />
-              <e p="ErrorPrototype.cs" t="Include" />
-            </e>
-            <e p="Function" t="Include">
-              <e p="BindFunctionInstance.cs" t="Include" />
-              <e p="EvalFunctionInstance.cs" t="Include" />
-              <e p="FunctionConstructor.cs" t="Include" />
-              <e p="FunctionInstance.cs" t="Include" />
-              <e p="FunctionPrototype.cs" t="Include" />
-              <e p="FunctionShim.cs" t="Include" />
-              <e p="ScriptFunctionInstance.cs" t="Include" />
-              <e p="ThrowTypeError.cs" t="Include" />
-            </e>
-            <e p="Global" t="Include">
-              <e p="GlobalObject.cs" t="Include" />
-            </e>
-            <e p="ICallable.cs" t="Include" />
-            <e p="IConstructor.cs" t="Include" />
-            <e p="IPrimitiveInstance.cs" t="Include" />
-            <e p="Json" t="Include">
-              <e p="JsonInstance.cs" t="Include" />
-              <e p="JsonParser.cs" t="Include" />
-              <e p="JsonSerializer.cs" t="Include" />
-            </e>
-            <e p="JsValue.cs" t="Include" />
-            <e p="Math" t="Include">
-              <e p="MathInstance.cs" t="Include" />
-            </e>
-            <e p="Null.cs" t="Include" />
-            <e p="Number" t="Include">
-              <e p="Dtoa" t="Include">
-                <e p="CachePowers.cs" t="Include" />
-                <e p="DiyFp.cs" t="Include" />
-                <e p="DoubleHelper.cs" t="Include" />
-                <e p="FastDtoa.cs" t="Include" />
-                <e p="FastDtoaBuilder.cs" t="Include" />
-                <e p="NumberExtensions.cs" t="Include" />
-              </e>
-              <e p="NumberConstructor.cs" t="Include" />
-              <e p="NumberInstance.cs" t="Include" />
-              <e p="NumberPrototype.cs" t="Include" />
-            </e>
-            <e p="Object" t="Include">
-              <e p="ObjectConstructor.cs" t="Include" />
-              <e p="ObjectInstance.cs" t="Include" />
-              <e p="ObjectPrototype.cs" t="Include" />
-            </e>
-            <e p="RegExp" t="Include">
-              <e p="RegExpConstructor.cs" t="Include" />
-              <e p="RegExpInstance.cs" t="Include" />
-              <e p="RegExpPrototype.cs" t="Include" />
-            </e>
-            <e p="String" t="Include">
-              <e p="StringConstructor.cs" t="Include" />
-              <e p="StringInstance.cs" t="Include" />
-              <e p="StringPrototype.cs" t="Include" />
-            </e>
-            <e p="Undefined.cs" t="Include" />
-          </e>
-          <e p="Options.cs" t="Include" />
-          <e p="Parser" t="Include">
-            <e p="Ast" t="Include">
-              <e p="ArrayExpression.cs" t="Include" />
-              <e p="AssignmentExpression.cs" t="Include" />
-              <e p="BinaryExpression.cs" t="Include" />
-              <e p="BlockStatement.cs" t="Include" />
-              <e p="BreakStatement.cs" t="Include" />
-              <e p="CallExpression.cs" t="Include" />
-              <e p="CatchClause.cs" t="Include" />
-              <e p="ConditionalExpression.cs" t="Include" />
-              <e p="ContinueStatement.cs" t="Include" />
-              <e p="DebuggerStatement.cs" t="Include" />
-              <e p="DoWhileStatement.cs" t="Include" />
-              <e p="EmptyStatement.cs" t="Include" />
-              <e p="Expression.cs" t="Include" />
-              <e p="ExpressionStatement.cs" t="Include" />
-              <e p="ForInStatement.cs" t="Include" />
-              <e p="ForStatement.cs" t="Include" />
-              <e p="FunctionDeclaration.cs" t="Include" />
-              <e p="FunctionExpression.cs" t="Include" />
-              <e p="Identifier.cs" t="Include" />
-              <e p="IfStatement.cs" t="Include" />
-              <e p="IPropertyKeyExpression.cs" t="Include" />
-              <e p="LabeledStatement.cs" t="Include" />
-              <e p="Literal.cs" t="Include" />
-              <e p="LogicalExpression.cs" t="Include" />
-              <e p="MemberExpression.cs" t="Include" />
-              <e p="NewExpression.cs" t="Include" />
-              <e p="ObjectExpression.cs" t="Include" />
-              <e p="Program.cs" t="Include" />
-              <e p="Property.cs" t="Include" />
-              <e p="RegExpLiteral.cs" t="Include" />
-              <e p="ReturnStatement.cs" t="Include" />
-              <e p="SequenceExpression.cs" t="Include" />
-              <e p="Statement.cs" t="Include" />
-              <e p="SwitchCase.cs" t="Include" />
-              <e p="SwitchStatement.cs" t="Include" />
-              <e p="SyntaxNode.cs" t="Include" />
-              <e p="SyntaxNodes.cs" t="Include" />
-              <e p="ThisExpression.cs" t="Include" />
-              <e p="ThrowStatement.cs" t="Include" />
-              <e p="TryStatement.cs" t="Include" />
-              <e p="UnaryExpression.cs" t="Include" />
-              <e p="UpdateExpression.cs" t="Include" />
-              <e p="VariableDeclaration.cs" t="Include" />
-              <e p="VariableDeclarator.cs" t="Include" />
-              <e p="WhileStatement.cs" t="Include" />
-              <e p="WithStatement.cs" t="Include" />
-            </e>
-            <e p="Comment.cs" t="Include" />
-            <e p="IFunctionDeclaration.cs" t="Include" />
-            <e p="IFunctionScope.cs" t="Include" />
-            <e p="IVariableScope.cs" t="Include" />
-            <e p="JavascriptParser.cs" t="Include" />
-            <e p="Loc.cs" t="Include" />
-            <e p="Messages.cs" t="Include" />
-            <e p="ParserException.cs" t="Include" />
-            <e p="ParserExtensions.cs" t="Include" />
-            <e p="ParserOptions.cs" t="Include" />
-            <e p="Position.cs" t="Include" />
-            <e p="State.cs" t="Include" />
-            <e p="Token.cs" t="Include" />
-          </e>
-          <e p="Runtime" t="Include">
-            <e p="Arguments.cs" t="Include" />
-            <e p="Completion.cs" t="Include" />
-            <e p="Descriptors" t="Include">
-              <e p="PropertyDescriptor.cs" t="Include" />
-              <e p="Specialized" t="Include">
-                <e p="ClrAccessDescriptor.cs" t="Include" />
-                <e p="FieldInfoDescriptor.cs" t="Include" />
-                <e p="IndexDescriptor.cs" t="Include" />
-                <e p="PropertyInfoDescriptor.cs" t="Include" />
-              </e>
-            </e>
-            <e p="Environments" t="Include">
-              <e p="Binding.cs" t="Include" />
-              <e p="DeclarativeEnvironmentRecord.cs" t="Include" />
-              <e p="EnvironmentRecord.cs" t="Include" />
-              <e p="ExecutionContext.cs" t="Include" />
-              <e p="LexicalEnvironment.cs" t="Include" />
-              <e p="ObjectEnvironmentRecord.cs" t="Include" />
-            </e>
-            <e p="ExpressionIntepreter.cs" t="Include" />
-            <e p="Interop" t="Include">
-              <e p="ClrFunctionInstance.cs" t="Include" />
-              <e p="DefaultTypeConverter.cs" t="Include" />
-              <e p="DelegateWrapper.cs" t="Include" />
-              <e p="GetterFunctionInstance.cs" t="Include" />
-              <e p="IObjectConverter.cs" t="Include" />
-              <e p="IObjectWrapper.cs" t="Include" />
-              <e p="ITypeConverter.cs" t="Include" />
-              <e p="MethodInfoFunctionInstance.cs" t="Include" />
-              <e p="NamespaceReference.cs" t="Include" />
-              <e p="ObjectWrapper .cs" t="Include" />
-              <e p="SetterFunctionInstance.cs" t="Include" />
-              <e p="TypeReference.cs" t="Include" />
-              <e p="TypeReferencePrototype.cs" t="Include" />
-            </e>
-            <e p="JavaScriptException.cs" t="Include" />
-            <e p="References" t="Include">
-              <e p="Reference.cs" t="Include" />
-            </e>
-            <e p="StatementInterpreter.cs" t="Include" />
-            <e p="StatementsCountOverflowException.cs" t="Include" />
-            <e p="TypeConverter.cs" t="Include" />
-          </e>
-          <e p="StrictModeScope.cs" t="Include" />
-        </e>
-        <e p="JintPlugin.cs" t="Include" />
-        <e p="JintPlugin.csproj" t="IncludeRecursive" />
-        <e p="JintPluginModule.cs" t="Include" />
-        <e p="JintTE.cs" t="Include" />
-        <e p="obj" t="ExcludeRecursive" />
-        <e p="PlayerLog" t="Include">
-          <e p="PlayerLog.js" t="Include" />
-          <e p="README.txt" t="Include" />
-        </e>
-        <e p="Properties" t="Include">
-          <e p="AssemblyInfo.cs" t="Include" />
-        </e>
-      </e>
-      <e p="MagmaPlugin" t="IncludeRecursive">
-        <e p="AdvancedTimer.cs" t="Include" />
-        <e p="Data.cs" t="Include" />
-        <e p="Drop++" t="Include">
-          <e p="Drop++.cfg" t="Include" />
-          <e p="Drop++.js" t="Include" />
-        </e>
-        <e p="MagmaPlugin.cs" t="Include" />
-        <e p="MagmaPlugin.csproj" t="IncludeRecursive" />
-        <e p="MagmaPluginModule.cs" t="Include" />
-        <e p="MagmaTE.cs" t="Include" />
-        <e p="obj" t="ExcludeRecursive" />
-        <e p="ParamsList.cs" t="Include" />
-        <e p="Properties" t="Include">
-          <e p="AssemblyInfo.cs" t="Include" />
-        </e>
-      </e>
-      <e p="MoonSharp" t="IncludeRecursive">
-        <e p="LuaModule.cs" t="Include" />
-        <e p="LuaPlugin.cs" t="Include" />
-        <e p="MoonSharp.csproj" t="IncludeRecursive" />
-        <e p="MoonSharpTE.cs" t="Include" />
         <e p="obj" t="ExcludeRecursive" />
         <e p="Properties" t="Include">
           <e p="AssemblyInfo.cs" t="Include" />
@@ -429,15 +197,6 @@
           <e p="FriendList.cs" t="Include" />
         </e>
         <e p="TimedEvents.cs" t="Include" />
-      </e>
-      <e p="V8JS" t="IncludeRecursive">
-        <e p="bin" t="ExcludeRecursive" />
-        <e p="obj" t="ExcludeRecursive" />
-        <e p="Properties" t="Include">
-          <e p="AssemblyInfo.cs" t="Include" />
-        </e>
-        <e p="V8JS.csproj" t="IncludeRecursive" />
-        <e p="V8Module.cs" t="Include" />
       </e>
     </e>
   </component>

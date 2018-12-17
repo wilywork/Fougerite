@@ -58,6 +58,23 @@
     <Compile Include="Fougerite\JsonAPI.cs" />
     <Compile Include="Fougerite\Loom.cs" />
     <Compile Include="Fougerite\MySQLConnector.cs" />
+    <Compile Include="Fougerite\PluginLoaders\BasePlugin.cs" />
+    <Compile Include="Fougerite\PluginLoaders\CountedInstance.cs" />
+    <Compile Include="Fougerite\PluginLoaders\CSharpPluginLoader.cs" />
+    <Compile Include="Fougerite\PluginLoaders\CSPlugin.cs" />
+    <Compile Include="Fougerite\PluginLoaders\IPlugin.cs" />
+    <Compile Include="Fougerite\PluginLoaders\IPluginLoader.cs" />
+    <Compile Include="Fougerite\PluginLoaders\ISingleton.cs" />
+    <Compile Include="Fougerite\PluginLoaders\JavaScriptPlugin.cs" />
+    <Compile Include="Fougerite\PluginLoaders\JavaScriptPluginLoader.cs" />
+    <Compile Include="Fougerite\PluginLoaders\LuaPlugin.cs" />
+    <Compile Include="Fougerite\PluginLoaders\LuaPluginLoader.cs" />
+    <Compile Include="Fougerite\PluginLoaders\PluginLoader.cs" />
+    <Compile Include="Fougerite\PluginLoaders\PluginWatcher.cs" />
+    <Compile Include="Fougerite\PluginLoaders\PythonPlugin.cs" />
+    <Compile Include="Fougerite\PluginLoaders\PythonPluginLoader.cs" />
+    <Compile Include="Fougerite\PluginLoaders\Singleton.cs" />
+    <Compile Include="Fougerite\ReflectionExtensions.cs" />
     <Compile Include="Fougerite\ServerSaveHandler.cs" />
     <Compile Include="Fougerite\ShutdownCatcher.cs" />
     <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
@@ -80,6 +97,27 @@
     </Reference>
     <Reference Include="Google.ProtocolBuffers.Serialization, Version=2.4.1.521, Culture=neutral, PublicKeyToken=55f7125234beb589">
       <HintPath>References\OriginalRustDLLs\Google.ProtocolBuffers.Serialization.dll</HintPath>
+    </Reference>
+    <Reference Include="IronPython, Version=2.7.7.0, Culture=neutral, PublicKeyToken=7f709c5b713576e1">
+      <HintPath>..\IronPythonModule-master\IronPythonModule\IronPythonReferences\IronPython.dll</HintPath>
+    </Reference>
+    <Reference Include="IronPython.Modules, Version=2.7.7.0, Culture=neutral, PublicKeyToken=7f709c5b713576e1">
+      <HintPath>..\IronPythonModule-master\IronPythonModule\IronPythonReferences\IronPython.Modules.dll</HintPath>
+    </Reference>
+    <Reference Include="Jint, Version=0.9.3.0, Culture=neutral, PublicKeyToken=973cde3f1cafed03">
+      <HintPath>References\FougeriteExtraReferences\Jint.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Dynamic, Version=1.1.2.22, Culture=neutral, PublicKeyToken=7f709c5b713576e1">
+      <HintPath>..\IronPythonModule-master\IronPythonModule\IronPythonReferences\Microsoft.Dynamic.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Scripting, Version=1.1.2.22, Culture=neutral, PublicKeyToken=7f709c5b713576e1">
+      <HintPath>F:\Program Files (x86)\VMWARE\vms\Shared\IronPython\Microsoft.Scripting.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Scripting.Core, Version=1.1.2.22, Culture=neutral, PublicKeyToken=7f709c5b713576e1">
+      <HintPath>..\IronPythonModule-master\IronPythonModule\IronPythonReferences\Microsoft.Scripting.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="MoonSharp.Interpreter, Version=0.9.7.1, Culture=neutral, PublicKeyToken=null">
+      <HintPath>References\FougeriteExtraReferences\MoonSharp.Interpreter.dll</HintPath>
     </Reference>
     <Reference Include="MySql.Data, Version=6.7.9.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d">
       <HintPath>References\FougeriteExtraReferences\MySql.Data.dll</HintPath>
@@ -120,6 +158,7 @@
     <Compile Include="Fougerite\ModuleManager.cs" />
     <Compile Include="Fougerite\FougeriteEx.cs" />
     <Compile Include="Fougerite\SQLiteConnector.cs" />
+    <Compile Include="Fougerite\Stopper.cs" />
     <Compile Include="Global.cs" />
     <Compile Include="Fougerite\ChatString.cs" />
     <Compile Include="Fougerite\Logger.cs" />

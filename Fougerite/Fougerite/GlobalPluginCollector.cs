@@ -5,7 +5,11 @@ using System.Text;
 
 namespace Fougerite
 {
-    public class GlobalPluginCollector : UnityEngine.MonoBehaviour
+    /// <summary>
+    /// This class collects plugins from the engines.
+    /// </summary>
+    [Obsolete("GlobalPluginCollector will be removed from the future releases. Use PluginLoader.GetInstance()", false)]
+    public class GlobalPluginCollector
     {
         private readonly Dictionary<string, object> AllPlugins;
         private readonly Dictionary<string, string> Types;

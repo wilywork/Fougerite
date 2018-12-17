@@ -8,6 +8,9 @@ using MySql.Data.MySqlClient;
 
 namespace Fougerite
 {
+    /// <summary>
+    /// This class helps script plugins to use a simple MySQL connection.
+    /// </summary>
     public class MySQLConnector
     {
         private static MySQLConnector _inst;
@@ -18,6 +21,16 @@ namespace Fougerite
         private string _username;
         private string _password;
 
+        /// <summary>
+        /// Connects to the mysql server with the given parameters.
+        /// You should check if Connection is null before creating this.
+        /// </summary>
+        /// <param name="ip"></param>
+        /// <param name="database"></param>
+        /// <param name="username"></param>
+        /// <param name="passwd"></param>
+        /// <param name="extraarg"></param>
+        /// <returns></returns>
         public MySqlConnection Connect(string ip, string database, string username, string passwd, string extraarg = "")
         {
             ServerAddress = ip;
@@ -31,6 +44,11 @@ namespace Fougerite
             return connection;
         }
 
+        /// <summary>
+        /// Executes and sql query.
+        /// </summary>
+        /// <param name="query"></param>
+        /// <returns></returns>
         public bool ExecuteQuery(string query)
         {
             try
@@ -48,6 +66,10 @@ namespace Fougerite
             return true;
         }
 
+        /// <summary>
+        /// Opens the SQL connection.
+        /// </summary>
+        /// <returns></returns>
         public bool OpenConnection()
         {
             try
@@ -76,6 +98,11 @@ namespace Fougerite
                 return false;
             }
         }
+        
+        /// <summary>
+        /// Closes the sql connection.
+        /// </summary>
+        /// <returns></returns>
         public bool CloseConnection()
         {
             try
@@ -90,16 +117,26 @@ namespace Fougerite
             }
         }
 
+        /// <summary>
+        /// Creates a new SQL command.
+        /// </summary>
+        /// <returns></returns>
         public MySqlCommand CreateMysqlCommand()
         {
             return new MySqlCommand();
         }
 
+        /// <summary>
+        /// Returns the current connection.
+        /// </summary>
         public MySqlConnection Connection
         {
             get { return connection; }
         }
 
+        /// <summary>
+        /// Returns the instance of the class.
+        /// </summary>
         public static MySQLConnector GetInstance
         {
             get

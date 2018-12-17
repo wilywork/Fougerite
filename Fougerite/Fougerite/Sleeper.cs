@@ -2,6 +2,9 @@
 namespace Fougerite
 {
     using UnityEngine;
+    /// <summary>
+    /// This class represents a sleeping player.
+    /// </summary>
     public class Sleeper
     {
         private DeployableObject _sleeper;
@@ -68,56 +71,89 @@ namespace Fougerite
             catch { }
         }
 
+        /// <summary>
+        /// Returns the DeployableObject of the sleeper.
+        /// </summary>
         public DeployableObject Object
         {
             get { return this._sleeper; }
         }
 
+        /// <summary>
+        /// Returns the Name of the sleeper.
+        /// </summary>
         public string Name
         {
             get { return _name; }
         }
 
+        /// <summary>
+        /// Returns the SteamID of the sleeper.
+        /// </summary>
         public string OwnerID
         {
             get { return this._uid.ToString(); }
         }
 
+        /// <summary>
+        /// Returns the SteamID of the sleeper.
+        /// </summary>
         public string SteamID
         {
             get { return this._uid.ToString(); }
         }
 
+        /// <summary>
+        /// Returns the SteamID of the sleeper.
+        /// </summary>
         public ulong UID
         {
             get { return this._uid; }
         }
 
+        /// <summary>
+        /// Returns the owner name of the sleeper.
+        /// </summary>
         public string OwnerName
         {
             get { return this._sleeper.ownerName; }
         }
 
+        /// <summary>
+        /// Returns the Position of the sleeper.
+        /// </summary>
         public Vector3 Location
         {
             get { return this._sleeper.transform.position; }
         }
 
+        /// <summary>
+        /// Returns the X coordinate of the sleeper.
+        /// </summary>
         public float X
         {
             get { return this._sleeper.transform.position.x; }
         }
 
+        /// <summary>
+        /// Returns the Y coordinate of the sleeper.
+        /// </summary>
         public float Y
         {
             get { return this._sleeper.transform.position.y; }
         }
 
+        /// <summary>
+        /// Returns the Z coordinate of the sleeper.
+        /// </summary>
         public float Z
         {
             get { return this._sleeper.transform.position.z; }
         }
 
+        /// <summary>
+        /// Returns the InstanceID (Unique ID) of the sleeper.
+        /// </summary>
         public int InstanceID
         {
             get

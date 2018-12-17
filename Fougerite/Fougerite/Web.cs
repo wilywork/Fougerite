@@ -11,6 +11,9 @@ namespace Fougerite
     using System.Net;
     using System.Text;
 
+    /// <summary>
+    /// This class helps plugins to use simple webrequests.
+    /// </summary>
     public class Web
     {
         /// <summary>
@@ -142,6 +145,12 @@ namespace Fougerite
             });
         }
         
+        /// <summary>
+        /// This handles the Async webrequests of the CreateAsyncHTTPRequest method.
+        /// You can use this if you are creating your own HttpWebRequest instance.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="responseAction"></param>
         public void DoWithResponse(HttpWebRequest request, Action<HttpWebResponse> responseAction)
         {
             Action wrapperAction = () =>
