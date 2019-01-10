@@ -283,7 +283,7 @@ namespace Fougerite
                 sw.Start();
             }
             //Fougerite.Player player = Fougerite.Player.FindByPlayerClient(item.controllable.playerClient);
-            Fougerite.Player player = Fougerite.Server.Cache[item.controllable.playerClient.userID];
+            Fougerite.Player player = Fougerite.Server.GetServer().FindPlayer(item.controllable.playerClient.userID);
             if (player != null)
             {
                 BPUseEvent ae = new BPUseEvent(bdb, item);
@@ -358,7 +358,7 @@ namespace Fougerite
             {
                 string[] args = Facepunch.Utility.String.SplitQuotesStrings(quotedMessage.Trim('"'));
                 var command = args[0].TrimStart('/');
-                Fougerite.Player player = Fougerite.Server.Cache[arg.argUser.playerClient.userID];
+                Fougerite.Player player = Fougerite.Server.GetServer().FindPlayer(arg.argUser.playerClient.userID);
                 if (command == "fougerite")
                 {
                     player.Message("[color #00FFFF]This Server is running Fougerite V[color yellow]" + Bootstrap.Version);
@@ -393,7 +393,7 @@ namespace Fougerite
                 {
                     if (OnChat != null)
                     {
-                        OnChat(Fougerite.Server.Cache[arg.argUser.playerClient.userID], ref chatstr);
+                        OnChat(Fougerite.Server.GetServer().FindPlayer(arg.argUser.playerClient.userID), ref chatstr);
                     }
                 }
                 catch (Exception ex)
@@ -612,7 +612,7 @@ namespace Fougerite
             {
                 try
                 {
-                    OnDoorUse(Fougerite.Server.Cache[controllable.playerClient.userID], de);
+                    OnDoorUse(Fougerite.Server.GetServer().FindPlayer(controllable.playerClient.userID), de);
                 }
                 catch (Exception ex)
                 {
@@ -680,7 +680,7 @@ namespace Fougerite
             NetUser user = data as NetUser;
             if (user != null)
             {
-                if (Fougerite.Server.Cache.ContainsKey(user.userID)) ActualPlacer = Fougerite.Server.Cache[user.userID];
+                ActualPlacer = Fougerite.Server.GetServer().FindPlayer(user.userID);
             }
             try
             {
@@ -1505,7 +1505,7 @@ namespace Fougerite
                 sw = new Stopwatch();
                 sw.Start();
             }
-            Fougerite.Player player = Fougerite.Server.Cache[pc.userID];
+            Fougerite.Player player = Fougerite.Server.GetServer().FindPlayer(pc.userID);
             SpawnEvent se = new SpawnEvent(pos, camp);
             try
             {
@@ -1529,7 +1529,7 @@ namespace Fougerite
                 sw = new Stopwatch();
                 sw.Start();
             }
-            Fougerite.Player player = Fougerite.Server.Cache[pc.userID];
+            Fougerite.Player player = Fougerite.Server.GetServer().FindPlayer(pc.userID);
             SpawnEvent se = new SpawnEvent(pos, camp);
             try
             {
@@ -2499,8 +2499,7 @@ namespace Fougerite
                 float.IsNaN(origin.y) || float.IsInfinity(origin.y) ||
                 float.IsNaN(origin.z) || float.IsInfinity(origin.z))
             {
-                Fougerite.Player player = Fougerite.Server.Cache.ContainsKey(hc.netUser.userID) ? Fougerite.Server.Cache[hc.netUser.userID]
-                    : Fougerite.Server.GetServer().FindPlayer(hc.netUser.userID.ToString());
+                Fougerite.Player player = Fougerite.Server.GetServer().FindPlayer(hc.netUser.userID);
                 if (player == null)
                 {
                     // Should never happen but just to be sure.
@@ -2673,9 +2672,9 @@ namespace Fougerite
             LootStartEvent lt = null;
             if (user != null)
             {
-                if (Fougerite.Server.Cache.ContainsKey(user.userID))
+                Fougerite.Player pl = Fougerite.Server.GetServer().FindPlayer(user.userID);
+                if (pl != null)
                 {
-                    Fougerite.Player pl = Fougerite.Server.Cache[user.userID];
                     lt = new LootStartEvent(lo, pl, use, ulinkuser);
                     try
                     {
@@ -3126,92 +3125,49 @@ namespace Fougerite
             
             if (data.Length > 500)
             {
-                Logger.LogDebug("[ActionDebug W] Conv2 length: " + data.Length + " ITR: " + itr + " | " + itr.datablock.name);
-                for (uint i = 0; i < data.Length;)
-                {
-                    try
-                    {
-                        uint conversion = (uint) BitConverter.ToInt32(data, (int) i);
-                        if (float.IsNaN(conversion) || float.IsInfinity(conversion))
-                        {
-                            return;
-                        }
-                        Logger.LogDebug("[ActionDebug W] Conv2: " + conversion);
-                        i += conversion + 6;
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.LogDebug("[ActionDebug W] Err: " + ex);
-                        break;
-                    }
-                }
                 return;
             }
-            
-            Logger.LogDebug("[ActionDebug] Conv length: " + data.Length + " ITR: " + itr + " | " + itr.datablock.name);
-            for (uint i = 0; i < data.Length;)
-            {
-                try
-                {
-                    uint conversion = (uint) BitConverter.ToInt32(data, (int) i);
-                    if (float.IsNaN(conversion) || float.IsInfinity(conversion))
-                    {
-                        return;
-                    }
-                    Logger.LogDebug("[ActionDebug] Conv: " + conversion + " i: " + i);
-                    i += conversion + 6;
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogDebug("[ActionDebug] NEW IGNOREABLE OR NOT: " + ex);
-                    break;
-                    //return;
-                }
-            }
 
+            uLink.BitStream stream = null;
             try
             {
-                uLink.BitStream stream = new uLink.BitStream(data, false);
+                stream = new uLink.BitStream(data, false);
+                
                 Vector3 v = stream.ReadVector3();
                 Vector3 v2 = stream.ReadVector3();
                 if (v == null || v2 == null)
                 {
-                    Logger.LogDebug("[ActionDebug] Vectors are null1");
                     Array.Clear(data, 0, data.Length);
                     return;
                 }
                 if (float.IsNaN(v.x) || float.IsInfinity(v.x) || float.IsNaN(v.y) || float.IsInfinity(v.y) 
                     || float.IsNaN(v.z) || float.IsInfinity(v.z))
                 {
-                    Logger.LogDebug("[ActionDebug] Vector1 verified.1");
                     Array.Clear(data, 0, data.Length);
                     return;
                 }
                 if (float.IsNaN(v2.x) || float.IsInfinity(v2.x) || float.IsNaN(v2.y) || float.IsInfinity(v2.y) 
                     || float.IsNaN(v2.z) || float.IsInfinity(v2.z))
                 {
-                    Logger.LogDebug("[ActionDebug] Vector1 verified.2");
                     Array.Clear(data, 0, data.Length);
                     return;
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                if (!ex.ToString().Contains("Trying to read past the buffer size "))
-                {
-                    Logger.LogDebug("[ActionDebug] Action1B error: " + ex);
-                    return;
-                }
+                return;
             }
 
-            uLink.BitStream stream2 = new uLink.BitStream(data, false);
             try
             {
-                itr.RunServerAction(1, stream2, ref info);
+                if (stream != null)
+                {
+                    itr.RunServerAction(1, stream, ref info);
+                }
             }
             catch (Exception ex)
             {
-                Logger.LogDebug("[ActionDebug] failed to call RunServerAction, view logs.");
+                Logger.LogError("[Action1Error] Failed to call RunServerAction, Check logs.");
                 Logger.LogDebug("Error: " + ex);
             }
         }
@@ -3226,30 +3182,6 @@ namespace Fougerite
 
             if (itr == null)
             {
-                return;
-            }
-            
-            if (stream._data.Length > 500)
-            {
-                Logger.LogDebug("[ActionDebug2 W] Conv2 length: " + stream._data.Length + " ITR: " + itr + " | " + itr.datablock.name);
-                for (uint i = 0; i < stream._data.Length;)
-                {
-                    try
-                    {
-                        uint conversion = (uint) BitConverter.ToInt32(stream._data, (int) i);
-                        if (float.IsNaN(conversion) || float.IsInfinity(conversion))
-                        {
-                            return;
-                        }
-                        Logger.LogDebug("[ActionDebug2 W] Conv2: " + conversion);
-                        i += conversion + 6;
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.LogDebug("[ActionDebug2 W] Err: " + ex);
-                        break;
-                    }
-                }
                 return;
             }
 
@@ -3282,55 +3214,30 @@ namespace Fougerite
                 return;
             }
             ActionCooldown.Clear();
-
-            for (uint i = 0; i < stream._data.Length;)
-            {
-                try
-                {
-                    uint conversion = (uint) BitConverter.ToInt32(stream._data, (int) i);
-                    if (float.IsNaN(conversion) || float.IsInfinity(conversion))
-                    {
-                        return;
-                    }
-                    i += conversion + 6;
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogDebug("[ActionDebug2] Err: " + ex);
-                    break;
-                }
-            }
             
             try
             {
-                uLink.BitStream stream2 = new uLink.BitStream(stream._data, false);
-                Vector3 v = stream2.ReadVector3();
-                Vector3 v2 = stream2.ReadVector3();
+                Vector3 v = stream.ReadVector3();
+                Vector3 v2 = stream.ReadVector3();
                 if (v == null || v2 == null)
                 {
-                    Logger.LogDebug("[ActionDebug] Vectors null");
                     return;
                 }
                 if (float.IsNaN(v.x) || float.IsInfinity(v.x) || float.IsNaN(v.y) || float.IsInfinity(v.y) 
                     || float.IsNaN(v.z) || float.IsInfinity(v.z))
                 {
-                    Logger.LogDebug("[ActionDebug2] Vector1 verified.");
                     return;
                 }
                 if (float.IsNaN(v2.x) || float.IsInfinity(v2.x) || float.IsNaN(v2.y) || float.IsInfinity(v2.y) 
                     || float.IsNaN(v2.z) || float.IsInfinity(v2.z))
                 {
-                    Logger.LogDebug("[ActionDebug2] Vector1 verified.");
                     return;
                 }
+                
             }
             catch (Exception ex)
             {
-                if (!ex.ToString().Contains("Trying to read past the buffer size "))
-                {
-                    Logger.LogDebug("[ActionDebug2] Action1B error: " + ex);
-                    return;
-                }
+                return;
             }
 
             try
@@ -3339,7 +3246,7 @@ namespace Fougerite
             }
             catch (Exception ex)
             {
-                Logger.LogDebug("[ActionDebug2] failed to call RunServerAction, view logs.");
+                Logger.LogError("[Action2Error] Failed to call RunServerAction, Check logs.");
                 Logger.LogDebug("Error: " + ex);
             }
         }
@@ -3762,7 +3669,7 @@ namespace Fougerite
                 sw = new Stopwatch();
                 sw.Start();
             }
-            var pl = Fougerite.Server.Cache[p2.userID];
+            var pl = Fougerite.Server.GetServer().FindPlayer(p2.userID);
             try
             {
                 if (OnShowTalker != null)

@@ -358,6 +358,26 @@ namespace Fougerite
         }
 
         /// <summary>
+        /// Tries to Find the player by SteamID.
+        /// </summary>
+        /// <param name="search"></param>
+        /// <returns></returns>
+        public Fougerite.Player FindPlayer(ulong search)
+        {
+            if (Cache.ContainsKey(search))
+            {
+                return Cache[search];
+            }
+            var flist = Players.Where(x => x.UID == search).ToList();
+            if (flist.Count >= 1)
+            {
+                return flist[0];
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Returns the instance of the Server class.
         /// </summary>
         /// <returns></returns>

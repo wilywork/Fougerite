@@ -22,7 +22,7 @@ namespace Fougerite.Events
             var netUser = _inv.GetComponent<Character>().netUser;
             if (netUser != null)
             {
-                _pl = Fougerite.Server.Cache[netUser.userID];
+                _pl = Fougerite.Server.GetServer().FindPlayer(netUser.userID);
             }
         }
 

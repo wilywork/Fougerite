@@ -14,7 +14,7 @@ namespace Fougerite.Events
         public ResearchEvent(IInventoryItem item)
         {
             this._item = item;
-            this._player = Fougerite.Server.Cache[item.character.netUser.userID];
+            this._player = Fougerite.Server.GetServer().FindPlayer(item.character.netUser.userID);
         }
 
         /// <summary>
