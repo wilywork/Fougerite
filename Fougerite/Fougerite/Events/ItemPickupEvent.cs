@@ -26,7 +26,7 @@ namespace Fougerite.Events
 
         public ItemPickupEvent(Controllable controllable, IInventoryItem item, Inventory local, Inventory.AddExistingItemResult result, PickupEventType type)
         {
-            _player = Fougerite.Server.Cache[controllable.netUser.userID];
+            _player = Fougerite.Server.GetServer().FindPlayer(controllable.netUser.userID);
             _item = item;
             _inv = local;
             _result = result;

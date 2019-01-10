@@ -19,7 +19,7 @@ namespace Fougerite.Events
         public BowShootEvent(BowWeaponDataBlock bw, ItemRepresentation ir, uLink.NetworkMessageInfo ui, IBowWeaponItem ibw)
         {
             TakeDamage local = ibw.inventory.GetLocal<TakeDamage>();
-            _player = Fougerite.Server.Cache[local.GetComponent<Character>().netUser.userID];
+            _player = Fougerite.Server.GetServer().FindPlayer(local.GetComponent<Character>().netUser.userID);
             _bw = bw;
             _ibw = ibw;
             _ir = ir;

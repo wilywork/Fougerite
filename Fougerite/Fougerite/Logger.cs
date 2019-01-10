@@ -14,7 +14,7 @@ namespace Fougerite
 
         private static string LogsFolder = Path.Combine(Config.GetPublicFolder(), "Logs");
         private static StreamWriter SpeedLogWriter;
-        private static StreamWriter RPCLogWriter;
+        private static Writer RPCLogWriter;
         private static Writer LogWriter;
         private static Writer ChatWriter;
         private static bool showDebug = false;
@@ -43,9 +43,26 @@ namespace Fougerite
             {
                 Directory.CreateDirectory(LogsFolder);
                 if (!File.Exists(Path.Combine(LogsFolder, "HookSpeed.log"))) { File.Create(Path.Combine(LogsFolder, "HookSpeed.log")).Dispose(); }
-                if (!File.Exists(Path.Combine(LogsFolder, "RPCTracer.log"))) { File.Create(Path.Combine(LogsFolder, "RPCTracer.log")).Dispose(); }
                 LogWriterInit();
                 ChatWriterInit();
+                RPCTracerInit();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
+        }
+
+        private static void RPCTracerInit()
+        {
+            try
+            {
+                if (RPCLogWriter.LogWriter != null)
+                    RPCLogWriter.LogWriter.Close();
+
+                RPCLogWriter.DateTime = DateTime.Now.ToString("dd_MM_yyyy");
+                RPCLogWriter.LogWriter = new StreamWriter(Path.Combine(LogsFolder, string.Format("RPCTracer_{0}.log", RPCLogWriter.DateTime)), true);
+                RPCLogWriter.LogWriter.AutoFlush = true;
             }
             catch (Exception ex)
             {
@@ -131,11 +148,17 @@ namespace Fougerite
         public static void LogRPC(string Message)
         {
             if (!showRPC) { return;}
-            Message = "[RPC Debug] " + Message;
-            Message = "[" + DateTime.Now + "] " + Message;
-            RPCLogWriter = new System.IO.StreamWriter(Path.Combine(LogsFolder, "RPCTracer.log"), true);
-            RPCLogWriter.WriteLine(Message);
-            RPCLogWriter.Close();
+            try
+            {
+                if (RPCLogWriter.DateTime != DateTime.Now.ToString("dd_MM_yyyy"))
+                    RPCTracerInit();
+                Message = "[RPC Debug] " + Message;
+                RPCLogWriter.LogWriter.WriteLine(LogFormat(Message));
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
         }
 
         public static void LogSpeed(string Message)

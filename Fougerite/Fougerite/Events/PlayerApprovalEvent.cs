@@ -70,9 +70,10 @@ namespace Fougerite.Events
         {
             get
             {
-                if (Fougerite.Server.Cache.ContainsKey(_cc.UserID))
+                Fougerite.Player pl = Fougerite.Server.GetServer().FindPlayer(_cc.UserID);
+                if (pl != null)
                 {
-                    return Fougerite.Server.Cache[_cc.UserID].IsOnline;
+                    return pl.IsOnline;
                 }
                 return false;
             }

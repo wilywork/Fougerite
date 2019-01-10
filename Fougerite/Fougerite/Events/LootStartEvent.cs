@@ -57,7 +57,7 @@ namespace Fougerite.Events
         /// some sort of obfuscation. I will try to patch the method once again since the DLL is cleaned by de4dot.
         /// The timer idea is a bit awful but does work flawlessly since I found that the _ue.callState = (FunctionCallState)0;
         /// has to be set to eject the player. The original "position" changing stuff caused bugs before.
-        /// TODO: Patch and remove the timer cancel in 1.6.4
+        /// TODO: Patch and remove the timer cancel, find a way to bypass the addon's shitty modification bypass.
         /// </summary>
         public void Cancel()
         {

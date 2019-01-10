@@ -22,7 +22,7 @@ namespace Fougerite.Events
             this._amount = amount;
             this._startTime = startTime;
             var netUser = inv.GetComponent<Character>().netUser;
-            this._player = Fougerite.Server.Cache[netUser.userID];
+            this._player = Fougerite.Server.GetServer().FindPlayer(netUser.userID);
             this._user = netUser;
             if (!_player.HasBlueprint(blueprint))
             {

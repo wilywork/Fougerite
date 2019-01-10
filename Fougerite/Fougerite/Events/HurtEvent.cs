@@ -59,6 +59,7 @@
                     this._ent = new Entity(d.victim.idMain.GetComponent<StructureComponent>());
                     this._playervictim = false;
                     this._entityvictim = true;
+                    this._entityvictim = true;
                 }
                 else if (d.victim.id is SpikeWall)
                 {

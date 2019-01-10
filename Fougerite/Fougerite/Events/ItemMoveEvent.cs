@@ -33,10 +33,7 @@ namespace Fougerite.Events
                         NetUser user = netplayer.GetLocalData() as NetUser;
                         if (user != null)
                         {
-                            if (Fougerite.Server.Cache.ContainsKey(user.userID))
-                            {
-                                _pl = Fougerite.Server.Cache[user.userID];
-                            }
+                            _pl = Fougerite.Server.GetServer().FindPlayer(user.userID);
                             break;
                         }
                     }

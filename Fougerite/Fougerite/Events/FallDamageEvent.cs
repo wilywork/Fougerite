@@ -20,7 +20,7 @@ namespace Fougerite.Events
         public FallDamageEvent(FallDamage fd, float speed, float num, bool flag, bool flag2)
         {
             _fd = fd;
-            _player = Fougerite.Server.Cache[fd.idMain.netUser.userID];
+            _player = Fougerite.Server.GetServer().FindPlayer(fd.idMain.netUser.userID);
             _fallspeed = speed;
             _num = num;
             _flag = flag;
