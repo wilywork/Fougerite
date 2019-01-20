@@ -3128,11 +3128,10 @@ namespace Fougerite
                 return;
             }
 
-            uLink.BitStream stream = null;
             try
             {
-                stream = new uLink.BitStream(data, false);
-                
+                uLink.BitStream stream = new uLink.BitStream(data, false); // Can only read once from the BitStream, so we copy It.
+
                 Vector3 v = stream.ReadVector3();
                 Vector3 v2 = stream.ReadVector3();
                 if (v == null || v2 == null)
@@ -3155,15 +3154,13 @@ namespace Fougerite
             }
             catch
             {
-                return;
+                // ignore
             }
 
             try
             {
-                if (stream != null)
-                {
-                    itr.RunServerAction(1, stream, ref info);
-                }
+                uLink.BitStream copy = new uLink.BitStream(data, false);
+                itr.RunServerAction(1, copy, ref info);
             }
             catch (Exception ex)
             {
@@ -3214,11 +3211,12 @@ namespace Fougerite
                 return;
             }
             ActionCooldown.Clear();
-            
+
+            uLink.BitStream copy = new uLink.BitStream(stream._data, false);  // Can only read once from the BitStream, so we copy It.
             try
             {
-                Vector3 v = stream.ReadVector3();
-                Vector3 v2 = stream.ReadVector3();
+                Vector3 v = copy.ReadVector3();
+                Vector3 v2 = copy.ReadVector3();
                 if (v == null || v2 == null)
                 {
                     return;
@@ -3235,9 +3233,9 @@ namespace Fougerite
                 }
                 
             }
-            catch (Exception ex)
+            catch
             {
-                return;
+                // Ignore
             }
 
             try
