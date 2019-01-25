@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ContentModelStore">
-    <e p="C:\Users\DreTaX\.Rider2018.1\system\resharper-host\local\Transient\ReSharperHost\v12\SolutionCaches\_Fougerite.-825522248.00" t="ExcludeRecursive" />
+    <e p="C:\Users\D\.Rider2018.3\system\extResources" t="IncludeRecursive" />
+    <e p="C:\Users\D\.Rider2018.3\system\resharper-host\local\Transient\ReSharperHost\v183\SolutionCaches\_Fougerite.-825522248.00" t="ExcludeRecursive" />
     <e p="E:\Users\DreTaX\Documents\Visual Studio 2013\Projects\FougeriteProject" t="IncludeFlat">
       <e p="bin" t="ExcludeRecursive" />
       <e p="Fougerite" t="IncludeRecursive">
