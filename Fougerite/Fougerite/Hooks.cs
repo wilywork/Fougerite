@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Timers;
+using Facepunch;
 using Facepunch.Clocks.Counters;
 using Facepunch.MeshBatch;
 using Fougerite.PluginLoaders;
@@ -3365,6 +3366,324 @@ namespace Fougerite
             }
             SupplyDropZone.CallAirDropAt(randompos);
         }
+        
+        #region DataBlockFixes
+        
+        public static void DeployableItemDoAction1(DeployableItemDataBlock instance, uLink.BitStream stream, ItemRepresentation rep, ref uLink.NetworkMessageInfo info)
+        {
+            IDeployableItem item;
+            NetCull.VerifyRPC(ref info, false);
+            if (rep.Item<IDeployableItem>(out item) && (item.uses > 0))
+            {
+                Vector3 vector3;
+                Quaternion quaternion;
+                TransCarrier carrier;
+                Vector3 origin = stream.ReadVector3();
+                Vector3 direction = stream.ReadVector3();
+                if (origin == null || direction == null)
+                {
+                    return;
+                }
+                
+                if (float.IsNaN(origin.x) || float.IsInfinity(origin.x) || float.IsNaN(origin.y) || float.IsInfinity(origin.y) 
+                    || float.IsNaN(origin.z) || float.IsInfinity(origin.z))
+                {
+                    return;
+                }
+                if (float.IsNaN(direction.x) || float.IsInfinity(direction.x) || float.IsNaN(direction.y) || float.IsInfinity(direction.y) 
+                    || float.IsNaN(direction.z) || float.IsInfinity(direction.z))
+                {
+                    return;
+                }
+                
+                Ray ray = new Ray(origin, direction);
+                if (!instance.CheckPlacement(ray, out vector3, out quaternion, out carrier))
+                {
+                    Notice.Popup(info.sender, "?", "You can't place that here", 4f);
+                }
+                else
+                {
+                    DeployableObject component = NetCull.InstantiateStatic(instance.DeployableObjectPrefabName, vector3, quaternion).GetComponent<DeployableObject>();
+                    if (component != null)
+                    {
+                        try
+                        {
+                            component.SetupCreator(item.controllable);
+                            instance.SetupDeployableObject(stream, rep, ref info, component, carrier);
+                        }
+                        finally
+                        {
+                            int count = 1;
+                            if (item.Consume(ref count))
+                            {
+                                item.inventory.RemoveItem(item.slot);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        public static void BulletWeaponDoAction1(BulletWeaponDataBlock instance, uLink.BitStream stream, ItemRepresentation rep, ref uLink.NetworkMessageInfo info)
+        {
+            GameObject obj2;
+            NetEntityID yid;
+            IDRemoteBodyPart part;
+            bool flag;
+            bool flag2;
+            bool flag3;
+            BodyPart part2;
+            Vector3 vector;
+            Vector3 vector2;
+            Transform transform;
+            IBulletWeaponItem item;
+            NetCull.VerifyRPC(ref info, false);
+            instance.ReadHitInfo(stream, out obj2, out flag, out flag2, out part2, out part, out yid, out transform, out vector, out vector2, out flag3);
+            if ((rep.Item<IBulletWeaponItem>(out item) && item.ValidatePrimaryMessageTime(info.timestamp)) && (item.uses > 0))
+            {
+                if (float.IsNaN(vector.x) || float.IsInfinity(vector.x) || float.IsNaN(vector.y) || float.IsInfinity(vector.y) 
+                    || float.IsNaN(vector.z) || float.IsInfinity(vector.z))
+                {
+                    return;
+                }
+                if (float.IsNaN(vector2.x) || float.IsInfinity(vector2.x) || float.IsNaN(vector2.y) || float.IsInfinity(vector2.y) 
+                    || float.IsNaN(vector2.z) || float.IsInfinity(vector2.z))
+                {
+                    return;
+                }
+                if (float.IsNaN(transform.position.x) || float.IsInfinity(transform.position.x) || float.IsNaN(transform.position.y) || float.IsInfinity(transform.position.y) 
+                    || float.IsNaN(transform.position.z) || float.IsInfinity(transform.position.z))
+                {
+                    return;
+                }
+                TakeDamage local = item.inventory.GetLocal<TakeDamage>();
+                if ((local == null) || !local.dead)
+                {
+                    int count = 1;
+                    item.Consume(ref count);
+                    rep.ActionStream(1, uLink.RPCMode.AllExceptOwner, stream);
+                    if (obj2 != null)
+                    {
+                        instance.ApplyDamage(obj2, transform, flag3, vector, part2, rep);
+                    }
+                    if (gunshots.aiscared && local != null)
+                    {
+                        local.GetComponent<Character>().AudibleMessage(20f, "HearDanger", local.transform.position);
+                        local.GetComponent<Character>().AudibleMessage(10f, "HearDanger", vector);
+                    }
+                    if (!item.TryConditionLoss(0.33f, 0.01f))
+                    {
+                    }
+                }
+            }
+        }
+        
+        public static void HandGrenadeDoAction1(HandGrenadeDataBlock grenade, uLink.BitStream stream, ItemRepresentation rep, ref uLink.NetworkMessageInfo info)
+        {
+            IHandGrenadeItem item;
+            NetCull.VerifyRPC(ref info, false);
+            if (rep.Item<IHandGrenadeItem>(out item) && item.ValidatePrimaryMessageTime(info.timestamp))
+            {
+                rep.ActionStream(1, uLink.RPCMode.AllExceptOwner, stream);
+                Vector3 origin = stream.ReadVector3();
+                Vector3 forward = stream.ReadVector3();
+                if (float.IsNaN(origin.x) || float.IsInfinity(origin.x) || float.IsNaN(origin.y) || float.IsInfinity(origin.y) 
+                    || float.IsNaN(origin.z) || float.IsInfinity(origin.z))
+                {
+                    return;
+                }
+                if (float.IsNaN(forward.x) || float.IsInfinity(forward.x) || float.IsNaN(forward.y) || float.IsInfinity(forward.y) 
+                    || float.IsNaN(forward.z) || float.IsInfinity(forward.z))
+                {
+                    return;
+                }
+                
+                GameObject obj2 = grenade.ThrowItem(rep, origin, forward);
+                if (obj2 != null)
+                {
+                    obj2.rigidbody.AddTorque(new Vector3(UnityEngine.Random.Range((float) -1f, (float) 1f),
+                                                 UnityEngine.Random.Range((float) -1f, (float) 1f), UnityEngine.Random.Range((float) -1f, (float) 1f)) * 10f);
+                }
+                int count = 1;
+                if (item.Consume(ref count))
+                {
+                    item.inventory.RemoveItem(item.slot);
+                }
+            }
+        }
+
+        public static void ShotgunDoAction1(ShotgunDataBlock instance, uLink.BitStream stream, ItemRepresentation rep, ref uLink.NetworkMessageInfo info)
+        {
+            NetCull.VerifyRPC(ref info, false);
+            IBulletWeaponItem found = null;
+            if (rep.Item<IBulletWeaponItem>(out found) && (found.uses > 0))
+            {
+                TakeDamage local = found.inventory.GetLocal<TakeDamage>();
+                if (((local == null) || !local.dead) && found.ValidatePrimaryMessageTime(info.timestamp))
+                {
+                    int count = 1;
+                    found.Consume(ref count);
+                    found.itemRepresentation.ActionStream(1, uLink.RPCMode.AllExceptOwner, stream);
+                    instance.GetBulletRange(rep);
+                    for (int i = 0; i < instance.numPellets; i++)
+                    {
+                        GameObject obj2;
+                        NetEntityID yid;
+                        IDRemoteBodyPart part;
+                        bool flag;
+                        bool flag2;
+                        bool flag3;
+                        BodyPart part2;
+                        Vector3 vector;
+                        Vector3 vector2;
+                        Transform transform;
+                        instance.ReadHitInfo(stream, out obj2, out flag, out flag2, out part2, out part, out yid, out transform, out vector, out vector2, out flag3);
+                        
+                        if (float.IsNaN(vector.x) || float.IsInfinity(vector.x) || float.IsNaN(vector.y) || float.IsInfinity(vector.y) 
+                            || float.IsNaN(vector.z) || float.IsInfinity(vector.z))
+                        {
+                            return;
+                        }
+                        if (float.IsNaN(vector2.x) || float.IsInfinity(vector2.x) || float.IsNaN(vector2.y) || float.IsInfinity(vector2.y) 
+                            || float.IsNaN(vector2.z) || float.IsInfinity(vector2.z))
+                        {
+                            return;
+                        }
+                        if (float.IsNaN(transform.position.x) || float.IsInfinity(transform.position.x) || float.IsNaN(transform.position.y) || float.IsInfinity(transform.position.y) 
+                            || float.IsNaN(transform.position.z) || float.IsInfinity(transform.position.z))
+                        {
+                            return;
+                        }
+                        
+                        if (obj2 != null)
+                        {
+                            instance.ApplyDamage(obj2, transform, flag3, vector, part2, rep);
+                        }
+                    }
+                    found.TryConditionLoss(0.5f, 0.02f);
+                }
+            }
+        }
+        
+        public static void StructureComponentDoAction1(StructureComponentDataBlock instance, uLink.BitStream stream, ItemRepresentation rep, ref uLink.NetworkMessageInfo info)
+        {
+            IStructureComponentItem item;
+            NetCull.VerifyRPC(ref info, false);
+            if (rep.Item<IStructureComponentItem>(out item) && (item.uses > 0))
+            {
+                StructureComponent structureToPlacePrefab = instance.structureToPlacePrefab;
+                Vector3 origin = stream.ReadVector3();
+                Vector3 direction = stream.ReadVector3();
+                Vector3 position = stream.ReadVector3();
+                Quaternion rotation = stream.ReadQuaternion();
+                uLink.NetworkViewID viewID = stream.ReadNetworkViewID();
+
+                if (viewID == null || float.IsNaN(viewID.id) || float.IsInfinity(viewID.id))
+                {
+                    return;
+                }
+                
+                if (float.IsNaN(origin.x) || float.IsInfinity(origin.x) || float.IsNaN(origin.y) || float.IsInfinity(origin.y) 
+                    || float.IsNaN(origin.z) || float.IsInfinity(origin.z))
+                {
+                    return;
+                }
+                
+                if (float.IsNaN(direction.x) || float.IsInfinity(direction.x) || float.IsNaN(direction.y) || float.IsInfinity(direction.y) 
+                    || float.IsNaN(direction.z) || float.IsInfinity(direction.z))
+                {
+                    return;
+                }
+                
+                if (float.IsNaN(position.x) || float.IsInfinity(position.x) || float.IsNaN(position.y) || float.IsInfinity(position.y) 
+                    || float.IsNaN(position.z) || float.IsInfinity(position.z))
+                {
+                    return;
+                }
+                
+                if (float.IsNaN(rotation.x) || float.IsInfinity(rotation.x) || float.IsNaN(rotation.y) || float.IsInfinity(rotation.y) 
+                    || float.IsNaN(rotation.z) || float.IsInfinity(rotation.z) || float.IsNaN(rotation.w) || float.IsInfinity(rotation.w))
+                {
+                    return;
+                }
+                
+                
+                StructureMaster component = null;
+                if (viewID == uLink.NetworkViewID.unassigned)
+                {
+                    if (instance.MasterFromRay(new Ray(origin, direction)))
+                    {
+                        return;
+                    }
+                    if (structureToPlacePrefab.type != StructureComponent.StructureComponentType.Foundation)
+                    {
+                        Debug.Log("ERROR, tried to place non foundation structure on terrain!");
+                    }
+                    else
+                    {
+                        component = NetCull.InstantiateClassic<StructureMaster>(Bundling.Load<StructureMaster>("content/structures/StructureMasterPrefab"), position, rotation, 0);
+                        component.SetupCreator(item.controllable);
+                    }
+                }
+                else
+                {
+                    component = uLink.NetworkView.Find(viewID).gameObject.GetComponent<StructureMaster>();
+                }
+                if (component == null)
+                {
+                    Debug.Log("NO master, something seriously wrong");
+                }
+                else if (instance._structureToPlace.CheckLocation(component, position, rotation) && instance.CheckBlockers(position))
+                {
+                    StructureComponent component2 = NetCull.InstantiateStatic(instance.structureToPlaceName, position, rotation).GetComponent<StructureComponent>();
+                    if (component2 != null)
+                    {
+                        component.AddStructureComponent(component2);
+                        int count = 1;
+                        if (item.Consume(ref count))
+                        {
+                            item.inventory.RemoveItem(item.slot);
+                        }
+                    }
+                }
+            }
+        }
+        
+        public static void TorchDoAction1(TorchItemDataBlock instance, uLink.BitStream stream, ItemRepresentation rep, ref uLink.NetworkMessageInfo info)
+        {
+            ITorchItem item;
+            NetCull.VerifyRPC(ref info, false);
+            if (rep.Item<ITorchItem>(out item) && item.ValidatePrimaryMessageTime(info.timestamp))
+            {
+                if (item.isLit)
+                {
+                    item.Extinguish();
+                }
+                rep.ActionStream(1, uLink.RPCMode.AllExceptOwner, stream);
+                Vector3 origin = stream.ReadVector3();
+                Vector3 forward = stream.ReadVector3();
+                if (float.IsNaN(origin.x) || float.IsInfinity(origin.x) || float.IsNaN(origin.y) || float.IsInfinity(origin.y) 
+                    || float.IsNaN(origin.z) || float.IsInfinity(origin.z))
+                {
+                    return;
+                }
+                if (float.IsNaN(forward.x) || float.IsInfinity(forward.x) || float.IsNaN(forward.y) || float.IsInfinity(forward.y) 
+                    || float.IsNaN(forward.z) || float.IsInfinity(forward.z))
+                {
+                    return;
+                }
+                
+                
+                instance.ThrowFlare(rep, origin, forward);
+                int count = 1;
+                if (item.Consume(ref count))
+                {
+                    item.inventory.RemoveItem(item.slot);
+                }
+            }
+        }
+
+        #endregion
         
         public static void ResetHooks()
         {
