@@ -113,7 +113,7 @@ namespace Fougerite.PluginLoaders
                     }
                 }
 
-                OrderedModuleSelector = OrderedModuleSelector.OrderByDescending(x => x.Order).ToList();
+                OrderedModuleSelector = OrderedModuleSelector.OrderBy(x => x.Order).ToList();
 
                 foreach (Module CurrentModule in OrderedModuleSelector)
                 {
