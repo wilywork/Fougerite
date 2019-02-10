@@ -1740,6 +1740,87 @@ namespace Fougerite.Patcher
             iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(Action1BHook)));
             iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
         }
+
+        private void DoAction1Patch()
+        {
+            TypeDefinition DeployableItemDataBlock = rustAssembly.MainModule.GetType("DeployableItemDataBlock");
+            TypeDefinition BulletWeaponDataBlock = rustAssembly.MainModule.GetType("BulletWeaponDataBlock");
+            TypeDefinition ShotgunDataBlock = rustAssembly.MainModule.GetType("ShotgunDataBlock");
+            TypeDefinition HandGrenadeDataBlock = rustAssembly.MainModule.GetType("HandGrenadeDataBlock");
+            TypeDefinition StructureComponentDataBlock = rustAssembly.MainModule.GetType("StructureComponentDataBlock");
+            TypeDefinition TorchItemDataBlock = rustAssembly.MainModule.GetType("TorchItemDataBlock");
+
+            DeployableItemDataBlock.GetMethod("SetupDeployableObject").SetPublic(true);
+            StructureComponentDataBlock.GetField("_structureToPlace").SetPublic(true);
+
+            MethodDefinition DeployableItemDataBlockDoAction1 = DeployableItemDataBlock.GetMethod("DoAction1");
+            MethodDefinition BulletWeaponDataBlockDoAction1 = BulletWeaponDataBlock.GetMethod("DoAction1");
+            MethodDefinition ShotgunDataBlockDoAction1 = ShotgunDataBlock.GetMethod("DoAction1");
+            MethodDefinition HandGrenadeDataBlockDoAction1 = HandGrenadeDataBlock.GetMethod("DoAction1");
+            MethodDefinition StructureComponentDataBlockDoAction1 = StructureComponentDataBlock.GetMethod("DoAction1");
+            MethodDefinition TorchItemDataBlockDoAction1 = TorchItemDataBlock.GetMethod("DoAction1");
+
+            MethodDefinition DeployableItemDoAction1 = hooksClass.GetMethod("DeployableItemDoAction1");
+            MethodDefinition BulletWeaponDoAction1 = hooksClass.GetMethod("BulletWeaponDoAction1");
+            MethodDefinition ShotgunDoAction1 = hooksClass.GetMethod("ShotgunDoAction1");
+            MethodDefinition HandGrenadeDoAction1 = hooksClass.GetMethod("HandGrenadeDoAction1");
+            MethodDefinition StructureComponentDoAction1 = hooksClass.GetMethod("StructureComponentDoAction1");
+            MethodDefinition TorchDoAction1 = hooksClass.GetMethod("TorchDoAction1");
+                
+            ILProcessor iLProcessor = DeployableItemDataBlockDoAction1.Body.GetILProcessor();
+            iLProcessor.Body.Instructions.Clear();
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_3));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(DeployableItemDoAction1)));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+            
+            ILProcessor iLProcessor2 = BulletWeaponDataBlockDoAction1.Body.GetILProcessor();
+            iLProcessor2.Body.Instructions.Clear();
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_3));
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(BulletWeaponDoAction1)));
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+            
+            ILProcessor iLProcessor3 = ShotgunDataBlockDoAction1.Body.GetILProcessor();
+            iLProcessor3.Body.Instructions.Clear();
+            iLProcessor3.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            iLProcessor3.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            iLProcessor3.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
+            iLProcessor3.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_3));
+            iLProcessor3.Body.Instructions.Add(Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(ShotgunDoAction1)));
+            iLProcessor3.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+            
+            ILProcessor iLProcessor4 = HandGrenadeDataBlockDoAction1.Body.GetILProcessor();
+            iLProcessor4.Body.Instructions.Clear();
+            iLProcessor4.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            iLProcessor4.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            iLProcessor4.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
+            iLProcessor4.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_3));
+            iLProcessor4.Body.Instructions.Add(Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(HandGrenadeDoAction1)));
+            iLProcessor4.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+            
+            ILProcessor iLProcessor5 = StructureComponentDataBlockDoAction1.Body.GetILProcessor();
+            iLProcessor5.Body.Instructions.Clear();
+            iLProcessor5.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            iLProcessor5.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            iLProcessor5.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
+            iLProcessor5.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_3));
+            iLProcessor5.Body.Instructions.Add(Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(StructureComponentDoAction1)));
+            iLProcessor5.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+            
+            ILProcessor iLProcessor6 = TorchItemDataBlockDoAction1.Body.GetILProcessor();
+            iLProcessor6.Body.Instructions.Clear();
+            iLProcessor6.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            iLProcessor6.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            iLProcessor6.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
+            iLProcessor6.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_3));
+            iLProcessor6.Body.Instructions.Add(Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(TorchDoAction1)));
+            iLProcessor6.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+        }
         
         // uLink Class56.method_36 has been patched here: https://i.imgur.com/WIEQXhX.png
         // I modified using dynspy to avoid the struggle.
@@ -1876,6 +1957,7 @@ namespace Fougerite.Patcher
                     this.SupplySignalExplosion();
                     this.TossPatch();
                     this.ItemRepresentation();
+                    this.DoAction1Patch();
                 }
                 catch (Exception ex)
                 {
