@@ -1767,14 +1767,14 @@ namespace Fougerite.Patcher
             MethodDefinition StructureComponentDoAction1 = hooksClass.GetMethod("StructureComponentDoAction1");
             MethodDefinition TorchDoAction1 = hooksClass.GetMethod("TorchDoAction1");
                 
-            ILProcessor iLProcessor = DeployableItemDataBlockDoAction1.Body.GetILProcessor();
+            /*ILProcessor iLProcessor = DeployableItemDataBlockDoAction1.Body.GetILProcessor();
             iLProcessor.Body.Instructions.Clear();
             iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
             iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
             iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
             iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_3));
             iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(DeployableItemDoAction1)));
-            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+            iLProcessor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));*/
             
             ILProcessor iLProcessor2 = BulletWeaponDataBlockDoAction1.Body.GetILProcessor();
             iLProcessor2.Body.Instructions.Clear();

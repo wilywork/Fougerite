@@ -3369,60 +3369,72 @@ namespace Fougerite
         
         #region DataBlockFixes
         
-        public static void DeployableItemDoAction1(DeployableItemDataBlock instance, uLink.BitStream stream, ItemRepresentation rep, ref uLink.NetworkMessageInfo info)
+        /*public static void DeployableItemDoAction1(DeployableItemDataBlock instance, uLink.BitStream stream, ItemRepresentation rep, ref uLink.NetworkMessageInfo info)
         {
-            IDeployableItem item;
-            NetCull.VerifyRPC(ref info, false);
-            if (rep.Item<IDeployableItem>(out item) && (item.uses > 0))
+            try
             {
-                Vector3 vector3;
-                Quaternion quaternion;
-                TransCarrier carrier;
-                Vector3 origin = stream.ReadVector3();
-                Vector3 direction = stream.ReadVector3();
-                if (origin == null || direction == null)
+                IDeployableItem item;
+                NetCull.VerifyRPC(ref info, false);
+                if (rep.Item<IDeployableItem>(out item) && (item.uses > 0))
                 {
-                    return;
-                }
-                
-                if (float.IsNaN(origin.x) || float.IsInfinity(origin.x) || float.IsNaN(origin.y) || float.IsInfinity(origin.y) 
-                    || float.IsNaN(origin.z) || float.IsInfinity(origin.z))
-                {
-                    return;
-                }
-                if (float.IsNaN(direction.x) || float.IsInfinity(direction.x) || float.IsNaN(direction.y) || float.IsInfinity(direction.y) 
-                    || float.IsNaN(direction.z) || float.IsInfinity(direction.z))
-                {
-                    return;
-                }
-                
-                Ray ray = new Ray(origin, direction);
-                if (!instance.CheckPlacement(ray, out vector3, out quaternion, out carrier))
-                {
-                    Notice.Popup(info.sender, "?", "You can't place that here", 4f);
-                }
-                else
-                {
-                    DeployableObject component = NetCull.InstantiateStatic(instance.DeployableObjectPrefabName, vector3, quaternion).GetComponent<DeployableObject>();
-                    if (component != null)
+                    Vector3 vector3;
+                    Quaternion quaternion;
+                    TransCarrier carrier;
+                    Vector3 origin = stream.ReadVector3();
+                    Vector3 direction = stream.ReadVector3();
+                    if (origin == null || direction == null)
                     {
-                        try
+                        return;
+                    }
+
+                    if (float.IsNaN(origin.x) || float.IsInfinity(origin.x) || float.IsNaN(origin.y) ||
+                        float.IsInfinity(origin.y)
+                        || float.IsNaN(origin.z) || float.IsInfinity(origin.z))
+                    {
+                        return;
+                    }
+
+                    if (float.IsNaN(direction.x) || float.IsInfinity(direction.x) || float.IsNaN(direction.y) ||
+                        float.IsInfinity(direction.y)
+                        || float.IsNaN(direction.z) || float.IsInfinity(direction.z))
+                    {
+                        return;
+                    }
+
+                    Ray ray = new Ray(origin, direction);
+                    if (!instance.CheckPlacement(ray, out vector3, out quaternion, out carrier))
+                    {
+                        Notice.Popup(info.sender, "?", "You can't place that here", 4f);
+                    }
+                    else
+                    {
+                        DeployableObject component = NetCull
+                            .InstantiateStatic(instance.DeployableObjectPrefabName, vector3, quaternion)
+                            .GetComponent<DeployableObject>();
+                        if (component != null)
                         {
-                            component.SetupCreator(item.controllable);
-                            instance.SetupDeployableObject(stream, rep, ref info, component, carrier);
-                        }
-                        finally
-                        {
-                            int count = 1;
-                            if (item.Consume(ref count))
+                            try
                             {
-                                item.inventory.RemoveItem(item.slot);
+                                component.SetupCreator(item.controllable);
+                                instance.SetupDeployableObject(stream, rep, ref info, component, carrier);
+                            }
+                            finally
+                            {
+                                int count = 1;
+                                if (item.Consume(ref count))
+                                {
+                                    item.inventory.RemoveItem(item.slot);
+                                }
                             }
                         }
                     }
                 }
             }
-        }
+            catch (Exception ex)
+            {
+                Logger.Log("Ex " + ex);
+            }
+        }*/
         
         public static void BulletWeaponDoAction1(BulletWeaponDataBlock instance, uLink.BitStream stream, ItemRepresentation rep, ref uLink.NetworkMessageInfo info)
         {
