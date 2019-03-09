@@ -3382,25 +3382,6 @@ namespace Fougerite
                     TransCarrier carrier;
                     Vector3 origin = stream.ReadVector3();
                     Vector3 direction = stream.ReadVector3();
-                    if (origin == null || direction == null)
-                    {
-                        return;
-                    }
-
-                    if (float.IsNaN(origin.x) || float.IsInfinity(origin.x) || float.IsNaN(origin.y) ||
-                        float.IsInfinity(origin.y)
-                        || float.IsNaN(origin.z) || float.IsInfinity(origin.z))
-                    {
-                        return;
-                    }
-
-                    if (float.IsNaN(direction.x) || float.IsInfinity(direction.x) || float.IsNaN(direction.y) ||
-                        float.IsInfinity(direction.y)
-                        || float.IsNaN(direction.z) || float.IsInfinity(direction.z))
-                    {
-                        return;
-                    }
-
                     Ray ray = new Ray(origin, direction);
                     if (!instance.CheckPlacement(ray, out vector3, out quaternion, out carrier))
                     {
@@ -3408,9 +3389,7 @@ namespace Fougerite
                     }
                     else
                     {
-                        DeployableObject component = NetCull
-                            .InstantiateStatic(instance.DeployableObjectPrefabName, vector3, quaternion)
-                            .GetComponent<DeployableObject>();
+                        DeployableObject component = NetCull.InstantiateStatic(instance.DeployableObjectPrefabName, vector3, quaternion).GetComponent<DeployableObject>();
                         if (component != null)
                         {
                             try
@@ -3421,6 +3400,7 @@ namespace Fougerite
                             finally
                             {
                                 int count = 1;
+                                Hooks.EntityDeployed(component, ref info);
                                 if (item.Consume(ref count))
                                 {
                                     item.inventory.RemoveItem(item.slot);
@@ -3432,9 +3412,37 @@ namespace Fougerite
             }
             catch (Exception ex)
             {
-                Logger.Log("Ex " + ex);
+                Logger.LogError("DeployableItemDoAction1 Error: " + ex);
             }
         }*/
+
+        public static bool DeployableCheckHook(DeployableItemDataBlock instance, Ray ray, out Vector3 pos, out Quaternion rot, out TransCarrier carrier)
+        {
+            DeployableItemDataBlock.DeployPlaceResults results;
+            Vector3 origin = ray.origin;
+            Vector3 direction = ray.direction;
+            if (float.IsNaN(origin.x) || float.IsInfinity(origin.x) 
+                                      || float.IsNaN(origin.y) || float.IsInfinity(origin.y) 
+                                      || float.IsNaN(origin.z) || float.IsInfinity(origin.z))
+            {
+                pos = Vector3.zero;
+                rot = Quaternion.identity;
+                carrier = null;
+                return false;
+            }
+            if (float.IsNaN(direction.x) || float.IsInfinity(direction.x) 
+                                      || float.IsNaN(direction.y) || float.IsInfinity(direction.y) 
+                                      || float.IsNaN(direction.z) || float.IsInfinity(direction.z))
+            {
+                pos = Vector3.zero;
+                rot = Quaternion.identity;
+                carrier = null;
+                return false;
+            }
+            instance.CheckPlacementResults(ray, out pos, out rot, out carrier, out results);
+            return results.Valid();
+        }
+
         
         public static void BulletWeaponDoAction1(BulletWeaponDataBlock instance, uLink.BitStream stream, ItemRepresentation rep, ref uLink.NetworkMessageInfo info)
         {
@@ -3589,7 +3597,6 @@ namespace Fougerite
                 Vector3 position = stream.ReadVector3();
                 Quaternion rotation = stream.ReadQuaternion();
                 uLink.NetworkViewID viewID = stream.ReadNetworkViewID();
-
                 if (viewID == null || float.IsNaN(viewID.id) || float.IsInfinity(viewID.id))
                 {
                     return;
@@ -3618,7 +3625,6 @@ namespace Fougerite
                 {
                     return;
                 }
-                
                 
                 StructureMaster component = null;
                 if (viewID == uLink.NetworkViewID.unassigned)
@@ -3652,6 +3658,7 @@ namespace Fougerite
                     {
                         component.AddStructureComponent(component2);
                         int count = 1;
+                        Hooks.EntityDeployed(component2, ref info);
                         if (item.Consume(ref count))
                         {
                             item.inventory.RemoveItem(item.slot);

@@ -85,9 +85,9 @@ namespace Fougerite.PluginLoaders
                 object author = GetGlobalObject("Author");
                 object about = GetGlobalObject("About");
                 object version = GetGlobalObject("Version");
-                Author = author == null || author == "undefined" ? "Unknown" : author.ToString();
-                About = about == null || about == "undefined" ? "" : about.ToString();
-                Version = version == null || version == "undefined" ? "1.0" : version.ToString();
+                Author = author == null || (string) author == "undefined" ? "Unknown" : author.ToString();
+                About = about == null || (string) about == "undefined" ? "" : about.ToString();
+                Version = version == null || (string) version == "undefined" ? "1.0" : version.ToString();
 
                 State = PluginState.Loaded;
             }
