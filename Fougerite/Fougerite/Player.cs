@@ -200,7 +200,7 @@ namespace Fougerite
         {
             if (this.IsOnline)
             {
-                Disconnect(true);
+                Disconnect(true, NetError.Facepunch_Kick_RCON);
             }
         }
 
@@ -208,7 +208,7 @@ namespace Fougerite
         /// Disconnects the player from the server.
         /// </summary>
         /// <param name="SendNotification"></param>
-        public void Disconnect(bool SendNotification = true)
+        public void Disconnect(bool SendNotification = true, NetError NetErrorReason = NetError.Facepunch_Kick_RCON)
         {
             if (this.IsOnline)
             {
@@ -216,12 +216,12 @@ namespace Fougerite
                 if (Thread.CurrentThread.ManagedThreadId != Util.GetUtil().MainThreadID)
                 {
                     //Logger.LogError("Nope, invoking");
-                    Loom.QueueOnMainThread(() => { this.Disconnect(SendNotification); });
+                    Loom.QueueOnMainThread(() => { this.Disconnect(SendNotification, NetErrorReason); });
                     return;
                 }
 
                 Server.GetServer().RemovePlayer(uid);
-                this.ourPlayer.netUser.Kick(NetError.Facepunch_Kick_RCON, false);
+                this.ourPlayer.netUser.Kick(NetErrorReason, SendNotification);
                 IsDisconnecting = true;
             }
         }
