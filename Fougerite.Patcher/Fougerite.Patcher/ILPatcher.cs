@@ -1193,6 +1193,18 @@ namespace Fougerite.Patcher
             iLProcessor.InsertBefore(orig.Body.Instructions[60], Instruction.Create(OpCodes.Call, this.rustAssembly.MainModule.Import(method)));
             iLProcessor.InsertBefore(orig.Body.Instructions[60], Instruction.Create(OpCodes.Ldarg_S, orig.Parameters[2]));
             iLProcessor.InsertBefore(orig.Body.Instructions[60], Instruction.Create(OpCodes.Ldloc_S, orig.Body.Variables[8]));
+            
+            MethodDefinition DeployableCheckHook = hooksClass.GetMethod("DeployableCheckHook");
+            MethodDefinition CheckPlacement = type.GetMethod("CheckPlacement");
+            ILProcessor iLProcessor2 = CheckPlacement.Body.GetILProcessor();
+            iLProcessor2.Body.Instructions.Clear();
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_3));
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_S, CheckPlacement.Parameters[3]));
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(DeployableCheckHook)));
+            iLProcessor2.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
         }
 
         private void EntityDeployedPatch_StructureComponentDataBlock()
@@ -1911,7 +1923,7 @@ namespace Fougerite.Patcher
                     this.ServerSavePatch();
                     this.BlueprintUsePatch();
                     this.EntityDeployedPatch_DeployableItemDataBlock();
-                    this.EntityDeployedPatch_StructureComponentDataBlock();
+                    //this.EntityDeployedPatch_StructureComponentDataBlock();
                     this.PlayerGatherWoodPatch();
                     this.PlayerGatherPatch();
                     this.PlayerSpawningSpawnedPatch();
