@@ -1186,6 +1186,7 @@ namespace Fougerite.Patcher
         private void EntityDeployedPatch_DeployableItemDataBlock()
         {
             TypeDefinition type = rustAssembly.MainModule.GetType("DeployableItemDataBlock");
+            type.GetMethod("SetupDeployableObject").SetPublic(true);
             MethodDefinition orig = type.GetMethod("DoAction1");
             MethodDefinition method = hooksClass.GetMethod("EntityDeployed");
             this.CloneMethod(orig);
@@ -1755,24 +1756,20 @@ namespace Fougerite.Patcher
 
         private void DoAction1Patch()
         {
-            TypeDefinition DeployableItemDataBlock = rustAssembly.MainModule.GetType("DeployableItemDataBlock");
             TypeDefinition BulletWeaponDataBlock = rustAssembly.MainModule.GetType("BulletWeaponDataBlock");
             TypeDefinition ShotgunDataBlock = rustAssembly.MainModule.GetType("ShotgunDataBlock");
             TypeDefinition HandGrenadeDataBlock = rustAssembly.MainModule.GetType("HandGrenadeDataBlock");
             TypeDefinition StructureComponentDataBlock = rustAssembly.MainModule.GetType("StructureComponentDataBlock");
             TypeDefinition TorchItemDataBlock = rustAssembly.MainModule.GetType("TorchItemDataBlock");
 
-            DeployableItemDataBlock.GetMethod("SetupDeployableObject").SetPublic(true);
             StructureComponentDataBlock.GetField("_structureToPlace").SetPublic(true);
 
-            MethodDefinition DeployableItemDataBlockDoAction1 = DeployableItemDataBlock.GetMethod("DoAction1");
             MethodDefinition BulletWeaponDataBlockDoAction1 = BulletWeaponDataBlock.GetMethod("DoAction1");
             MethodDefinition ShotgunDataBlockDoAction1 = ShotgunDataBlock.GetMethod("DoAction1");
             MethodDefinition HandGrenadeDataBlockDoAction1 = HandGrenadeDataBlock.GetMethod("DoAction1");
             MethodDefinition StructureComponentDataBlockDoAction1 = StructureComponentDataBlock.GetMethod("DoAction1");
             MethodDefinition TorchItemDataBlockDoAction1 = TorchItemDataBlock.GetMethod("DoAction1");
 
-            MethodDefinition DeployableItemDoAction1 = hooksClass.GetMethod("DeployableItemDoAction1");
             MethodDefinition BulletWeaponDoAction1 = hooksClass.GetMethod("BulletWeaponDoAction1");
             MethodDefinition ShotgunDoAction1 = hooksClass.GetMethod("ShotgunDoAction1");
             MethodDefinition HandGrenadeDoAction1 = hooksClass.GetMethod("HandGrenadeDoAction1");
@@ -1955,10 +1952,10 @@ namespace Fougerite.Patcher
                     this.FallDamageHook();
                     this.LooterPatch();
                     this.UseablePatch();
-                    this.ShootPatch();
+                    //this.ShootPatch();
                     this.BowShootPatch();
-                    this.ShotgunShootPatch();
-                    this.GrenadePatch();
+                    //this.ShotgunShootPatch();
+                    //this.GrenadePatch();
                     this.PatchuLink();
                     this.SlotOperationPatch();
                     this.RepairBenchEvent();
