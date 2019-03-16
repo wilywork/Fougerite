@@ -1761,6 +1761,10 @@ namespace Fougerite.Patcher
             TypeDefinition HandGrenadeDataBlock = rustAssembly.MainModule.GetType("HandGrenadeDataBlock");
             TypeDefinition StructureComponentDataBlock = rustAssembly.MainModule.GetType("StructureComponentDataBlock");
             TypeDefinition TorchItemDataBlock = rustAssembly.MainModule.GetType("TorchItemDataBlock");
+            
+            BulletWeaponDataBlock.GetMethod("ReadHitInfo").SetPublic(true);
+            BulletWeaponDataBlock.GetMethod("ApplyDamage").SetPublic(true);
+
 
             StructureComponentDataBlock.GetField("_structureToPlace").SetPublic(true);
 

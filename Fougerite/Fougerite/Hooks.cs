@@ -1768,32 +1768,6 @@ namespace Fougerite
                 Logger.LogError("ResourceSpawnedEvent Error: " + ex);
             }
         }
-
-        private static void ShootEvent(BulletWeaponDataBlock db, GameObject obj2, ItemRepresentation rep, ref uLink.NetworkMessageInfo info, IBulletWeaponItem bwi)
-        {
-            Stopwatch sw = null;
-            if (Logger.showSpeed)
-            {
-                sw = new Stopwatch();
-                sw.Start();
-            }
-            try
-            {
-                if (OnShoot != null)
-                {
-                    ShootEvent se = new ShootEvent(db, obj2, rep, info, bwi);
-                    OnShoot(se);
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError("ShootEvent Error: " + ex);
-            }
-            if (sw == null) return;
-            sw.Stop();
-            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("ShootEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
-        }
-
         public static void BowShootEvent(BowWeaponDataBlock db, ItemRepresentation rep, ref uLink.NetworkMessageInfo info, IBowWeaponItem bwi)
         {
             Stopwatch sw = null;
@@ -3471,13 +3445,19 @@ namespace Fougerite
                 {
                     return;
                 }
-                if (float.IsNaN(transform.position.x) || float.IsInfinity(transform.position.x) || float.IsNaN(transform.position.y) || float.IsInfinity(transform.position.y) 
-                    || float.IsNaN(transform.position.z) || float.IsInfinity(transform.position.z))
-                {
-                    return;
-                }
 
-                ShootEvent(instance, obj2, rep, ref info, item);
+                try
+                {
+                    if (OnShoot != null)
+                    {
+                        ShootEvent se = new ShootEvent(instance, obj2, rep, info, item);
+                        OnShoot(se);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError("ShootEvent Error: " + ex);
+                }
                 TakeDamage local = item.inventory.GetLocal<TakeDamage>();
                 if ((local == null) || !local.dead)
                 {
