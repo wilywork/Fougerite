@@ -1769,7 +1769,7 @@ namespace Fougerite
             }
         }
 
-        public static void ShootEvent(BulletWeaponDataBlock db, GameObject obj2, ItemRepresentation rep, ref uLink.NetworkMessageInfo info, IBulletWeaponItem bwi)
+        private static void ShootEvent(BulletWeaponDataBlock db, GameObject obj2, ItemRepresentation rep, ref uLink.NetworkMessageInfo info, IBulletWeaponItem bwi)
         {
             Stopwatch sw = null;
             if (Logger.showSpeed)
@@ -1819,7 +1819,7 @@ namespace Fougerite
             if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("BowShootEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
-        public static void ShotgunShootEvent(ShotgunDataBlock shotgunDataBlock, uLink.BitStream stream, ItemRepresentation rep, ref uLink.NetworkMessageInfo info)
+        private static void ShotgunShootEvent(ShotgunDataBlock shotgunDataBlock, uLink.BitStream stream, ItemRepresentation rep, ref uLink.NetworkMessageInfo info)
         {
             Stopwatch sw = null;
             if (Logger.showSpeed)
@@ -1876,7 +1876,7 @@ namespace Fougerite
             if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("ShotgunShootEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
-        public static void GrenadeEvent(HandGrenadeDataBlock hgd, uLink.BitStream stream, ItemRepresentation rep, ref uLink.NetworkMessageInfo info)
+        private static void GrenadeEvent(HandGrenadeDataBlock hgd, uLink.BitStream stream, ItemRepresentation rep, ref uLink.NetworkMessageInfo info)
         {
             Stopwatch sw = null;
             if (Logger.showSpeed)
@@ -3476,6 +3476,8 @@ namespace Fougerite
                 {
                     return;
                 }
+
+                ShootEvent(instance, obj2, rep, ref info, item);
                 TakeDamage local = item.inventory.GetLocal<TakeDamage>();
                 if ((local == null) || !local.dead)
                 {
@@ -3523,6 +3525,18 @@ namespace Fougerite
                 {
                     obj2.rigidbody.AddTorque(new Vector3(UnityEngine.Random.Range((float) -1f, (float) 1f),
                                                  UnityEngine.Random.Range((float) -1f, (float) 1f), UnityEngine.Random.Range((float) -1f, (float) 1f)) * 10f);
+                    try
+                    {
+                        if (OnGrenadeThrow != null)
+                        {
+                            GrenadeThrowEvent se = new GrenadeThrowEvent(grenade, obj2, rep, info, item);
+                            OnGrenadeThrow(se);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError("GrenadeThrowEvent Error: " + ex);
+                    }
                 }
                 int count = 1;
                 if (item.Consume(ref count))
@@ -3541,6 +3555,18 @@ namespace Fougerite
                 TakeDamage local = found.inventory.GetLocal<TakeDamage>();
                 if (((local == null) || !local.dead) && found.ValidatePrimaryMessageTime(info.timestamp))
                 {
+                    try
+                    {
+                        if (OnShotgunShoot != null)
+                        {
+                            ShotgunShootEvent se = new ShotgunShootEvent(instance, rep, info, found);
+                            OnShotgunShoot(se);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError("ShotgunShootEvent Error: " + ex);
+                    }
                     int count = 1;
                     found.Consume(ref count);
                     found.itemRepresentation.ActionStream(1, uLink.RPCMode.AllExceptOwner, stream);
