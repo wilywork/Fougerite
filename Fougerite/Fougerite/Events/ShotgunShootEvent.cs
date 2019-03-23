@@ -44,6 +44,14 @@ namespace Fougerite.Events
             _ibw = ibw;
             _unmi = ui;
             _type = type;
+            _part = null;
+            _pellets = pellets;
+            _hitnetworkobj = false;
+            _hitbodypart = false;
+            _isheadshot = false;
+            _bodypart = BodyPart.Spine0;
+            _endpos = Vector3.zero;
+            _offset = Vector3.zero;
         }
         
         public ShotgunShootEvent(ShotgunDataBlock bw, ItemRepresentation ir, uLink.NetworkMessageInfo ui, IBulletWeaponItem ibw, ShotgunEventType type, 

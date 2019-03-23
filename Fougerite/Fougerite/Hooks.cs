@@ -3497,6 +3497,8 @@ namespace Fougerite
                     {
                         Logger.LogError("ShotgunShootEvent Error: " + ex);
                     }
+
+                    pellets = tempcall.Pellets;
                     
                     for (uint i = 0; i < pellets; i++)
                     {
