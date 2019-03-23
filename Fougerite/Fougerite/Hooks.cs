@@ -1793,62 +1793,6 @@ namespace Fougerite
             if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("BowShootEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
-        private static void ShotgunShootEvent(ShotgunDataBlock shotgunDataBlock, uLink.BitStream stream, ItemRepresentation rep, ref uLink.NetworkMessageInfo info)
-        {
-            Stopwatch sw = null;
-            if (Logger.showSpeed)
-            {
-                sw = new Stopwatch();
-                sw.Start();
-            }
-            NetCull.VerifyRPC(ref info, false);
-            IBulletWeaponItem found = null;
-            if (rep.Item(out found) && (found.uses > 0))
-            {
-                TakeDamage local = found.inventory.GetLocal<TakeDamage>();
-                if (((local == null) || !local.dead) && found.ValidatePrimaryMessageTime(info.timestamp))
-                {
-                    try
-                    {
-                        if (OnShotgunShoot != null)
-                        {
-                            ShotgunShootEvent se = new ShotgunShootEvent(shotgunDataBlock, rep, info, found);
-                            OnShotgunShoot(se);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.LogError("ShotgunShootEvent Error: " + ex);
-                    }
-                    int count = 1;
-                    found.Consume(ref count);
-                    found.itemRepresentation.ActionStream(1, uLink.RPCMode.AllExceptOwner, stream);
-                    //float bulletRange = shotgunDataBlock.GetBulletRange(rep);
-                    for (int i = 0; i < shotgunDataBlock.numPellets; i++)
-                    {
-                        GameObject obj2;
-                        NetEntityID yid;
-                        IDRemoteBodyPart part;
-                        bool flag;
-                        bool flag2;
-                        bool flag3;
-                        BodyPart part2;
-                        Vector3 vector;
-                        Vector3 vector2;
-                        Transform transform;
-                        shotgunDataBlock.ReadHitInfo(stream, out obj2, out flag, out flag2, out part2, out part, out yid, out transform, out vector, out vector2, out flag3);
-                        if (obj2 != null)
-                        {
-                            shotgunDataBlock.ApplyDamage(obj2, transform, flag3, vector, part2, rep);
-                        }
-                    }
-                    found.TryConditionLoss(0.5f, 0.02f);
-                }
-            }
-            if (sw == null) return;
-            sw.Stop();
-            if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("ShotgunShootEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
-        }
 
         private static void GrenadeEvent(HandGrenadeDataBlock hgd, uLink.BitStream stream, ItemRepresentation rep, ref uLink.NetworkMessageInfo info)
         {
@@ -3450,7 +3394,7 @@ namespace Fougerite
                 {
                     if (OnShoot != null)
                     {
-                        ShootEvent se = new ShootEvent(instance, obj2, rep, info, item);
+                        ShootEvent se = new ShootEvent(instance, obj2, rep, info, item, part, flag, flag2, flag3, part2, vector, vector2);
                         OnShoot(se);
                     }
                 }
@@ -3535,23 +3479,28 @@ namespace Fougerite
                 TakeDamage local = found.inventory.GetLocal<TakeDamage>();
                 if (((local == null) || !local.dead) && found.ValidatePrimaryMessageTime(info.timestamp))
                 {
+                    int count = 1;
+                    found.Consume(ref count);
+                    found.itemRepresentation.ActionStream(1, uLink.RPCMode.AllExceptOwner, stream);
+                    instance.GetBulletRange(rep);
+
+                    int pellets = instance.numPellets;
+                    ShotgunShootEvent tempcall = new ShotgunShootEvent(instance, rep, info, found, pellets, ShotgunEventType.BeforeShot);
                     try
                     {
                         if (OnShotgunShoot != null)
                         {
-                            ShotgunShootEvent se = new ShotgunShootEvent(instance, rep, info, found);
-                            OnShotgunShoot(se);
+                            OnShotgunShoot(tempcall);
                         }
                     }
                     catch (Exception ex)
                     {
                         Logger.LogError("ShotgunShootEvent Error: " + ex);
                     }
-                    int count = 1;
-                    found.Consume(ref count);
-                    found.itemRepresentation.ActionStream(1, uLink.RPCMode.AllExceptOwner, stream);
-                    instance.GetBulletRange(rep);
-                    for (int i = 0; i < instance.numPellets; i++)
+
+                    pellets = tempcall.Pellets;
+                    
+                    for (uint i = 0; i < pellets; i++)
                     {
                         GameObject obj2;
                         NetEntityID yid;
@@ -3575,10 +3524,18 @@ namespace Fougerite
                         {
                             return;
                         }
-                        if (float.IsNaN(transform.position.x) || float.IsInfinity(transform.position.x) || float.IsNaN(transform.position.y) || float.IsInfinity(transform.position.y) 
-                            || float.IsNaN(transform.position.z) || float.IsInfinity(transform.position.z))
+                        
+                        try
                         {
-                            return;
+                            if (OnShotgunShoot != null)
+                            {
+                                ShotgunShootEvent se = new ShotgunShootEvent(instance, rep, info, found, ShotgunEventType.AfterShot, part, flag, flag2, flag3, part2, vector, vector2);
+                                OnShotgunShoot(se);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.LogError("ShotgunShootEvent Error: " + ex);
                         }
                         
                         if (obj2 != null)
@@ -3945,7 +3902,7 @@ namespace Fougerite
         {
             DateTime now = DateTime.Now;
             DateTime then = LasTime2;
-            double diff = (now - then).TotalMinutes;
+            double diff = (now - then).Minutes;
             if (data == null)
             {
                 if (diff > 5)
@@ -3955,7 +3912,7 @@ namespace Fougerite
                 }
                 return false;
             }
-            if (data.Length > 2350)
+            if (data.Length > 10000)
             {
                 if (diff > 5)
                 {
@@ -3972,7 +3929,7 @@ namespace Fougerite
                 try
                 {
                     uint conversion = (uint) BitConverter.ToInt32(data, (int) i);
-                    if (conversion > 2350)
+                    if (conversion > 10000)
                     {
                         if (diff > 5)
                         {
