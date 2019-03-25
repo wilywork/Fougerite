@@ -41,7 +41,7 @@ namespace Fougerite
         };
 
         /// <summary>
-        /// PlayerActions that I debuged myself. These are sent by the On_PlayerMove event.
+        /// PlayerActions that I debugged myself. These are sent by the On_PlayerMove event.
         /// </summary>
         public enum PlayerActions
         {

@@ -1,4 +1,5 @@
 using System.Linq;
+using UnityEngine;
 
 namespace Fougerite
 {
@@ -9,6 +10,7 @@ namespace Fougerite
     {
         private readonly Inventory internalInv;
 		private readonly int internalSlot;
+		//internal const string PrefabName = ";drop_lootsack"; Dynamic cannot be used with this.
 
         public EntityItem(Inventory inv, int slot)
 		{
@@ -19,9 +21,42 @@ namespace Fougerite
 	    /// <summary>
 	    /// Drops this item from the inventory.
 	    /// </summary>
-		public void Drop()
+		public ItemPickup Drop()
 		{
-			DropHelper.DropItem(this.internalInv, this.Slot);
+			if (!IsEmpty())
+			{
+				IInventoryItem item;
+				if (!internalInv.GetItem(Slot, out item))
+				{
+					internalInv.MarkSlotDirty(Slot);
+					return null;
+				}
+				CharacterItemDropPrefabTrait trait = new Character().GetTrait<CharacterItemDropPrefabTrait>();
+				
+				ItemPickup dropped = null;
+				Vector3 position = internalInv.transform.localPosition;
+				// Try making the positions random, instead of letting the objects stuck into together.
+				position.x = position.x + UnityEngine.Random.Range(0f, 0.85f);
+				position.y = position.y + UnityEngine.Random.Range(0.75f, 1f);
+				position.z = position.z + UnityEngine.Random.Range(0f, 0.85f);
+				
+				Vector3 arg = new Vector3(UnityEngine.Random.Range(0.75f, 1.3f), UnityEngine.Random.Range(0.75f, 1.3f), UnityEngine.Random.Range(0.75f, 1.3f));
+				Quaternion rotation = new Quaternion(0f, 0f, 0f, 1f);
+				GameObject go = NetCull.InstantiateDynamicWithArgs<Vector3>(trait.prefab, position, rotation, arg);
+				dropped = go.GetComponent<ItemPickup>();
+				if (!dropped.SetPickupItem(item))
+				{
+					//Debug.LogError($"Could not make item pickup for {item}", inventory);
+					NetCull.Destroy(go);
+					internalInv.MarkSlotDirty(Slot);
+					return null;
+				}
+				internalInv.MarkSlotDirty(Slot);
+				return dropped;
+				//DropHelper.DropItem(this.internalInv, this.Slot);
+			}
+
+			return null;
 		}
 
 		private IInventoryItem GetItemRef()
@@ -29,6 +64,14 @@ namespace Fougerite
 			IInventoryItem item;
 			this.internalInv.GetItem(this.internalSlot, out item);
 			return item;
+		}
+
+		/// <summary>
+		/// Gets the internal inventory.
+		/// </summary>
+		public Inventory Inventory
+		{
+			get { return this.internalInv; }
 		}
 
 	    /// <summary>
