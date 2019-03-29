@@ -363,14 +363,27 @@ namespace Fougerite.Patcher
         private void SlotOperationPatch()
         {
             TypeDefinition type = rustAssembly.MainModule.GetType("Inventory");
+            TypeDefinition CraftingInventory = rustAssembly.MainModule.GetType("CraftingInventory");
+            
             IEnumerable<MethodDefinition> allmethods = type.GetMethods();
             MethodDefinition SlotOperation = null;
             foreach (MethodDefinition m in allmethods)
             {
-                if (m.Name.Equals("SlotOperation") && m.Parameters.Count == 4)
+                if (m.Name.Equals("SlotOperation"))
                 {
-                    SlotOperation = m;
-                    break;
+                    m.SetPublic(true);
+                    if (m.Parameters.Count == 4)
+                    {
+                        SlotOperation = m;
+                    }
+                }
+                else if (m.Name.Equals("SlotOperationsMerge"))
+                {
+                    m.SetPublic(true);
+                }
+                else if (m.Name.Equals("SlotOperationsMove"))
+                {
+                    m.SetPublic(true);
                 }
             }
             if (SlotOperation != null)
@@ -385,6 +398,100 @@ namespace Fougerite.Patcher
                 SlotOperation.Body.Instructions.Add(Instruction.Create(OpCodes.Call, this.rustAssembly.MainModule.Import(method)));
                 SlotOperation.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
             }
+            MethodDefinition ITSP = type.GetMethod("ITSP");
+            MethodDefinition IACT = type.GetMethod("IACT");
+            MethodDefinition IAST = type.GetMethod("IAST");
+            MethodDefinition ISMV = type.GetMethod("ISMV");
+            MethodDefinition ITMG = type.GetMethod("ITMG");
+            MethodDefinition ITMV = type.GetMethod("ITMV");
+            MethodDefinition ITSM = type.GetMethod("ITSM");
+            MethodDefinition SVUC = type.GetMethod("SVUC");
+            MethodDefinition CRFS = CraftingInventory.GetMethod("CRFS");
+            
+            MethodDefinition ITSPHook = hooksClass.GetMethod("ITSPHook");
+            MethodDefinition IACTHook = hooksClass.GetMethod("IACTHook");
+            MethodDefinition IASTHook = hooksClass.GetMethod("IASTHook");
+            MethodDefinition ISMVHook = hooksClass.GetMethod("ISMVHook");
+            MethodDefinition ITMGHook = hooksClass.GetMethod("ITMGHook");
+            MethodDefinition ITMVHook = hooksClass.GetMethod("ITMVHook");
+            MethodDefinition ITSMHook = hooksClass.GetMethod("ITSMHook");
+            MethodDefinition SVUCHook = hooksClass.GetMethod("SVUCHook");
+            MethodDefinition CRFSHook = hooksClass.GetMethod("CRFSHook");
+            
+            CRFS.Body.Instructions.Clear();
+            CRFS.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            CRFS.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            CRFS.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
+            CRFS.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_3));
+            CRFS.Body.Instructions.Add(Instruction.Create(OpCodes.Call, this.rustAssembly.MainModule.Import(CRFSHook)));
+            CRFS.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+            
+            SVUC.Body.Instructions.Clear();
+            SVUC.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            SVUC.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            SVUC.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
+            SVUC.Body.Instructions.Add(Instruction.Create(OpCodes.Call, this.rustAssembly.MainModule.Import(SVUCHook)));
+            SVUC.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+            
+            ITSM.Body.Instructions.Clear();
+            ITSM.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            ITSM.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            ITSM.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
+            ITSM.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_3));
+            ITSM.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_S, ITSM.Parameters[3]));
+            ITSM.Body.Instructions.Add(Instruction.Create(OpCodes.Call, this.rustAssembly.MainModule.Import(ITSMHook)));
+            ITSM.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+            
+            ITMV.Body.Instructions.Clear();
+            ITMV.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            ITMV.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            ITMV.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
+            ITMV.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_3));
+            ITMV.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_S, ITMV.Parameters[3]));
+            ITMV.Body.Instructions.Add(Instruction.Create(OpCodes.Call, this.rustAssembly.MainModule.Import(ITMVHook)));
+            ITMV.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+            
+            ITMG.Body.Instructions.Clear();
+            ITMG.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            ITMG.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            ITMG.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
+            ITMG.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_3));
+            ITMG.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_S, ITMG.Parameters[3]));
+            ITMG.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_S, ITMG.Parameters[4]));
+            ITMG.Body.Instructions.Add(Instruction.Create(OpCodes.Call, this.rustAssembly.MainModule.Import(ITMGHook)));
+            ITMG.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+            
+            ISMV.Body.Instructions.Clear();
+            ISMV.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            ISMV.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            ISMV.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
+            ISMV.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_3));
+            ISMV.Body.Instructions.Add(Instruction.Create(OpCodes.Call, this.rustAssembly.MainModule.Import(ISMVHook)));
+            ISMV.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+            
+            ITSP.Body.Instructions.Clear();
+            ITSP.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            ITSP.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            ITSP.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
+            ITSP.Body.Instructions.Add(Instruction.Create(OpCodes.Call, this.rustAssembly.MainModule.Import(ITSPHook)));
+            ITSP.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+            
+            IACT.Body.Instructions.Clear();
+            IACT.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            IACT.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            IACT.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
+            IACT.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_3));
+            IACT.Body.Instructions.Add(Instruction.Create(OpCodes.Call, this.rustAssembly.MainModule.Import(IACTHook)));
+            IACT.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+            
+            IAST.Body.Instructions.Clear();
+            IAST.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            IAST.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            IAST.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
+            IAST.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_3));
+            IAST.Body.Instructions.Add(Instruction.Create(OpCodes.Call, this.rustAssembly.MainModule.Import(IASTHook)));
+            IAST.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+            
         }
 
         private void RepairBenchEvent()
@@ -864,16 +971,21 @@ namespace Fougerite.Patcher
         private void CraftingPatch()
         {
             TypeDefinition CraftingInventory = rustAssembly.MainModule.GetType("CraftingInventory");
+            CraftingInventory.GetMethod("FindBlueprint").SetPublic(true);
+            
             MethodDefinition CancelCrafting = CraftingInventory.GetMethod("CancelCrafting");
             CancelCrafting.SetPublic(true);
             MethodDefinition StartCrafting = null;
             IEnumerable<MethodDefinition> allmethods = CraftingInventory.GetMethods();
             foreach (MethodDefinition m in allmethods)
             {
-                if (m.Name.Equals("StartCrafting") && m.Parameters.Count == 3)
+                if (m.Name.Equals("StartCrafting"))
                 {
-                    StartCrafting = m;
-                    break;
+                    m.SetPublic(true);
+                    if (m.Parameters.Count == 3)
+                    {
+                        StartCrafting = m;
+                    }
                 }
             }
             MethodDefinition method = hooksClass.GetMethod("CraftingEvent");
@@ -1522,6 +1634,7 @@ namespace Fougerite.Patcher
             iLProcessor.InsertBefore(clientspeak.Body.Instructions[i], Instruction.Create(OpCodes.Brtrue_S, clientspeak.Body.Instructions[1]));
             iLProcessor.InsertBefore(clientspeak.Body.Instructions[i], Instruction.Create(OpCodes.Call, this.rustAssembly.MainModule.Import(method)));
             iLProcessor.InsertBefore(clientspeak.Body.Instructions[i], Instruction.Create(OpCodes.Ldarg_2));
+            iLProcessor.InsertBefore(clientspeak.Body.Instructions[i], Instruction.Create(OpCodes.Ldarg_0));
 
 
             /*ILProcessor iLProcessor = clientspeak.Body.GetILProcessor();
@@ -1554,7 +1667,57 @@ namespace Fougerite.Patcher
         private void ConditionDebug()
         {
             TypeDefinition Controllable = rustAssembly.MainModule.GetType("Controllable");
+            Controllable.GetMethod("Disconnect").SetPublic(true);
+            Controllable.GetNestedType("Chain").IsPublic = true;
             Controllable.GetField("localPlayerControllableCount").SetPublic(true);
+            //Controllable.GetField("bt").SetPublic(true);
+            Controllable.GetField("ch").SetPublic(true);
+            Controllable.GetField("_sentRootControlCount").SetPublic(true);
+            Controllable.GetField("RT").SetPublic(true);
+            Controllable.GetField("kClientSideRootNumberRPCName").IsPublic = true;
+            Controllable.GetField("kClientSideRootNumberRPCName").SetPublic(true);
+
+            Controllable.GetMethod("OverrideControlOfHandleRPC").SetPublic(true);
+            Controllable.GetMethod("SharedPostCLR").SetPublic(true);
+            
+            
+            MethodDefinition OC1 = Controllable.GetMethod("OC1");
+            MethodDefinition OC2 = Controllable.GetMethod("OC2");
+            MethodDefinition CLR = Controllable.GetMethod("CLR");
+            MethodDefinition CLD = Controllable.GetMethod("CLD");
+            
+            MethodDefinition OC1Hook = hooksClass.GetMethod("OC1Hook");
+            MethodDefinition OC2Hook = hooksClass.GetMethod("OC2Hook");
+            MethodDefinition CLRHook = hooksClass.GetMethod("CLRHook");
+            MethodDefinition CLDHook = hooksClass.GetMethod("CLDHook");
+            
+            CLD.Body.Instructions.Clear();
+            CLD.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            CLD.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            CLD.Body.Instructions.Add(Instruction.Create(OpCodes.Call, this.rustAssembly.MainModule.Import(CLDHook)));
+            CLD.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+            
+            
+            CLR.Body.Instructions.Clear();
+            CLR.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            CLR.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            CLR.Body.Instructions.Add(Instruction.Create(OpCodes.Call, this.rustAssembly.MainModule.Import(CLRHook)));
+            CLR.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+            
+            OC1.Body.Instructions.Clear();
+            OC1.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            OC1.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            OC1.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
+            OC1.Body.Instructions.Add(Instruction.Create(OpCodes.Call, this.rustAssembly.MainModule.Import(OC1Hook)));
+            OC1.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+            
+            OC2.Body.Instructions.Clear();
+            OC2.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            OC2.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            OC2.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
+            OC2.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_3));
+            OC2.Body.Instructions.Add(Instruction.Create(OpCodes.Call, this.rustAssembly.MainModule.Import(OC2Hook)));
+            OC2.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
         }
 
         private void NetcullPatch()

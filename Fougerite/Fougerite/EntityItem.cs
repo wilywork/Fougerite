@@ -1,4 +1,6 @@
 using System.Linq;
+using Fougerite.Events;
+using InventoryExtensions;
 using UnityEngine;
 
 namespace Fougerite
@@ -25,12 +27,12 @@ namespace Fougerite
 		{
 			if (!IsEmpty())
 			{
-				IInventoryItem item;
-				if (!internalInv.GetItem(Slot, out item))
+				IInventoryItem item = GetItemRef();
+				if (item == null)
 				{
-					internalInv.MarkSlotDirty(Slot);
 					return null;
 				}
+				
 				CharacterItemDropPrefabTrait trait = new Character().GetTrait<CharacterItemDropPrefabTrait>();
 				
 				ItemPickup dropped = null;
@@ -48,10 +50,13 @@ namespace Fougerite
 				{
 					//Debug.LogError($"Could not make item pickup for {item}", inventory);
 					NetCull.Destroy(go);
-					internalInv.MarkSlotDirty(Slot);
+					//internalInv.RemoveItem(item);
+					//internalInv.MarkSlotDirty(Slot);
 					return null;
 				}
-				internalInv.MarkSlotDirty(Slot);
+
+				internalInv.RemoveItem(item);
+				//internalInv.MarkSlotDirty(Slot);
 				return dropped;
 				//DropHelper.DropItem(this.internalInv, this.Slot);
 			}
