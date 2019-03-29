@@ -12,6 +12,7 @@ using Facepunch.MeshBatch;
 using Fougerite.PluginLoaders;
 using Google.ProtocolBuffers.Serialization;
 using MoPhoGames.USpeak.Core.Utils;
+using NGUI.Structures;
 using Rust;
 using RustProto;
 using RustProto.Helpers;
@@ -3898,26 +3899,46 @@ namespace Fougerite
         }*/
 
         private static DateTime LasTime2 = DateTime.Now;
-        public static bool ConfirmVoice(byte[] data)
+        public static bool ConfirmVoice(VoiceCom com, byte[] data)
         {
+            uLink.NetworkPlayer nplayer = com.networkViewOwner;
+            
             DateTime now = DateTime.Now;
             DateTime then = LasTime2;
-            double diff = (now - then).Minutes;
+            double diff = (now - then).TotalSeconds;
             if (data == null)
             {
-                if (diff > 5)
+                if (diff > 10)
                 {
-                    LasTime = DateTime.Now;
-                    Logger.LogWarning("[VoiceByteOverflown] Received null value.");
+                    LasTime2 = DateTime.Now;
+                    Fougerite.Player player = Fougerite.Server.GetServer().FindByNetworkPlayer(nplayer);
+                    if (player != null)
+                    {
+                        Logger.LogWarning("[VoiceByteOverflown] Received null value. Possible Sender: " + player.Name + " - " + player.SteamID + " - " + player.IP);
+                    }
+                    else
+                    {
+                        Logger.LogWarning("[VoiceByteOverflown] Received null value.");
+                    }
                 }
                 return false;
             }
             if (data.Length > 10000)
             {
-                if (diff > 5)
+                if (diff > 10)
                 {
-                    LasTime = DateTime.Now;
-                    Logger.LogWarning("[VoiceByteOverflown] Received a huge amount of byte, clearing. " + data.Length);
+                    LasTime2 = DateTime.Now;
+                    Fougerite.Player player = Fougerite.Server.GetServer().FindByNetworkPlayer(nplayer);
+                    if (player != null)
+                    {
+                        Logger.LogWarning("[VoiceByteOverflown] Received a huge amount of byte, clearing. " +
+                                          data.Length + " " + player.Name + " - " + player.SteamID + " - " + player.IP);
+                    }
+                    else
+                    {
+                        Logger.LogWarning("[VoiceByteOverflown] Received a huge amount of byte, clearing. " +
+                                          data.Length);
+                    }
                 }
 
                 Array.Clear(data, 0, data.Length);
@@ -3931,11 +3952,20 @@ namespace Fougerite
                     uint conversion = (uint) BitConverter.ToInt32(data, (int) i);
                     if (conversion > 10000)
                     {
-                        if (diff > 5)
+                        if (diff > 10)
                         {
-                            LasTime = DateTime.Now;
-                            Logger.LogWarning("[VoiceByteOverflown] Received a huge amount of byte, clearing. " +
-                                              conversion);
+                            LasTime2 = DateTime.Now;
+                            Fougerite.Player player = Fougerite.Server.GetServer().FindByNetworkPlayer(nplayer);
+                            if (player != null)
+                            {
+                                Logger.LogWarning("[VoiceByteOverflown] Received a huge amount of byte, clearing. " +
+                                                  conversion + " " + player.Name + " - " + player.SteamID + " - " + player.IP);
+                            }
+                            else
+                            {
+                                Logger.LogWarning("[VoiceByteOverflown] Received a huge amount of byte, clearing. " +
+                                                  conversion);
+                            }
                         }
                         Array.Clear(data, 0, data.Length);
                         return false;
@@ -3945,11 +3975,21 @@ namespace Fougerite
                 }
                 catch
                 {
-                    if (diff > 5)
+                    if (diff > 10)
                     {
-                        LasTime = DateTime.Now;
-                        Logger.LogWarning(
-                            "[VoiceByteOverflown] Seems like an error occured while reading the voice bytes. Someone is trying to send false packets?");
+                        LasTime2 = DateTime.Now;
+                        Fougerite.Player player = Fougerite.Server.GetServer().FindByNetworkPlayer(nplayer);
+                        if (player != null)
+                        {
+                            Logger.LogWarning(
+                                "[VoiceByteOverflown] Seems like an error occured while reading the voice bytes. Someone is trying to send false packets? "
+                                + player.Name + " - " + player.SteamID + " - " + player.IP);
+                        }
+                        else
+                        {
+                            Logger.LogWarning(
+                                "[VoiceByteOverflown] Seems like an error occured while reading the voice bytes. Someone is trying to send false packets?");
+                        }
                     }
 
                     Array.Clear(data, 0, data.Length);
@@ -4095,7 +4135,17 @@ namespace Fougerite
             {
                 return;
             }
-            DropHelper.DropItem(inventory, data);
+
+            if (float.IsNaN(data) || float.IsInfinity(data) || data > 39)
+            {
+                return;
+            }
+
+            InventoryItem item;
+            if (inventory.collection.Get(data, out item))
+            {
+                DropHelper.DropItem(inventory, data);
+            }
         }
 
         public static Dictionary<string, LootSpawnList> TablesLoaded(Dictionary<string, LootSpawnList> lists)
@@ -4110,6 +4160,407 @@ namespace Fougerite
                 Logger.LogError("TablesLoadedEvent Error: " + ex.ToString());
             }
             return lists;
+        }
+
+        private static DateTime LasTime3 = DateTime.Now;
+        public static void ITSPHook(Inventory instance, byte slotNumber, uLink.NetworkMessageInfo info)
+        {
+            if (info == null)
+            {
+                return;
+            }
+            DateTime now = DateTime.Now;
+            DateTime then = LasTime3;
+            double diff = (now - then).TotalSeconds;
+            if (float.IsNaN(slotNumber) || float.IsInfinity(slotNumber) || slotNumber > 39)
+            {
+                if (diff > 10)
+                {
+                    Fougerite.Player player = Fougerite.Server.GetServer().FindByNetworkPlayer(info.sender);
+                    if (player != null)
+                    {
+                        Logger.LogWarning("[ITSP InvalidPacket] " + slotNumber
+                                          + " - " + player.Name + " - " + player.SteamID + " - " + player.IP);
+                        Fougerite.Server.GetServer().BanPlayer(player, "Console", "Invalid ITSP Packet.");
+                    }
+                    LasTime3 = DateTime.Now;
+                }
+                return;
+            }
+            
+            InventoryItem item;
+            if (instance.IsAnAuthorizedLooter(info.sender) && instance.collection.Get(slotNumber, out item))
+            {
+                instance.SplitStack(slotNumber);
+            }
+        }
+        
+        private static DateTime LasTime4 = DateTime.Now;
+        public static void IACTHook(Inventory instance, byte itemIndex, byte action, uLink.NetworkMessageInfo info)
+        {
+            if (info == null)
+            {
+                return;
+            }
+            DateTime now = DateTime.Now;
+            DateTime then = LasTime4;
+            double diff = (now - then).TotalSeconds;
+            if (float.IsNaN(itemIndex) || float.IsInfinity(itemIndex) || itemIndex > 39
+                || float.IsNaN(action) || float.IsInfinity(action) ||
+                !Enum.IsDefined(typeof(InventoryItem.MenuItem), action))
+            {
+                if (diff > 10)
+                {
+                    Fougerite.Player player = Fougerite.Server.GetServer().FindByNetworkPlayer(info.sender);
+                    if (player != null)
+                    {
+                        Logger.LogWarning("[IACT InvalidPacket] " + itemIndex + " - " + action
+                                          + " - " + player.Name + " - " + player.SteamID + " - " + player.IP);
+                        Fougerite.Server.GetServer().BanPlayer(player, "Console", "Invalid IACT Packet.");
+                    }
+                    LasTime4 = DateTime.Now;
+                }
+
+                return;
+            }
+            
+            InventoryItem item;
+            if ((info.sender == instance.networkView.owner) && instance.collection.Get(itemIndex, out item))
+            {
+                item.OnMenuOption((InventoryItem.MenuItem) action);
+            }
+        }
+        
+        private static bool CheckSenderIsNonOwningClient(Inventory instance, uLink.NetworkPlayer sender)
+        {
+            if (sender.isClient && (sender != instance.networkView.owner))
+            {
+                return true;
+            }
+            return false;
+        }
+        
+        private static DateTime LasTime5 = DateTime.Now;
+        public static void IASTHook(Inventory instance, byte itemIndex, uLink.NetworkViewID itemRepID, uLink.NetworkMessageInfo info)
+        {
+            if (info == null)
+            {
+                return;
+            }
+            
+            DateTime now = DateTime.Now;
+            DateTime then = LasTime5;
+            double diff = (now - then).TotalSeconds;
+            // Just to make sure.
+            if (float.IsNaN(itemIndex) || float.IsInfinity(itemIndex) || itemIndex > 39)
+            {
+                if (diff > 10)
+                {
+                    Fougerite.Player player = Fougerite.Server.GetServer().FindByNetworkPlayer(info.sender);
+                    if (player != null)
+                    {
+                        Logger.LogWarning("[IAST InvalidPacket] " + itemIndex + " - " + itemRepID
+                                          + " - " + player.Name + " - " + player.SteamID + " - " + player.IP);
+                        Fougerite.Server.GetServer().BanPlayer(player, "Console", "Invalid IAST Packet.");
+                    }
+                    LasTime5 = DateTime.Now;
+                }
+                return;
+            }
+            
+            InventoryItem item;
+            if (!CheckSenderIsNonOwningClient(instance, info.sender) && instance.collection.Get(itemIndex, out item))
+            {
+                instance.SetActiveItemManually(itemIndex, !(itemRepID != uLink.NetworkViewID.unassigned) ? null : uLink.NetworkView.Find(itemRepID).GetComponent<ItemRepresentation>(), new uLink.NetworkViewID?(itemRepID));
+            }
+        }
+        
+        public static void OC1Hook(Controllable instance, uLink.NetworkViewID rootViewID, uLink.NetworkMessageInfo info)
+        {
+            if (info == null)
+            {
+                return;
+            }
+            if (uLink.NetworkView.Find(rootViewID) != null)
+            {
+                instance.OverrideControlOfHandleRPC(rootViewID, rootViewID, ref info);
+            }
+        }
+        
+        public static void OC2Hook(Controllable instance, uLink.NetworkViewID rootViewID, uLink.NetworkViewID parentViewID, uLink.NetworkMessageInfo info)
+        {
+            if (info == null)
+            {
+                return;
+            }
+            if (uLink.NetworkView.Find(rootViewID) != null)
+            {
+                instance.OverrideControlOfHandleRPC(rootViewID, parentViewID, ref info);
+            }
+        }
+        
+        public static void CLRHook(Controllable instance, uLink.NetworkMessageInfo info)
+        {
+            if (info == null)
+            {
+                return;
+            }
+            Controllable bt = instance.ch.bt;
+            Facepunch.NetworkView networkView = bt.networkView;
+            
+            if ((networkView != null) && (networkView.viewID != uLink.NetworkViewID.unassigned))
+            {
+                NetCull.RemoveRPCsByName(networkView, "Controllable:RFH");
+                while (bt._sentRootControlCount > instance.ch.id)
+                {
+                    string view = Controllable.kClientSideRootNumberRPCName[bt._sentRootControlCount--];
+                    NetCull.RemoveRPCsByName(networkView, view);
+                }
+            }
+            instance.ch.Delete();
+            if (((bt != null) && ((bt.RT & 0xc00) == 0)) && ((networkView != null) && (networkView.viewID != uLink.NetworkViewID.unassigned)))
+            {
+                networkView.RPC<byte>("Controllable:RFH", uLink.RPCMode.OthersBuffered, (byte) bt._sentRootControlCount);
+            }
+            instance.SharedPostCLR();
+        }
+
+        public static void CLDHook(Controllable instance, uLink.NetworkMessageInfo info)
+        {
+            if (info == null)
+            {
+                return;
+            }
+
+            if (info.sender != instance.networkViewOwner)
+            {
+                return;
+            }
+            Controllable.Disconnect(instance);
+        }
+        
+        private static DateTime LasTime6 = DateTime.Now;
+        public static void ISMVHook(Inventory instance, byte fromSlot, byte toSlot, uLink.NetworkMessageInfo info)
+        {
+            if (info == null)
+            {
+                return;
+            }
+            DateTime now = DateTime.Now;
+            DateTime then = LasTime6;
+            double diff = (now - then).TotalSeconds;
+            if (float.IsNaN(fromSlot) || float.IsInfinity(fromSlot) || fromSlot > 39
+                || float.IsNaN(toSlot) || float.IsInfinity(toSlot) || toSlot > 39)
+            {
+                if (diff > 10)
+                {
+                    Fougerite.Player player = Fougerite.Server.GetServer().FindByNetworkPlayer(info.sender);
+                    if (player != null)
+                    {
+                        Logger.LogWarning("[ISMV InvalidPacket] " + fromSlot
+                                                                  + " - " + toSlot + " - " + player.Name + " - " + player.SteamID + " - " + player.IP);
+                        Fougerite.Server.GetServer().BanPlayer(player, "Console", "Invalid ISMV Packet.");
+                    }
+                    LasTime6 = DateTime.Now;
+                }
+                return;
+            }
+            
+            InventoryItem item;
+            if (instance.collection.Get(fromSlot, out item))
+            {
+                Inventory.SlotOperationResult message =
+                    instance.SlotOperation(fromSlot, toSlot, Inventory.SlotOperationsMove(info.sender));
+                if (((int) message) <= 0)
+                {
+                    Debug.LogWarning(message);
+                }
+            }
+        }
+        
+        private static DateTime LasTime7 = DateTime.Now;
+        public static void ITMGHook(Inventory instance, NetEntityID toInvID, byte fromSlot, byte toSlot, bool tryCombine, uLink.NetworkMessageInfo info)
+        {
+            if (info == null || toInvID == null)
+            {
+                return;
+            }
+            
+            DateTime now = DateTime.Now;
+            DateTime then = LasTime7;
+            double diff = (now - then).TotalSeconds;
+            if (float.IsNaN(fromSlot) || float.IsInfinity(fromSlot) || fromSlot > 39
+                || float.IsNaN(toSlot) || float.IsInfinity(toSlot) || toSlot > 39)
+            {
+                if (diff > 10)
+                {
+                    Fougerite.Player player = Fougerite.Server.GetServer().FindByNetworkPlayer(info.sender);
+                    if (player != null)
+                    {
+                        Logger.LogWarning("[ITMG InvalidPacket] " + fromSlot
+                                                                  + " - " + toSlot + " - " + player.Name + " - " + player.SteamID + " - " + player.IP);
+                        Fougerite.Server.GetServer().BanPlayer(player, "Console", "Invalid ITMG Packet.");
+                    }
+                    LasTime7 = DateTime.Now;
+                }
+                return;
+            }
+            
+            InventoryItem item;
+            if (instance.collection.Get(fromSlot, out item))
+            {
+                Inventory component = toInvID.GetComponent<Inventory>();
+                Inventory.SlotOperationResult message = instance.SlotOperation(fromSlot, component, toSlot,
+                    Inventory.SlotOperationsMerge(tryCombine, info.sender));
+                if (((int) message) <= 0)
+                {
+                    Debug.LogWarning(message);
+                }
+            }
+        }
+
+        private static DateTime LasTime8 = DateTime.Now;
+        public static void ITMVHook(Inventory instance, NetEntityID toInvID, byte fromSlot, byte toSlot, uLink.NetworkMessageInfo info)
+        {
+            if (info == null || toInvID == null)
+            {
+                return;
+            }
+            
+            DateTime now = DateTime.Now;
+            DateTime then = LasTime8;
+            double diff = (now - then).TotalSeconds;
+            if (float.IsNaN(fromSlot) || float.IsInfinity(fromSlot) || fromSlot > 39
+                || float.IsNaN(toSlot) || float.IsInfinity(toSlot) || toSlot > 39)
+            {
+                if (diff > 10)
+                {
+                    Fougerite.Player player = Fougerite.Server.GetServer().FindByNetworkPlayer(info.sender);
+                    if (player != null)
+                    {
+                        Logger.LogWarning("[ITMV InvalidPacket] " + fromSlot
+                                                                  + " - " + toSlot + " - " + player.Name + " - " + player.SteamID + " - " + player.IP);
+                        Fougerite.Server.GetServer().BanPlayer(player, "Console", "Invalid ITMV Packet.");
+                    }
+                    LasTime8 = DateTime.Now;
+                }
+                return;
+            }
+            
+            InventoryItem item;
+            if (instance.collection.Get(fromSlot, out item))
+            {
+                Inventory component = toInvID.GetComponent<Inventory>();
+                Inventory.SlotOperationResult message = instance.SlotOperation(fromSlot, component, toSlot,
+                    Inventory.SlotOperationsMove(info.sender));
+                if (((int) message) <= 0)
+                {
+                    Debug.LogWarning(message);
+                }
+            }
+        }
+
+        private static DateTime LasTime9 = DateTime.Now;
+        public static void ITSMHook(Inventory instance, byte fromSlot, byte toSlot, bool tryCombine, uLink.NetworkMessageInfo info)
+        {
+            if (info == null)
+            {
+                return;
+            }
+            
+            DateTime now = DateTime.Now;
+            DateTime then = LasTime9;
+            double diff = (now - then).TotalSeconds;
+            if (float.IsNaN(fromSlot) || float.IsInfinity(fromSlot) || fromSlot > 39
+                || float.IsNaN(toSlot) || float.IsInfinity(toSlot) || toSlot > 39)
+            {
+                if (diff > 10)
+                {
+                    Fougerite.Player player = Fougerite.Server.GetServer().FindByNetworkPlayer(info.sender);
+                    if (player != null)
+                    {
+                        Logger.LogWarning("[ITSM InvalidPacket] " + fromSlot
+                                                                  + " - " + toSlot + " - " + player.Name + " - " + player.SteamID + " - " + player.IP);
+                        Fougerite.Server.GetServer().BanPlayer(player, "Console", "Invalid ITSM Packet.");
+                    }
+                    LasTime9 = DateTime.Now;
+                }
+                return;
+            }
+            
+            InventoryItem item;
+            if (instance.collection.Get(fromSlot, out item))
+            {
+                Inventory.SlotOperationResult message = instance.SlotOperation(fromSlot, toSlot,
+                    Inventory.SlotOperationsMerge(tryCombine, info.sender));
+                if (((int) message) <= 0)
+                {
+                    Debug.LogWarning(message);
+                }
+            }
+        }
+        
+        private static DateTime LasTime10 = DateTime.Now;
+        public static void SVUCHook(Inventory instance, byte cell, uLink.NetworkMessageInfo info)
+        {
+            if (info == null)
+            {
+                return;
+            }
+            
+            DateTime now = DateTime.Now;
+            DateTime then = LasTime10;
+            double diff = (now - then).TotalSeconds;
+            if (float.IsNaN(cell) || float.IsInfinity(cell) || cell > 39)
+            {
+                if (diff > 10)
+                {
+                    Fougerite.Player player = Fougerite.Server.GetServer().FindByNetworkPlayer(info.sender);
+                    if (player != null)
+                    {
+                        Logger.LogWarning("[SVUC InvalidPacket] " + cell
+                                                                   + " - " + player.Name + " - " + player.SteamID + " - " + player.IP);
+                        Fougerite.Server.GetServer().BanPlayer(player, "Console", "Invalid SVUC Packet.");
+                    }
+                    LasTime10 = DateTime.Now;
+                }
+                return;
+            }
+
+            if (instance.IsAnAuthorizedLooter(info.sender, true, "reqinvcellupdate"))
+            {
+                instance.MarkSlotDirty(cell);
+            }
+        }
+
+        
+        public static void CRFSHook(CraftingInventory instance, int amount, int blueprintUID, uLink.NetworkMessageInfo info)
+        {
+            if (info == null)
+            {
+                return;
+            }
+            
+            if (info.sender != instance.networkViewOwner)
+            {
+                return;
+            }
+
+            if (float.IsNaN(amount) || float.IsNaN(blueprintUID) || float.IsInfinity(amount) || float.IsInfinity(blueprintUID))
+            {
+                return;
+            }
+            
+            if (float.IsNaN(info.timestampInMillis) || float.IsInfinity(info.timestampInMillis))
+            {
+                return;
+            }
+
+            BlueprintDataBlock bd = CraftingInventory.FindBlueprint(blueprintUID);
+            if (bd != null)
+            {
+                instance.StartCrafting(bd, amount, info.timestampInMillis);
+            }
         }
 
         public delegate void BlueprintUseHandlerDelegate(Fougerite.Player player, BPUseEvent ae);
