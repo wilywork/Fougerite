@@ -26,7 +26,9 @@ namespace Fougerite
         public void LookForRustPP()
         {
             if (HRustPP) { return; }
+            #pragma warning disable 618
             foreach (ModuleContainer m in ModuleManager.Modules.Where(m => m.Plugin.Name.Equals("RustPP")))
+            #pragma warning restore 618
             {
                 HRustPP = true;
                 break;

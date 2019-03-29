@@ -246,6 +246,10 @@ namespace Fougerite
         /// This delegate runs when a supply signal explodes at a position.
         /// </summary>
         public static event SupplySignalDelegate OnSupplySignalExpode;
+        /// <summary>
+        /// This delegate runs when a belt slot is used.
+        /// </summary>
+        public static event BeltUseDelegate OnBeltUse;
 
         /// <summary>
         /// This value returns if the server is shutting down.
@@ -2419,7 +2423,7 @@ namespace Fougerite
                 float.IsNaN(origin.y) || float.IsInfinity(origin.y) ||
                 float.IsNaN(origin.z) || float.IsInfinity(origin.z))
             {
-                Fougerite.Player player = Fougerite.Server.GetServer().FindPlayer(hc.netUser.userID);
+                Fougerite.Player player = Fougerite.Server.GetServer().FindByNetworkPlayer(info.sender);
                 if (player == null)
                 {
                     // Should never happen but just to be sure.
@@ -2428,16 +2432,19 @@ namespace Fougerite
                     {
                         hc.netUser.Kick(NetError.NoError, true);
                     }
-                    return;
                 }
-                Logger.LogWarning("[TeleportHack] " + player.Name + " sent invalid packets. " + hc.netUser.userID);
-                Server.GetServer().Broadcast(player.Name + " might have tried to teleport with hacks.");
-                if (Fougerite.Bootstrap.BI)
+                else
                 {
-                    Fougerite.Server.GetServer().BanPlayer(player, "Console", "TeleportHack");
-                    return;
+                    Logger.LogWarning("[TeleportHack] " + player.Name + " sent invalid packets. " + player.SteamID);
+                    Server.GetServer().Broadcast(player.Name + " might have tried to teleport with hacks.");
+                    if (Fougerite.Bootstrap.BI)
+                    {
+                        Fougerite.Server.GetServer().BanPlayer(player, "Console", "TeleportHack");
+                        return;
+                    }
+                    player.Disconnect();
                 }
-                player.Disconnect();
+
                 return;
             }
             var data = stateFlags = (ushort)(stateFlags & -24577);
@@ -3247,11 +3254,31 @@ namespace Fougerite
 
                 PlayerInventory inventory;
                 IInventoryItem item;
-                if ((!holder.dead && (holder.GetPlayerInventory(out inventory) &&
-                                      holder.ValidateAntiBeltSpam(NetCull.timeInMillis))) &&
+                BeltUseEvent be = new BeltUseEvent(holder, beltNum);
+                try
+                {
+                    if (OnBeltUse != null)
+                    {
+                        OnBeltUse(be);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError("BeltUseEvent Error: " + ex);
+                }
+
+                if (be.Cancelled)
+                {
+                    return;
+                }
+                
+                if ((!holder.dead && (holder.GetPlayerInventory(out inventory))) &&
                     inventory.GetItem(30 + beltNum, out item))
                 {
-                    item.OnBeltUse();
+                    if (be.Bypassed || holder.ValidateAntiBeltSpam(NetCull.timeInMillis))
+                    {
+                        item.OnBeltUse();
+                    }
                 }
             }
             catch (Exception ex)
@@ -3620,7 +3647,9 @@ namespace Fougerite
                     StructureComponent component2 = NetCull.InstantiateStatic(instance.structureToPlaceName, position, rotation).GetComponent<StructureComponent>();
                     if (component2 != null)
                     {
+                        #pragma warning disable 618
                         component.AddStructureComponent(component2);
+                        #pragma warning restore 618
                         int count = 1;
                         Hooks.EntityDeployed(component2, ref info);
                         if (item.Consume(ref count))
@@ -3828,6 +3857,9 @@ namespace Fougerite
             {
             };
             OnSupplySignalExpode = delegate (SupplySignalExplosionEvent param0)
+            {
+            };
+            OnBeltUse = delegate (BeltUseEvent param0)
             {
             };
             foreach (Fougerite.Player player in Fougerite.Server.GetServer().Players)
@@ -4614,6 +4646,7 @@ namespace Fougerite
         public delegate void ServerLoadedDelegate();
         public delegate void SupplySignalDelegate(SupplySignalExplosionEvent supplySignalExplosionEvent);
         public delegate void AllPluginsLoadedDelegate();
+        public delegate void BeltUseDelegate(BeltUseEvent beltUseEvent);
 
         //public delegate void AirdropCrateDroppedDelegate(GameObject go);
     }

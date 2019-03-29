@@ -18,6 +18,7 @@
           <e p="EntityItem.cs" t="Include" />
           <e p="Events" t="Include">
             <e p="BanEvent.cs" t="Include" />
+            <e p="BeltUseEvent.cs" t="Include" />
             <e p="BowShootEvent.cs" t="Include" />
             <e p="BPUseEvent.cs" t="Include" />
             <e p="CraftingEvent.cs" t="Include" />

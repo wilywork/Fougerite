@@ -193,11 +193,13 @@ namespace Fougerite.PluginLoaders
                     PluginLoader.GetInstance().Plugins.Remove(name);
                 }
 
+                #pragma warning disable 618
                 foreach (var x in ModuleManager.Plugins)
                 {
                     if (x.Plugin == csPlugin.Engine)
                     {
                         ModuleManager.Modules.Remove(x);
+                        #pragma warning restore 618
                         break;
                     }
                 }
@@ -214,7 +216,9 @@ namespace Fougerite.PluginLoaders
 
         public void UnloadPlugins()
         {
+            #pragma warning disable 618
             ModuleManager.Modules.Clear();
+            #pragma warning restore 618
             foreach (string name in PluginLoader.GetInstance().Plugins.Keys)
                 UnloadPlugin(name);
         }

@@ -885,5 +885,10 @@ namespace Fougerite.PluginLoaders
         {
             this.Invoke("On_PlayerMove", new object[] {hc, v, p, p2, networkMessageInfo, action});
         }
+
+        public void OnBeltUse(BeltUseEvent ev)
+        {
+            this.Invoke("On_BeltUse", new object[] {ev});
+        }
     }
 }
