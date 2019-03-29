@@ -68,7 +68,9 @@ namespace Fougerite.PluginLoaders
                     .SetParameter("Web", new Fougerite.Web())
                     .SetParameter("Util", Util.GetUtil())
                     .SetParameter("World", World.GetWorld())
+                    #pragma warning disable 618
                     .SetParameter("PluginCollector", GlobalPluginCollector.GetPluginCollector())
+                    #pragma warning restore 618
                     .SetParameter("Loom", Fougerite.Loom.Current)
                     .SetParameter("JSON", Fougerite.JsonAPI.GetInstance)
                     .SetParameter("MySQL", Fougerite.MySQLConnector.GetInstance)

@@ -65,7 +65,8 @@
             "On_GenericSpawnLoad",
             "On_ServerLoaded",
             "On_SupplySignalExploded",
-            "On_PlayerMove"
+            "On_PlayerMove",
+            "On_BeltUse"
         };
 
         public void Initialize()
@@ -325,6 +326,9 @@
                                 Hooks.OnPlayerMove += new Hooks.PlayerMoveDelegate(plugin.OnPlayerMove);
                             }
                             break;
+                        case "On_BeltUse":
+                            Hooks.OnBeltUse += new Hooks.BeltUseDelegate(plugin.OnBeltUse);
+                            break;
                     }
                 }
             }
@@ -489,6 +493,9 @@
                             {
                                 Hooks.OnPlayerMove -= new Hooks.PlayerMoveDelegate(plugin.OnPlayerMove);
                             }
+                            break;
+                        case "On_BeltUse":
+                            Hooks.OnBeltUse -= new Hooks.BeltUseDelegate(plugin.OnBeltUse);
                             break;
                     }
                 }

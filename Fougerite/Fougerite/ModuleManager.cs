@@ -100,8 +100,10 @@ namespace Fougerite
                         {
                             ModuleContainer Container = new ModuleContainer(PluginInstance);
                             Container.Plugin.ModuleFolder = Path.Combine(PublicFolder, Config.GetValue("Modules", DirInfo.Name).TrimStart(new char[]{'\\','/'}).Trim());
+                            #pragma warning disable 618
                             Modules.Add(Container);
                             GlobalPluginCollector.GetPluginCollector().AddPlugin(Container.Plugin.Name, Container, "C#");
+                            #pragma warning restore 618
                             Logger.LogDebug("[Modules] Module added: " + FileInfo.Name);
                             break;
                         }
@@ -115,7 +117,9 @@ namespace Fougerite
             }
 
             IOrderedEnumerable<ModuleContainer> OrderedModuleSelector =
+                #pragma warning disable 618
                 from x in Plugins
+                #pragma warning restore 618
                 orderby x.Plugin.Order, x.Plugin.Name
                 select x;
 
@@ -141,7 +145,9 @@ namespace Fougerite
 
         internal static void UnloadModules()
         {
+            #pragma warning disable 618
             foreach (ModuleContainer ModuleContainer in Modules)
+            #pragma warning restore 618
             {
                 try
                 {
@@ -154,7 +160,9 @@ namespace Fougerite
                 }
             }
 
+            #pragma warning disable 618
             foreach (ModuleContainer ModuleContainer in Modules)
+            #pragma warning restore 618
             {
                 try
                 {
@@ -166,7 +174,9 @@ namespace Fougerite
                         "[Modules] Module \"{0}\" has thrown an exception while being disposed:\n{1}", ModuleContainer.Plugin.Name, ex));
                 }
             }
+            #pragma warning disable 618
             Modules.Clear();
+            #pragma warning restore 618
             Logger.LogDebug("All modules unloaded!");
         }
 

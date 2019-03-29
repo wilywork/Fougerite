@@ -117,7 +117,9 @@ namespace Fougerite.PluginLoaders
                     if (PluginInstance != null)
                     {
                         ModuleContainer Container = new ModuleContainer(PluginInstance);
+                        #pragma warning disable 618
                         ModuleManager.Modules.Add(Container);
+                        #pragma warning restore 618
                         Engine = PluginInstance;
                         Logger.LogDebug("[Modules] Module added: " + FileInfo.Name);
                         Globals = (from method in Type.GetMethods()

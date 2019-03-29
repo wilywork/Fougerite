@@ -102,7 +102,9 @@ namespace Fougerite.PluginLoaders
             Scope.SetVariable("Web", new Fougerite.Web());
             Scope.SetVariable("Util", Util.GetUtil());
             Scope.SetVariable("World", World.GetWorld());
+            #pragma warning disable 618
             Scope.SetVariable("PluginCollector", GlobalPluginCollector.GetPluginCollector());
+            #pragma warning restore 618
             Scope.SetVariable("Loom", Fougerite.Loom.Current);
             Scope.SetVariable("JSON", Fougerite.JsonAPI.GetInstance);
             Scope.SetVariable("MySQL", Fougerite.MySQLConnector.GetInstance);
