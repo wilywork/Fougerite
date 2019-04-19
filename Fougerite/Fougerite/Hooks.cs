@@ -4055,9 +4055,17 @@ namespace Fougerite
             if (sw.Elapsed.TotalSeconds > 0) Logger.LogSpeed("MicUseEvent Speed: " + Math.Round(sw.Elapsed.TotalSeconds) + " secs");
         }
 
+        private static DateTime LasTime11 = DateTime.Now;
         public static void FallDamageCheck(FallDamage fd, float v)
         {
-            Logger.LogWarning("[Legbreak RPC] Bypassed a legbreak RPC possibly sent by a hacker. Value: " + v);
+            DateTime now = DateTime.Now;
+            DateTime then = LasTime11;
+            double diff = (now - then).TotalSeconds;
+            if (diff > 10)
+            {
+                Logger.LogWarning("[Legbreak RPC] Bypassed a legbreak RPC possibly sent by a hacker. Value: " + v);
+                LasTime11 = DateTime.Now;
+            }
             //fd.SetLegInjury(v);
         }
 
@@ -4593,6 +4601,86 @@ namespace Fougerite
             {
                 instance.StartCrafting(bd, amount, info.timestampInMillis);
             }
+        }
+        
+        private static NGC.Procedure Message(NGC instance, byte[] data, int offset, int length, uLink.NetworkMessageInfo info)
+        {
+            try
+            {
+                int num4;
+                byte[] buffer;
+                int startIndex = offset;
+                int num2 = BitConverter.ToInt32(data, startIndex);
+                startIndex += 4;
+                int num3 = offset + length;
+                if (startIndex == num3)
+                {
+                    buffer = null;
+                    num4 = 0;
+                }
+                else
+                {
+                    num4 = num3 - startIndex;
+                    buffer = new byte[num4];
+                    int num5 = 0;
+                    do
+                    {
+                        byte val = data[startIndex++];
+                        buffer[num5++] = val;
+                    } while (startIndex < num3);
+                }
+
+                return instance.Message(num2, buffer, num4, info);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("Caught an NGC Error: " + ex);
+                // ignore
+            }
+
+            return null;
+        }
+        
+        public static void CHook(NGC instance, byte[] data, uLink.NetworkMessageInfo info)
+        {
+            if (data.Length > 30000)
+            {
+                Array.Clear(data, 0, data.Length);
+                Logger.LogError("CHook Received: " + data.Length);
+                return;
+            }
+            
+            NGC.Procedure procedure = Message(instance, data, 0, data.Length, info);
+            if (procedure != null && !procedure.Call())
+            {
+                if (procedure.view != null)
+                {
+                    Logger.LogWarning("Did not call rpc " + procedure.view.prefab.installation.methods[procedure.message].method.Name + " for view " + procedure.view.name + " (entid:{procedure.view.id},msg:{procedure.message})", instance);
+                }
+                else if (NGC.log_nonexistant_ngc_errors)
+                {
+                    Logger.LogWarning($"Did not call rpc to non existant view# {procedure.target}. ( message id was {procedure.message} )", instance);
+                }
+            }
+        }
+
+        public static bool AHook(NGC instance, byte[] data, uLink.NetworkMessageInfo info)
+        {
+            if (data.Length > 30000)
+            {
+                Array.Clear(data, 0, data.Length);
+                Logger.LogError("AHook Received: " + data.Length);
+                return false;
+            }
+
+            if (info.sender != uLink.NetworkPlayer.server)
+            {
+                Array.Clear(data, 0, data.Length);
+                Logger.LogError("AHook Received: " + data.Length + " Not server.");
+                return false;
+            }
+
+            return true;
         }
 
         public delegate void BlueprintUseHandlerDelegate(Fougerite.Player player, BPUseEvent ae);

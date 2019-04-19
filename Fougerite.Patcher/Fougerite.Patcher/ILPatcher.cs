@@ -1997,6 +1997,43 @@ namespace Fougerite.Patcher
             iLProcessor6.Body.Instructions.Add(Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(TorchDoAction1)));
             iLProcessor6.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
         }
+
+        private void NGCPatch()
+        {
+            TypeDefinition NGC = rustAssembly.MainModule.GetType("NGC");
+            TypeDefinition NGCView = rustAssembly.MainModule.GetType("NGCView");
+            NGCView.GetMethod("PostInstantiate").SetPublic(true);
+            foreach (var x in NGC.Fields)
+            {
+                x.SetPublic(true);
+            }
+            foreach (var x in NGC.Methods)
+            {
+                x.SetPublic(true);
+            }
+            
+            MethodDefinition AHook = hooksClass.GetMethod("AHook");
+            MethodDefinition CHook = hooksClass.GetMethod("CHook");
+            
+            MethodDefinition A = NGC.GetMethod("A");
+            MethodDefinition C = NGC.GetMethod("C");
+            
+            ILProcessor iLProcessor = A.Body.GetILProcessor();
+            iLProcessor.InsertBefore(iLProcessor.Body.Instructions[0], Instruction.Create(OpCodes.Ret));
+            iLProcessor.InsertBefore(iLProcessor.Body.Instructions[0], Instruction.Create(OpCodes.Brtrue_S, iLProcessor.Body.Instructions[1]));
+            iLProcessor.InsertBefore(iLProcessor.Body.Instructions[0], Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(AHook)));
+            iLProcessor.InsertBefore(iLProcessor.Body.Instructions[0], Instruction.Create(OpCodes.Ldarg_2)); 
+            iLProcessor.InsertBefore(iLProcessor.Body.Instructions[0], Instruction.Create(OpCodes.Ldarg_1)); 
+            iLProcessor.InsertBefore(iLProcessor.Body.Instructions[0], Instruction.Create(OpCodes.Ldarg_0)); 
+            
+            ILProcessor iLProcessor6 = C.Body.GetILProcessor();
+            iLProcessor6.Body.Instructions.Clear();
+            iLProcessor6.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            iLProcessor6.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
+            iLProcessor6.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
+            iLProcessor6.Body.Instructions.Add(Instruction.Create(OpCodes.Call, rustAssembly.MainModule.Import(CHook)));
+            iLProcessor6.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+        }
         
         // uLink Class56.method_36 has been patched here: https://i.imgur.com/WIEQXhX.png
         // I modified using dynspy to avoid the struggle.
@@ -2134,6 +2171,7 @@ namespace Fougerite.Patcher
                     this.TossPatch();
                     this.ItemRepresentation();
                     this.DoAction1Patch();
+                    this.NGCPatch();
                 }
                 catch (Exception ex)
                 {

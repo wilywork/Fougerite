@@ -44,6 +44,7 @@
   </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
+    <Compile Include="Fougerite\CTimer.cs" />
     <Compile Include="Fougerite\Events\BanEvent.cs" />
     <Compile Include="Fougerite\Events\BeltUseEvent.cs" />
     <Compile Include="Fougerite\Events\BowShootEvent.cs" />

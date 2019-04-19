@@ -14,7 +14,7 @@ namespace Fougerite
         /// <summary>
         /// Returns the Current Fougerite Version
         /// </summary>
-        public const string Version = "1.7.5";
+        public const string Version = "1.7.6";
         /// <summary>
         /// This value decides wheather we should remove the player classes from the cache upon disconnect.
         /// </summary>
@@ -58,6 +58,7 @@ namespace Fougerite
         
         internal static readonly Thread CurrentThread = Thread.CurrentThread;
         private static readonly FileSystemWatcher IgnoredWatcher = new FileSystemWatcher(Path.Combine(Util.GetRootFolder(), "Save"), "IgnoredPlugins.txt");
+        private static GameObject _timergo;
 
         public static void AttachBootstrap()
         {
@@ -255,11 +256,16 @@ namespace Fougerite
             string FougeriteDirectoryConfig = Path.Combine(Util.GetServerFolder(), "FougeriteDirectory.cfg");
             Config.Init(FougeriteDirectoryConfig);
             Logger.Init();
+            _timergo = new GameObject();
+            _timergo.AddComponent<CTimerHandler>();
+            UnityEngine.Object.DontDestroyOnLoad(_timergo);
+            CTimer.StartWatching();
 
             Rust.Steam.Server.SetModded();
             Rust.Steam.Server.Official = false;
 
-            if (ApplyOptions()) {
+            if (ApplyOptions()) 
+            {
                 //ModuleManager.LoadModules();
                 LuaPluginLoader.GetInstance();
                 CSharpPluginLoader.GetInstance();
