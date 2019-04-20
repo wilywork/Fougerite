@@ -2388,7 +2388,18 @@ namespace Fougerite
                 else
                 {
                     PlayerApprovalEvent ape = new PlayerApprovalEvent(ca, approval, clientConnection, false);
-                    if (OnPlayerApproval != null) { OnPlayerApproval(ape); }
+                    try
+                    {
+                        if (OnPlayerApproval != null)
+                        {
+                            OnPlayerApproval(ape);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError("PlayerApprovalEvent2 Error: " + ex);
+                    }
+
                     Accept(ca, approval, clientConnection);
                 }
             }
