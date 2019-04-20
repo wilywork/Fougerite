@@ -921,8 +921,7 @@ namespace Fougerite
                 {
                     if (Fougerite.Server.GetServer().GetRustPPAPI().IsAdmin(this.UID))
                     {
-                        return Fougerite.Server.GetServer().GetRustPPAPI().GetAdmin(this.UID)
-                            .HasPermission("Moderator");
+                        return Server.GetServer().GetRustPPAPI().HasPermission(this.UID, "Moderator"); 
                     }
                 }
 

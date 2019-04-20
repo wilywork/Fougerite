@@ -1,5 +1,6 @@
 ﻿
 using Fougerite.Events;
+using Fougerite.PluginLoaders;
 
 namespace Fougerite
 {
@@ -26,12 +27,10 @@ namespace Fougerite
         public void LookForRustPP()
         {
             if (HRustPP) { return; }
-            #pragma warning disable 618
-            foreach (ModuleContainer m in ModuleManager.Modules.Where(m => m.Plugin.Name.Equals("RustPP")))
-            #pragma warning restore 618
+
+            if (PluginLoader.GetInstance().Plugins.ContainsKey("RustPP"))
             {
                 HRustPP = true;
-                break;
             }
         }
 
