@@ -13,13 +13,20 @@ namespace Fougerite.Events
         private readonly ClientConnection _cc;
         private readonly bool _deny;
         private bool _ForceAccept = false;
+        private readonly ulong _steamid;
+        private readonly string _name;
+        private readonly string _ip;
 
-        public PlayerApprovalEvent(ConnectionAcceptor ca, NetworkPlayerApproval approval, ClientConnection cc, bool AboutToDeny)
+        public PlayerApprovalEvent(ConnectionAcceptor ca, NetworkPlayerApproval approval, ClientConnection cc, 
+            bool AboutToDeny, ulong steamid, string ip, string name)
         {
             this._ca = ca;
             this._cc = cc;
             this._approval = approval;
             this._deny = AboutToDeny;
+            this._steamid = steamid;
+            this._ip = ip;
+            this._name = name;
         }
 
         /// <summary>
@@ -77,6 +84,30 @@ namespace Fougerite.Events
                 }
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Returns the UID.
+        /// </summary>
+        public ulong SteamID
+        {
+            get { return _steamid; }
+        }
+
+        /// <summary>
+        /// Returns the playername.
+        /// </summary>
+        public string Name
+        {
+            get { return _name; }
+        }
+
+        /// <summary>
+        /// Returns the IP Address.
+        /// </summary>
+        public string IP
+        {
+            get { return _ip; }
         }
     }
 }

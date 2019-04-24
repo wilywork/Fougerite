@@ -2355,9 +2355,9 @@ namespace Fougerite
                         + " - " + ip + " - " + uid);
                     approval.Deny(uLink.NetworkConnectionError.ConnectionBanned);
                 }
-                else if (ca.IsConnected(clientConnection.UserID))
+                else if (ca.IsConnected(uid))
                 {
-                    PlayerApprovalEvent ape = new PlayerApprovalEvent(ca, approval, clientConnection, true);
+                    PlayerApprovalEvent ape = new PlayerApprovalEvent(ca, approval, clientConnection, true, uid, ip, name);
                     try
                     {
                         if (OnPlayerApproval != null)
@@ -2371,9 +2371,9 @@ namespace Fougerite
                     }
                     if (ape.ForceAccept)
                     {
-                        if (Fougerite.Server.Cache.ContainsKey(clientConnection.UserID) && !ape.ServerHasPlayer)
+                        if (Fougerite.Server.Cache.ContainsKey(uid) && !ape.ServerHasPlayer)
                         {
-                            Fougerite.Server.Cache[clientConnection.UserID].Disconnect();
+                            Fougerite.Server.Cache[uid].Disconnect();
                         }
                         Accept(ca, approval, clientConnection);
                         return;
@@ -2387,7 +2387,7 @@ namespace Fougerite
                 }
                 else
                 {
-                    PlayerApprovalEvent ape = new PlayerApprovalEvent(ca, approval, clientConnection, false);
+                    PlayerApprovalEvent ape = new PlayerApprovalEvent(ca, approval, clientConnection, false, uid, ip, name);
                     try
                     {
                         if (OnPlayerApproval != null)
