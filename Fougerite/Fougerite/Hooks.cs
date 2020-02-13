@@ -3637,7 +3637,8 @@ namespace Fougerite
                     }
                     if (structureToPlacePrefab.type != StructureComponent.StructureComponentType.Foundation)
                     {
-                        Debug.Log("ERROR, tried to place non foundation structure on terrain!");
+                        //Debug.Log("ERROR, tried to place non foundation structure on terrain!");
+                        return;
                     }
                     else
                     {
